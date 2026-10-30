@@ -25,16 +25,25 @@ test("GET /health answers ok", async () => {
   });
 });
 
-test("importing a PGN makes it appear in the games list", async () => {
+test("importing a PGN makes it appear in the games list; re-importing adds nothing", async () => {
   await withServer(async (base) => {
     const pgn = '[White "alice"]\n[Black "bob"]\n[Result "1-0"]\n\n1. e4 e5 1-0';
     const importRes = await fetch(`${base}/api/games/import`, { method: "POST", body: pgn });
     assert.equal(importRes.status, 200);
+    const report = (await importRes.json()) as { total: number; added: number; duplicates: number };
+    assert.equal(report.total, 1);
+    assert.equal(report.added, 1);
+    assert.equal(report.duplicates, 0);
 
     const listRes = await fetch(`${base}/api/games`);
     const games = (await listRes.json()) as Array<{ white: string; black: string }>;
     assert.equal(games.length, 1);
     assert.equal(games[0].white, "alice");
     assert.equal(games[0].black, "bob");
+
+    const again = await fetch(`${base}/api/games/import`, { method: "POST", body: pgn });
+    const againReport = (await again.json()) as { added: number; duplicates: number };
+    assert.equal(againReport.added, 0);
+    assert.equal(againReport.duplicates, 1);
   });
 });

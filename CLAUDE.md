@@ -19,8 +19,19 @@ Run from the repository root:
 
 ## Structure
 
-- `src/server/` — the Node.js server: HTTP routing (`index.ts`), SQLite storage (`db.ts`), PGN import
-  (`import.ts`), static-file serving for the built frontend (`static.ts`).
+- `src/server/` — the Node.js server: HTTP routing (`index.ts`), SQLite storage (`db.ts`), static-file
+  serving for the built frontend (`static.ts`), the engine client/lifecycle (`engineClient.ts`), running
+  one game through the engine (`runAnalysis.ts`).
+  - `analysis/` — the move-evaluation pipeline (docs/02-ANALYSIS-SPEC.md): Win%/accuracy, classification,
+    tactic tags, phases, the opening book, the evaluation cache, text/sentence building, and the
+    per-move/per-game orchestrator (`game.ts`).
+  - `engine/` — the UCI protocol: parsing/reducing engine output (`uci.ts`) and driving the engine
+    process (`engine.ts`).
+  - `import/` — the PGN import pipeline (docs/03-IMPORT-SPEC.md): splitting text into games and reading
+    tags (`pgnText.ts`), the lenient movetext tokenizer (`movetext.ts`), start-position/legality replay
+    (`replay.ts`), header interpretation (`dateTime.ts`, `players.ts`, `timeClass.ts`, `termination.ts`),
+    identity/opening classification (`identity.ts`, `opening.ts`), and the per-game/report assembly
+    (`parseGame.ts`, `report.ts`).
 - `src/web/` — the Svelte + Vite frontend (`App.svelte`, `main.ts`, `index.html`). Built into `dist/web`,
   which the server serves as a single-page app (unknown paths fall back to `index.html`).
 - `tests/server/` — tests for the server, run with Node's own test runner.

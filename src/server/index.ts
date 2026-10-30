@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
-import { openDb, insertGame, listGames } from "./db.ts";
-import { parseGame } from "./import.ts";
+import { openDb, insertGames, listGames } from "./db.ts";
+import { splitIntoGames } from "./import/pgnText.ts";
+import { importGames } from "./import/report.ts";
 import { serveStatic } from "./static.ts";
 import { runAnalysis } from "./runAnalysis.ts";
 import { getEngine, shutdownEngine } from "./engineClient.ts";
@@ -34,11 +35,14 @@ export const server = createServer(async (req, res) => {
   }
 
   if (req.url === "/api/games/import" && req.method === "POST") {
-    const pgn = await readBody(req);
-    const game = parseGame(pgn, Date.now());
-    insertGame(db, game);
+    const text = await readBody(req);
+    const gameTexts = splitIntoGames(text);
+    // TODO once Settings (section 6) exists: read the saved usernames instead of an empty list.
+    const alreadyStored = new Set(listGames(db).map((g) => g.id));
+    const { summary, newGames } = importGames(gameTexts, "paste", [], Date.now(), alreadyStored);
+    insertGames(db, newGames);
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ added: [game.id] }));
+    res.end(JSON.stringify({ ...summary, queued: 0 }));
     return;
   }
 

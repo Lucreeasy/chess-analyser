@@ -2,15 +2,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import Database from "better-sqlite3";
 import type { EngineLineWithPv } from "./analysis/tacticTags.ts";
-
-export interface Game {
-  id: string;
-  white: string;
-  black: string;
-  result: string;
-  pgn: string;
-  importedAt: number;
-}
+import type { StoredGame } from "./import/parseGame.ts";
 
 export function openDb(path: string): Database.Database {
   mkdirSync(dirname(path), { recursive: true });
@@ -19,11 +11,8 @@ export function openDb(path: string): Database.Database {
   db.exec(`
     create table if not exists games (
       id text primary key,
-      white text not null,
-      black text not null,
-      result text not null,
-      pgn text not null,
-      imported_at integer not null
+      played_at integer not null,
+      data_json text not null
     );
     create table if not exists eval_cache (
       epd text not null,
@@ -37,11 +26,18 @@ export function openDb(path: string): Database.Database {
   return db;
 }
 
-export function insertGame(db: Database.Database, game: Game): void {
-  db.prepare(
-    `insert or ignore into games (id, white, black, result, pgn, imported_at)
-     values (@id, @white, @black, @result, @pgn, @importedAt)`,
-  ).run(game);
+/** Stores new games in one atomic write (section 2.13/2.17); first write wins per id. */
+export function insertGames(db: Database.Database, games: StoredGame[]): void {
+  const insert = db.prepare(`insert or ignore into games (id, played_at, data_json) values (?, ?, ?)`);
+  const insertAll = db.transaction((toInsert: StoredGame[]) => {
+    for (const game of toInsert) insert.run(game.id, game.playedAt, JSON.stringify(game));
+  });
+  insertAll(games);
+}
+
+export function listGames(db: Database.Database): StoredGame[] {
+  const rows = db.prepare(`select data_json from games order by played_at desc`).all() as { data_json: string }[];
+  return rows.map((row) => JSON.parse(row.data_json));
 }
 
 export interface CachedEval {
@@ -74,14 +70,4 @@ export function putCachedEval(
   db.prepare(
     `insert or ignore into eval_cache (epd, depth, multipv, lines_json, reached_depth) values (?, ?, ?, ?, ?)`,
   ).run(epd, depth, multipv, JSON.stringify(lines), reachedDepth);
-}
-
-export function listGames(db: Database.Database): Game[] {
-  const rows = db
-    .prepare(
-      `select id, white, black, result, pgn, imported_at as importedAt
-       from games order by imported_at desc`,
-    )
-    .all() as Game[];
-  return rows;
 }
