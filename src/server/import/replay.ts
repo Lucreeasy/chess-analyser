@@ -41,6 +41,8 @@ export interface ReplayResult {
   plyCount: number;
   /** The final position, only when the game was replayed all the way to the end. */
   finalFen?: string;
+  /** The FEN after each fully-replayed ply, for opening lookup (section 2.14). */
+  fens: string[];
   failure?: string;
 }
 
@@ -51,6 +53,7 @@ export interface ReplayResult {
  */
 export function replayGame(startFen: string, moves: MovetextToken[], fullReplay: boolean): ReplayResult {
   const chess = new Chess(startFen);
+  const fens: string[] = [];
 
   for (let i = 0; i < moves.length; i++) {
     const token = moves[i].raw;
@@ -59,21 +62,22 @@ export function replayGame(startFen: string, moves: MovetextToken[], fullReplay:
 
     if (!fullReplay && i >= BOOK_DEPTH) {
       if (!PLAUSIBLE_SHAPE.test(token)) {
-        return { plyCount: moves.length, failure: moveFailure("Illegal or unreadable", token, moveNumber, colour) };
+        return { plyCount: moves.length, fens, failure: moveFailure("Illegal or unreadable", token, moveNumber, colour) };
       }
       continue;
     }
 
     if (NULL_MOVES.has(token)) {
-      return { plyCount: moves.length, failure: moveFailure("Unsupported null", token, moveNumber, colour) };
+      return { plyCount: moves.length, fens, failure: moveFailure("Unsupported null", token, moveNumber, colour) };
     }
     try {
       chess.move(token);
     } catch {
-      return { plyCount: moves.length, failure: moveFailure("Illegal or unreadable", token, moveNumber, colour) };
+      return { plyCount: moves.length, fens, failure: moveFailure("Illegal or unreadable", token, moveNumber, colour) };
     }
+    fens.push(chess.fen());
   }
 
   const replayedToTheEnd = fullReplay || moves.length <= BOOK_DEPTH;
-  return { plyCount: moves.length, finalFen: replayedToTheEnd ? chess.fen() : undefined };
+  return { plyCount: moves.length, fens, finalFen: replayedToTheEnd ? chess.fen() : undefined };
 }
