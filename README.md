@@ -17,10 +17,12 @@ The app serves at `http://localhost:3000`. Game data lives in the `data` volume,
 or an image update.
 
 Configuration is by environment variables (all optional, with working defaults): `PORT` (default `3000`),
-`DATA_DIR` (default `/data`), `STATIC_DIR` (where the built frontend is served from).
+`DATA_DIR` (default `/data`), `STATIC_DIR` (where the built frontend is served from), `ENGINE_PATH`
+(default `/usr/local/bin/stockfish`, where the image's own build of Stockfish 18 lives), `ENGINE_THREADS`
+(default `2`), `ENGINE_HASH_MB` (default `128`).
 
-Image size: about 260 MB. Tested on `linux/amd64`; `linux/arm64` is built by CI (see the workflow once it
-exists).
+Image size: about 375 MB (most of it Stockfish's neural network file). Tested on `linux/amd64`;
+`linux/arm64` is built by CI (see the workflow once it exists).
 
 **Podman note:** if `docker compose build` prints a warning that `HEALTHCHECK is not supported for OCI
 image format`, Podman is building in OCI format by default. Either set
