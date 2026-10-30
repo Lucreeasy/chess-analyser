@@ -1,10 +1,12 @@
 import { createServer } from "node:http";
 import { openDb, insertGame, listGames } from "./db.ts";
 import { parseGame } from "./import.ts";
+import { serveStatic } from "./static.ts";
 
 const port = Number(process.env.PORT) || 3000;
 const dbPath =
   process.env.NODE_ENV === "test" ? ":memory:" : `${process.env.DATA_DIR || "data"}/games.db`;
+const staticRoot = process.env.STATIC_DIR || "dist/web";
 
 export const db = openDb(dbPath);
 
@@ -36,8 +38,13 @@ export const server = createServer(async (req, res) => {
     return;
   }
 
-  res.writeHead(404, { "content-type": "application/json" });
-  res.end(JSON.stringify({ error: "not found" }));
+  if (req.url?.startsWith("/api/")) {
+    res.writeHead(404, { "content-type": "application/json" });
+    res.end(JSON.stringify({ error: "not found" }));
+    return;
+  }
+
+  await serveStatic(staticRoot, req, res);
 });
 
 if (process.env.NODE_ENV !== "test") {
