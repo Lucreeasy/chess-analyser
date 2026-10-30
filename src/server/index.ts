@@ -2,6 +2,10 @@ import { createServer } from "node:http";
 import { openDb, insertGame, listGames } from "./db.ts";
 import { parseGame } from "./import.ts";
 import { serveStatic } from "./static.ts";
+import { runAnalysis } from "./runAnalysis.ts";
+import { getEngine, shutdownEngine } from "./engineClient.ts";
+
+const DEPTHS = { quick: 12, standard: 16, deep: 20 } as const;
 
 const port = Number(process.env.PORT) || 3000;
 const dbPath =
@@ -38,6 +42,23 @@ export const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.url === "/api/analyse" && req.method === "POST") {
+    const body = JSON.parse(await readBody(req)) as { pgn: string; depth?: keyof typeof DEPTHS };
+    try {
+      const engine = await getEngine();
+      const result = await runAnalysis(db, engine, body.pgn, {
+        depth: DEPTHS[body.depth ?? "standard"],
+        engineName: "Stockfish",
+      });
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify(result));
+    } catch (error) {
+      res.writeHead(503, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+    }
+    return;
+  }
+
   if (req.url?.startsWith("/api/")) {
     res.writeHead(404, { "content-type": "application/json" });
     res.end(JSON.stringify({ error: "not found" }));
@@ -58,8 +79,10 @@ if (process.env.NODE_ENV !== "test") {
   for (const signal of ["SIGTERM", "SIGINT"] as const) {
     process.on(signal, () => {
       server.close(() => {
-        db.close();
-        process.exit(0);
+        shutdownEngine().finally(() => {
+          db.close();
+          process.exit(0);
+        });
       });
     });
   }
