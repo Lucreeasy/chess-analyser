@@ -9,10 +9,12 @@
 Exact commands, copy-paste ready, run from the repository root:
 
 - Install dependencies: `[...]`
-- Start the program (development): `[...]`
+- Run the program as the Docker image: `docker compose up --build`
+- Start the program for development on the machine (without Docker): `[...]`
 - Run all tests: `[...]`
 - Lint / format / type check (if any): `[...]`
-- Build for production (if any): `[...]`
+- Build the image on its own: `docker build -t chess-analyser .`
+- Smoke test of the image (start, health, import a sample game, list games): `[...]`
 
 ## Structure
 
