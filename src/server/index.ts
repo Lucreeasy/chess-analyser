@@ -51,4 +51,16 @@ if (process.env.NODE_ENV !== "test") {
   server.listen(port, () => {
     console.log(`listening on http://localhost:${port}`);
   });
+
+  // Node does not apply the default "terminate" signal disposition when it
+  // is PID 1 (as it is inside a container), so without a handler SIGTERM is
+  // silently ignored and the container never stops cleanly (DOC-5).
+  for (const signal of ["SIGTERM", "SIGINT"] as const) {
+    process.on(signal, () => {
+      server.close(() => {
+        db.close();
+        process.exit(0);
+      });
+    });
+  }
 }

@@ -1,40 +1,56 @@
 # Instructions for Claude
 
-> This file is a placeholder. The engineer replaces it (first version in phase P1, kept accurate whenever the structure or the commands change, final in P9) with the real instructions for someone who forks this project and works on it with Claude Code. Keep it under 100 lines, concrete, and true. It must stand alone: it describes this repository only. Replace every bracketed part; delete this paragraph.
-
-[One or two sentences: what the program is.]
+A personal chess game analyser: imports chess.com games, analyses them with Stockfish, and gives a games
+library, a review screen, insights and a puzzle trainer. Single-user, self-hosted, delivered as a Docker
+image.
 
 ## Commands
 
-Exact commands, copy-paste ready, run from the repository root:
+Run from the repository root:
 
-- Install dependencies: `[...]`
+- Install dependencies: `npm install`
 - Run the program as the Docker image: `docker compose up --build`
-- Start the program for development on the machine (without Docker): `[...]`
-- Run all tests: `[...]`
-- Lint / format / type check (if any): `[...]`
+- Start the program for development on the machine (without Docker): `npm run dev`
+- Build the frontend on its own: `npm run build:web`
+- Run all tests: `npm test`
+- Type-check: `npm run typecheck`
 - Build the image on its own: `docker build -t chess-analyser .`
-- Smoke test of the image (start, health, import a sample game, list games): `[...]`
+- Smoke test of the image (start, health, import a sample game, list games): not written yet.
 
 ## Structure
 
-A map of the top-level directories and the one file to read first in each (details in `docs/ARCHITECTURE.md`):
-
-- `[dir]` – [what it holds]
+- `src/server/` — the Node.js server: HTTP routing (`index.ts`), SQLite storage (`db.ts`), PGN import
+  (`import.ts`), static-file serving for the built frontend (`static.ts`).
+- `src/web/` — the Svelte + Vite frontend (`App.svelte`, `main.ts`, `index.html`). Built into `dist/web`,
+  which the server serves as a single-page app (unknown paths fall back to `index.html`).
+- `tests/server/` — tests for the server, run with Node's own test runner.
+- `Dockerfile`, `compose.yaml` — the packaging (see `docs/ARCHITECTURE.md` once it exists for more).
 
 ## Conventions
 
-- [Language and style rules that are not obvious from the code, naming, where tests live, how test data is made.]
-- [How the chess engine is found and driven, and how tests run without it.]
+- One language, TypeScript, run directly by Node (type stripping) — no transpile step for the server, no
+  `tsx`/`ts-node`. `tsc --noEmit` is used only for type-checking.
+- Tests use `node:test` and `node:assert/strict`, one `.test.ts` file per source file under `tests/`,
+  mirroring `src/`. No test framework dependency.
+- The frontend fetches the API with **relative** URLs (e.g. `"api/games"`, not `"/api/games"`) so the app
+  keeps working when served under a URL path prefix.
+- The server is PID 1 inside the container: it registers explicit `SIGTERM`/`SIGINT` handlers that close
+  the HTTP server and the database before exiting, otherwise the process would ignore the signal and the
+  container would need to be killed.
 
 ## Domain rules that must not drift
 
-Where the formulas and rules live (Win% and accuracy, move classes and tags, insights definitions, puzzle schedule), which tests pin them, and what to do before changing one: [...]
+The exact formulas for move evaluation (Win%, accuracy, move classes, tactic tags), the insights
+definitions and the puzzle spaced-repetition schedule are pinned by the tests under `tests/`. Before
+changing any of them, find the test(s) that cover the old numbers and update them deliberately, not as a
+side effect.
 
 ## How to work on this project
 
 - Make small changes: one logical change per commit, with a message that says what and why.
-- Before adding code, look at the whole project for a simpler way: reuse what exists, delete or merge before adding, prefer the standard library and platform over a new dependency.
-- Run what you build; for UI changes, look at the result on a phone-sized and a desktop-sized screen, light and dark.
+- Before adding code, look at the whole project for a simpler way: reuse what exists, delete or merge
+  before adding, prefer the standard library and platform over a new dependency.
+- Run what you build; for UI changes, look at the result on a phone-sized and a desktop-sized screen,
+  light and dark.
 - Keep `README.md`, `docs/ARCHITECTURE.md` and this file in step with the code.
 - Record decisions that shape the project in `docs/DECISIONS.md`.
