@@ -1,0 +1,84 @@
+/**
+ * Move classification. docs/02-ANALYSIS-SPEC.md section 8. The ten classes,
+ * decided by the first matching rule in precedence order (8.2). All
+ * comparisons use the 1e-9 tolerance of section 1.7.
+ */
+
+export type MoveClass =
+  | "book"
+  | "brilliant"
+  | "great"
+  | "best"
+  | "excellent"
+  | "good"
+  | "inaccuracy"
+  | "mistake"
+  | "miss"
+  | "blunder";
+
+export interface ClassificationInput {
+  playedUci: string;
+  /** First move of the best line of the position before; undefined if the engine move is unknown. */
+  engineUci?: string;
+  epBefore: number;
+  epAfter: number;
+  /** Section 4, raw (not tolerance-adjusted). */
+  epLoss: number;
+  /** Mover-POV EP of line 2 of the position before; absent when there is no second line. */
+  epOfLine2?: number;
+  /** Section 7, rule 3. */
+  isBook: boolean;
+  /** The class of the previous ply, only when it exists and was played by the other colour. */
+  previousOpponentClass?: MoveClass;
+  isRecapture: boolean;
+  isPromotion: boolean;
+  /** Section 8.4; only evaluated by the caller when it can affect the result. */
+  isSacrifice: boolean;
+}
+
+const TOLERANCE = 1e-9;
+const geq = (a: number, b: number) => a >= b - TOLERANCE;
+const leq = (a: number, b: number) => a <= b + TOLERANCE;
+const gt = (a: number, b: number) => a > b + TOLERANCE;
+const lt = (a: number, b: number) => a < b - TOLERANCE;
+
+export function classifyMove(input: ClassificationInput): MoveClass {
+  if (input.isBook) return "book";
+
+  const isEngineMove = input.engineUci !== undefined && input.playedUci === input.engineUci;
+
+  if (
+    !input.isRecapture &&
+    !input.isPromotion &&
+    leq(input.epLoss, 0.02) &&
+    geq(input.epAfter, 0.5) &&
+    lt(input.epBefore, 0.95) &&
+    input.isSacrifice
+  ) {
+    return "brilliant";
+  }
+
+  if (isEngineMove && input.epOfLine2 !== undefined) {
+    const gap = input.epBefore - input.epOfLine2;
+    if (geq(gap, 0.15) && gt(input.epBefore, 0.1) && lt(input.epBefore, 0.95)) return "great";
+  }
+
+  if (isEngineMove) return "best";
+
+  const previousWasError = input.previousOpponentClass === "mistake" || input.previousOpponentClass === "blunder";
+  if (
+    previousWasError &&
+    !isEngineMove &&
+    geq(input.epBefore, 0.7) &&
+    geq(input.epLoss, 0.1) &&
+    !(geq(input.epLoss, 0.2) && lt(input.epAfter, 0.5))
+  ) {
+    return "miss";
+  }
+
+  if (lt(input.epLoss, 0.02)) return "excellent";
+  if (lt(input.epLoss, 0.05)) return "good";
+  if (lt(input.epLoss, 0.1)) return "inaccuracy";
+  if (lt(input.epLoss, 0.2)) return "mistake";
+  return "blunder";
+}
