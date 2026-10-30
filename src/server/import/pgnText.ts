@@ -80,16 +80,32 @@ export function splitIntoGames(rawText: string): string[] {
 /** Reads one game's leading tag block (first occurrence of a repeated tag wins). Section 2.4. */
 export function extractTags(gameText: string): Map<string, string> {
   const tags = new Map<string, string>();
-  let isOpenComment = false;
+  for (const [tag] of walkTagBlock(gameText)) {
+    if (!tags.has(tag.name)) tags.set(tag.name, tag.value);
+  }
+  return tags;
+}
 
-  for (const line of gameText.split("\n")) {
+/** The game's text after its leading tag block (section 2.4): the raw movetext to tokenize. */
+export function movetextOf(gameText: string): string {
+  const lines = gameText.split("\n");
+  let lastTagLine = -1;
+  for (const [, index] of walkTagBlock(gameText)) lastTagLine = index;
+  return lines.slice(lastTagLine + 1).join("\n");
+}
+
+/** Yields [tag, lineIndex] for each leading tag line, stopping at the first non-blank non-tag line. */
+function* walkTagBlock(gameText: string): Generator<[Tag, number]> {
+  let isOpenComment = false;
+  const lines = gameText.split("\n");
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
     if (line.trim() === "") continue;
     const wasOpenAtStart = isOpenComment;
     isOpenComment = updateBraceState(line, isOpenComment);
 
     const tag = wasOpenAtStart ? null : parseTagLine(line);
-    if (!tag) break; // the tag block ends at the first non-blank, non-tag line
-    if (!tags.has(tag.name)) tags.set(tag.name, tag.value);
+    if (!tag) return;
+    yield [tag, index];
   }
-  return tags;
 }
