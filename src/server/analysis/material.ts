@@ -67,6 +67,22 @@ export function balanceOf(board: Board, colour: Colour): number {
   return materialOf(board, colour) - materialOf(board, opponentOf(colour));
 }
 
+/** The value of what `uci` captures from `board` (0 if nothing, 1 for an en-passant-style capture). */
+export function capturedValue(board: Board, uci: string): number {
+  const from = uci.slice(0, 2);
+  const to = uci.slice(2, 4);
+  const game = engineOf(board);
+  const mover = game.turn();
+  const target = game.get(to as never);
+  if (target) return target.color === mover ? 0 : PIECE_VALUE[target.type as PieceType];
+  const piece = game.get(from as never);
+  if (piece?.type === "p" && fileOf(to) !== fileOf(from)) {
+    const beside = game.get((to[0] + from[1]) as never);
+    if (beside && beside.type === "p" && beside.color !== mover) return 1;
+  }
+  return 0;
+}
+
 /** Pseudo-legal attackers of `square` by `colour` (section 9.2), in board order. */
 export function attackersOf(board: Board, square: string, colour: Colour): string[] {
   return (engineOf(board).attackers(square as never, colour) as string[])
