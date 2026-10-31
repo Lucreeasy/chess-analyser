@@ -52,6 +52,15 @@ export function listGames(db: Database.Database): StoredGame[] {
   return rows.map((row) => JSON.parse(row.data_json));
 }
 
+/** Overwrites already-stored games in place, keyed by id (section 6: re-deriving colour/result). */
+export function updateGames(db: Database.Database, games: StoredGame[]): void {
+  const update = db.prepare(`update games set data_json = ? where id = ?`);
+  const updateAll = db.transaction((toUpdate: StoredGame[]) => {
+    for (const game of toUpdate) update.run(JSON.stringify(game), game.id);
+  });
+  updateAll(games);
+}
+
 export interface CachedEval {
   lines: EngineLineWithPv[];
   reachedDepth: number;

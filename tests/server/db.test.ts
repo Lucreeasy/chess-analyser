@@ -1,6 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { openDb, insertGames, listGames, getStoredEtag, putStoredEtag, deleteStoredEtag, getSettings, putSettings } from "../../src/server/db.ts";
+import {
+  openDb,
+  insertGames,
+  listGames,
+  updateGames,
+  getStoredEtag,
+  putStoredEtag,
+  deleteStoredEtag,
+  getSettings,
+  putSettings,
+} from "../../src/server/db.ts";
 import type { StoredGame } from "../../src/server/import/parseGame.ts";
 import { DEFAULT_SETTINGS } from "../../src/server/settings.ts";
 
@@ -33,6 +43,16 @@ test("inserted games are listed newest-played-first; first write wins per id", (
   assert.equal(games[0].id, "b");
   assert.equal(games[1].id, "a");
   assert.equal(games[1].white, "alice"); // the first write, not the later one
+});
+
+test("updateGames overwrites an already-stored game by id", () => {
+  const db = openDb(":memory:");
+  insertGames(db, [game({ id: "a", playedAt: 1, myColour: undefined })]);
+  updateGames(db, [game({ id: "a", playedAt: 1, myColour: "w", myResult: "win" })]);
+
+  const [updated] = listGames(db);
+  assert.equal(updated.myColour, "w");
+  assert.equal(updated.myResult, "win");
 });
 
 // docs/03-IMPORT-SPEC.md section 3.6: a stored ETag is per (username, month).
