@@ -1,6 +1,6 @@
 import { withRetry, type AttemptOutcome } from "./httpRetry.ts";
 import type { RequestPacer } from "./pacer.ts";
-import { parseRetryAfter, stripBom, looksLikePgn } from "./parsing.ts";
+import { parseRetryAfter, stripBom, looksLikePgn, parseArchiveList } from "./parsing.ts";
 
 /** The chess.com HTTP client. docs/03-IMPORT-SPEC.md sections 3.3-3.4, 3.6. */
 
@@ -21,12 +21,75 @@ export function monthPgnUrl(username: string, month: string): string {
   return `${API}/pub/player/${username.trim().toLowerCase()}/games/${year}/${monthNum}/pgn`;
 }
 
+export function archiveListUrl(username: string): string {
+  return `${API}/pub/player/${username.trim().toLowerCase()}/games/archives`;
+}
+
 interface RawOutcome extends AttemptOutcome {
   body?: string;
   etag?: string;
   is304?: boolean;
   status?: number;
   errorMessage?: string;
+}
+
+/**
+ * The wording shared by both endpoints for the failure kinds that don't
+ * need endpoint-specific text (ok and not_found are handled by the
+ * caller). Undefined for kinds the caller must handle itself.
+ */
+function genericFailureMessage(outcome: RawOutcome): { status: "rate_limited" | "error"; message: string } | undefined {
+  switch (outcome.kind) {
+    case "rate_limited":
+      return {
+        status: "rate_limited",
+        message: `chess.com is rate limiting requests; retry in about ${outcome.retryAfterSeconds ?? 16} s`,
+      };
+    case "server_error":
+      return { status: "error", message: `chess.com server error (HTTP ${outcome.status})` };
+    case "other_status":
+      return { status: "error", message: `chess.com answered HTTP ${outcome.status}` };
+    case "network_error":
+      return { status: "error", message: `network error: ${outcome.errorMessage}` };
+    case "timeout":
+      return { status: "error", message: "chess.com did not answer within 30 s" };
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Runs one paced, timed-out, retry-outcome-mapped HTTP request. Both endpoints share the
+ * timeout scaffolding and the status-code ladder (404/410/429/5xx/other); only the request
+ * headers and the handling of a 200 differ, so those are passed in by the caller.
+ */
+async function attemptFetch(
+  fetchImpl: FetchLike,
+  pacer: RequestPacer,
+  url: string,
+  headers: Record<string, string>,
+  timeoutMs: number,
+  onOk: (res: HttpResponseLike) => Promise<RawOutcome>,
+): Promise<RawOutcome> {
+  return pacer.run(async (): Promise<RawOutcome> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetchImpl(url, { headers, signal: controller.signal });
+
+      if (res.status === 304) return { kind: "ok", is304: true };
+      if (res.status === 404 || res.status === 410) return { kind: "not_found" };
+      if (res.status === 429) return { kind: "rate_limited", retryAfterSeconds: parseRetryAfter(res.headers.get("retry-after")) };
+      if (res.status >= 500) return { kind: "server_error", status: res.status };
+      if (res.status !== 200) return { kind: "other_status", status: res.status };
+      return await onOk(res);
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return { kind: "timeout" };
+      return { kind: "network_error", errorMessage: error instanceof Error ? error.message : String(error) };
+    } finally {
+      clearTimeout(timer);
+    }
+  });
 }
 
 async function attemptMonthFetch(
@@ -37,28 +100,13 @@ async function attemptMonthFetch(
   ifNoneMatch: string | undefined,
   timeoutMs: number,
 ): Promise<RawOutcome> {
-  return pacer.run(async (): Promise<RawOutcome> => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const headers: Record<string, string> = { Accept: "application/x-chess-pgn, text/plain", "User-Agent": USER_AGENT };
-      if (ifNoneMatch) headers["If-None-Match"] = ifNoneMatch;
-      const res = await fetchImpl(monthPgnUrl(username, month), { headers, signal: controller.signal });
-
-      if (res.status === 304) return { kind: "ok", is304: true };
-      if (res.status === 404 || res.status === 410) return { kind: "not_found" };
-      if (res.status === 429) return { kind: "rate_limited", retryAfterSeconds: parseRetryAfter(res.headers.get("retry-after")) };
-      if (res.status >= 500) return { kind: "server_error", status: res.status };
-      if (res.status !== 200) return { kind: "other_status", status: res.status };
-      const body = await res.text();
-      return { kind: "ok", body, etag: res.headers.get("etag") ?? undefined };
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") return { kind: "timeout" };
-      return { kind: "network_error", errorMessage: error instanceof Error ? error.message : String(error) };
-    } finally {
-      clearTimeout(timer);
-    }
-  });
+  const headers: Record<string, string> = { Accept: "application/x-chess-pgn, text/plain", "User-Agent": USER_AGENT };
+  if (ifNoneMatch) headers["If-None-Match"] = ifNoneMatch;
+  return attemptFetch(fetchImpl, pacer, monthPgnUrl(username, month), headers, timeoutMs, async (res) => ({
+    kind: "ok",
+    body: await res.text(),
+    etag: res.headers.get("etag") ?? undefined,
+  }));
 }
 
 export interface MonthFetchResult {
@@ -95,28 +143,46 @@ export async function fetchMonth(
     wait,
   );
 
-  switch (outcome.kind) {
-    case "ok": {
-      if (outcome.is304) return { status: "ok", message: "unchanged since the last sync", unchanged: true };
-      const body = stripBom(outcome.body ?? "");
-      if (body.trim() === "") return { status: "ok", message: "no games" };
-      if (!looksLikePgn(body)) return { status: "error", message: "unexpected response from chess.com (not PGN)" };
-      return { status: "ok", message: "", pgn: body, etag: outcome.etag };
-    }
-    case "not_found":
-      return { status: "not_found", message: `no games for ${username} in ${month}` };
-    case "rate_limited":
-      return {
-        status: "rate_limited",
-        message: `chess.com is rate limiting requests; retry in about ${outcome.retryAfterSeconds ?? 16} s`,
-      };
-    case "server_error":
-      return { status: "error", message: `chess.com server error (HTTP ${outcome.status})` };
-    case "other_status":
-      return { status: "error", message: `chess.com answered HTTP ${outcome.status}` };
-    case "network_error":
-      return { status: "error", message: `network error: ${outcome.errorMessage}` };
-    case "timeout":
-      return { status: "error", message: "chess.com did not answer within 30 s" };
+  if (outcome.kind === "ok") {
+    if (outcome.is304) return { status: "ok", message: "unchanged since the last sync", unchanged: true };
+    const body = stripBom(outcome.body ?? "");
+    if (body.trim() === "") return { status: "ok", message: "no games" };
+    if (!looksLikePgn(body)) return { status: "error", message: "unexpected response from chess.com (not PGN)" };
+    return { status: "ok", message: "", pgn: body, etag: outcome.etag };
   }
+  if (outcome.kind === "not_found") return { status: "not_found", message: `no games for ${username} in ${month}` };
+  return genericFailureMessage(outcome)!;
+}
+
+async function attemptArchiveFetch(fetchImpl: FetchLike, pacer: RequestPacer, username: string, timeoutMs: number): Promise<RawOutcome> {
+  const headers: Record<string, string> = { Accept: "application/json", "User-Agent": USER_AGENT };
+  return attemptFetch(fetchImpl, pacer, archiveListUrl(username), headers, timeoutMs, async (res) => ({
+    kind: "ok",
+    body: await res.text(),
+  }));
+}
+
+export interface ArchiveListResult {
+  status: "ok" | "not_found" | "rate_limited" | "error";
+  message?: string;
+  months?: string[];
+}
+
+/** The months a player has archived games in, ascending. Section 3.3. */
+export async function fetchArchiveMonths(
+  fetchImpl: FetchLike,
+  pacer: RequestPacer,
+  username: string,
+  options: Omit<FetchMonthOptions, "ifNoneMatch"> = {},
+): Promise<ArchiveListResult> {
+  const { timeoutMs = TIMEOUT_MS, wait = realWait } = options;
+  const { outcome } = await withRetry(() => attemptArchiveFetch(fetchImpl, pacer, username, timeoutMs), 3, wait);
+
+  if (outcome.kind === "ok") {
+    const months = parseArchiveList(outcome.body ?? "");
+    if (months === undefined) return { status: "error", message: "unexpected response from chess.com (no archive list)" };
+    return { status: "ok", months };
+  }
+  if (outcome.kind === "not_found") return { status: "not_found", message: `chess.com user "${username}" not found` };
+  return genericFailureMessage(outcome)!;
 }

@@ -1,6 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fetchMonth, monthPgnUrl, type HttpResponseLike, type FetchMonthOptions } from "../../../src/server/chesscom/client.ts";
+import {
+  fetchMonth,
+  fetchArchiveMonths,
+  monthPgnUrl,
+  type HttpResponseLike,
+  type FetchMonthOptions,
+} from "../../../src/server/chesscom/client.ts";
 import { RequestPacer } from "../../../src/server/chesscom/pacer.ts";
 
 function response(status: number, body = "", headers: Record<string, string> = {}): HttpResponseLike {
@@ -149,4 +155,41 @@ test("a request that never answers is reported as a timeout", async () => {
   const result = await fetchMonth(fetchImpl, fastPacer(), "bc_tester", "2026-09", fastOptions());
   assert.equal(result.status, "error");
   assert.equal(result.message, "chess.com did not answer within 30 s");
+});
+
+// fetchArchiveMonths: section 3.3-3.4.
+test("fetchArchiveMonths: 200 with an archive list returns sorted, deduped months", async () => {
+  const fetchImpl = async () =>
+    response(200, JSON.stringify({ archives: ["https://api.chess.com/pub/player/bc_tester/games/2026/03"] }));
+  const result = await fetchArchiveMonths(fetchImpl, fastPacer(), "bc_tester", fastOptions());
+  assert.equal(result.status, "ok");
+  assert.deepEqual(result.months, ["2026-03"]);
+});
+
+test("fetchArchiveMonths: a player with no games gives an empty list, not an error", async () => {
+  const fetchImpl = async () => response(200, JSON.stringify({ archives: [] }));
+  const result = await fetchArchiveMonths(fetchImpl, fastPacer(), "bc_tester", fastOptions());
+  assert.equal(result.status, "ok");
+  assert.deepEqual(result.months, []);
+});
+
+test("fetchArchiveMonths: invalid JSON is the exact 'no archive list' error", async () => {
+  const fetchImpl = async () => response(200, "not json");
+  const result = await fetchArchiveMonths(fetchImpl, fastPacer(), "bc_tester", fastOptions());
+  assert.equal(result.status, "error");
+  assert.equal(result.message, "unexpected response from chess.com (no archive list)");
+});
+
+test("fetchArchiveMonths: 404 is the exact 'user not found' message", async () => {
+  const fetchImpl = async () => response(404);
+  const result = await fetchArchiveMonths(fetchImpl, fastPacer(), "bc_tester", fastOptions());
+  assert.equal(result.status, "not_found");
+  assert.equal(result.message, 'chess.com user "bc_tester" not found');
+});
+
+test("fetchArchiveMonths: 429 reuses the same rate-limit wording as fetchMonth", async () => {
+  const fetchImpl = async () => response(429);
+  const result = await fetchArchiveMonths(fetchImpl, fastPacer(), "bc_tester", fastOptions());
+  assert.equal(result.status, "rate_limited");
+  assert.equal(result.message, "chess.com is rate limiting requests; retry in about 16 s");
 });
