@@ -10,6 +10,8 @@ import {
   putStoredEtag,
   deleteStoredEtag,
   clearRunningFlags,
+  deleteGames,
+  deleteAllData,
 } from "./db.ts";
 import { splitIntoGames } from "./import/pgnText.ts";
 import { importGames } from "./import/report.ts";
@@ -29,7 +31,7 @@ import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
 import type { DepthPreset } from "./settings.ts";
 import { SEARCH_DEPTH } from "./analysisQueue/depthPresets.ts";
 import { AnalysisWorker } from "./analysisQueue/worker.ts";
-import { validateQueueRequest, unknownIdsMessage } from "./analysisQueue/requestValidation.ts";
+import { validateQueueRequest, unknownIdsMessage, validateDeleteRequest } from "./analysisQueue/requestValidation.ts";
 import { enqueueGames, unknownGameIds, autoQueueNewGames } from "./analysisQueue/queue.ts";
 import type { StoredGame } from "./import/parseGame.ts";
 
@@ -293,6 +295,35 @@ export const server = createServer(async (req, res) => {
     analysisWorker.notify();
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(analysisWorker.status()));
+    return;
+  }
+
+  if (req.url === "/api/games/delete" && req.method === "POST") {
+    let parsedBody: unknown;
+    try {
+      parsedBody = JSON.parse(await readBody(req));
+    } catch {
+      parsedBody = undefined;
+    }
+    const validated = validateDeleteRequest(parsedBody);
+    if (!validated.ok) {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: validated.message }));
+      return;
+    }
+    for (const id of validated.ids) analysisWorker.abortGame(id);
+    const deleted = deleteGames(db, validated.ids);
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ deleted }));
+    return;
+  }
+
+  if (req.url === "/api/games/delete-all" && req.method === "POST") {
+    const running = analysisWorker.status().running;
+    if (running) analysisWorker.abortGame(running.gameId);
+    deleteAllData(db);
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ ok: true }));
     return;
   }
 
