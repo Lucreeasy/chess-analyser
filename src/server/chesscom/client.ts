@@ -153,7 +153,7 @@ export async function fetchMonth(
   if (outcome.kind === "ok") {
     if (outcome.is304) return { status: "ok", message: "unchanged since the last sync", unchanged: true };
     const body = stripBom(outcome.body ?? "");
-    if (body.trim() === "") return { status: "ok", message: "no games" };
+    if (body.trim() === "") return { status: "ok", message: "no games", etag: outcome.etag };
     if (!looksLikePgn(body)) return { status: "error", message: "unexpected response from chess.com (not PGN)" };
     return { status: "ok", message: "", pgn: body, etag: outcome.etag };
   }

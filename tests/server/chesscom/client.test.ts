@@ -40,12 +40,13 @@ test("200 with games: pgn and etag are returned", async () => {
   assert.equal(result.etag, '"abc"');
 });
 
-test("200 with an empty body: 'no games', not an error", async () => {
-  const fetchImpl = async () => response(200, "   ");
+test("200 with an empty body: 'no games', not an error, but still carries an ETag", async () => {
+  const fetchImpl = async () => response(200, "   ", { etag: '"abc"' });
   const result = await fetchMonth(fetchImpl, fastPacer(), "bc_tester", "2026-09", fastOptions());
   assert.equal(result.status, "ok");
   assert.equal(result.message, "no games");
   assert.equal(result.pgn, undefined);
+  assert.equal(result.etag, '"abc"');
 });
 
 test("200 with non-PGN content (e.g. a block page): an error, not retried", async () => {
