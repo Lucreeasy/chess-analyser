@@ -3,6 +3,7 @@ import type Database from "better-sqlite3";
 import { epdOf } from "./analysis/book.ts";
 import { terminalWhiteWinPercent } from "./analysis/terminal.ts";
 import { analyseGame, type GameAnalysis, type PositionInput } from "./analysis/game.ts";
+import { winPercentOfLine } from "./analysis/winPercent.ts";
 import type { UciEngine } from "./engine/engine.ts";
 import { getCachedEval, putCachedEval } from "./db.ts";
 
@@ -13,6 +14,8 @@ export interface RunAnalysisOptions {
   depth: 12 | 16 | 20;
   engineName: string;
   myColour?: "w" | "b";
+  /** Called after each position is evaluated (section 5.6's progress/plyEval events). */
+  onPosition?: (ply: number, totalPlies: number, whiteWinPercent: number) => void;
 }
 
 /**
@@ -33,12 +36,14 @@ export async function runAnalysis(
   const fens = [history[0]?.before ?? chess.fen(), ...history.map((m) => m.after)];
   const plies = history.map((m) => ({ colour: m.color as "w" | "b", san: m.san, uci: m.lan }));
 
+  const totalPlies = fens.length - 1;
   const positions: PositionInput[] = [];
   for (let i = 0; i < fens.length; i++) {
     const fen = fens[i];
     const terminal = i === fens.length - 1 ? terminalWhiteWinPercent(fen) : undefined;
     if (terminal !== undefined) {
       positions.push({ fen, lines: [], terminalWhiteWinPercent: terminal });
+      options.onPosition?.(i, totalPlies, terminal);
       continue;
     }
 
@@ -46,6 +51,7 @@ export async function runAnalysis(
     const cached = getCachedEval(db, epd, options.depth, MULTIPV);
     if (cached) {
       positions.push({ fen, lines: cached.lines });
+      options.onPosition?.(i, totalPlies, winPercentOfLine(cached.lines[0]!));
       continue;
     }
 
@@ -58,6 +64,7 @@ export async function runAnalysis(
     if (lines.length === 0) throw new Error(`the engine returned no lines for position ${i}`);
     putCachedEval(db, epd, options.depth, MULTIPV, lines, reachedDepth);
     positions.push({ fen, lines });
+    options.onPosition?.(i, totalPlies, winPercentOfLine(lines[0]!));
   }
 
   const timeControlText = chess.header().TimeControl ?? "-";

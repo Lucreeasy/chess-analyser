@@ -23,6 +23,28 @@ test("runAnalysis replays a PGN, asks the engine for each position, and caches t
   }
 });
 
+// docs/03-IMPORT-SPEC.md section 5.6: progress/plyEval events, one per position, ply 0 = start position.
+test("onPosition is called once per position, ply 0 through plyCount", async () => {
+  const db = openDb(":memory:");
+  const engine = new UciEngine("node", [FAKE_ENGINE]);
+  await engine.start({ threads: 1, hashMb: 16 });
+  try {
+    const calls: Array<[number, number]> = [];
+    await runAnalysis(db, engine, PGN, {
+      depth: 16,
+      engineName: "FakeEngine",
+      onPosition: (ply, totalPlies) => calls.push([ply, totalPlies]),
+    });
+    assert.deepEqual(calls, [
+      [0, 2],
+      [1, 2],
+      [2, 2],
+    ]);
+  } finally {
+    await engine.quit();
+  }
+});
+
 test("a position already in the cache is used instead of asking the engine again", async () => {
   const db = openDb(":memory:");
   const engine = new UciEngine("node", [FAKE_ENGINE]);
