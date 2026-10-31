@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import { getQueueEntry, upsertQueueEntry, getAnalysis, getAnalysisError, listGames, isQueueEmpty, resetDoneCount } from "../db.ts";
+import { getQueueEntry, upsertQueueEntry, getAnalysis, getAnalysisError, listGames, isQueueEmpty, resetDoneCount, getSettings } from "../db.ts";
 import { mergeQueueValues, shouldQueue, type GameAnalysisState } from "./entryRules.ts";
 import type { DepthPreset } from "../settings.ts";
 
@@ -38,4 +38,16 @@ export function enqueueGames(db: Database.Database, gameIds: string[], depth: De
   }
   if (wasEmpty && queued > 0) resetDoneCount(db);
   return queued;
+}
+
+/**
+ * Queues newly-imported games at the saved default depth, bulk (section
+ * 5.2): every import (file, paste, chess.com month, auto-sync) that
+ * stores new games queues exactly those, only when "Analyse new games
+ * automatically" is on. Does nothing for an empty list.
+ */
+export function autoQueueNewGames(db: Database.Database, newGameIds: string[], requestedAt: number): number {
+  const settings = getSettings(db);
+  if (!settings.autoAnalyse || newGameIds.length === 0) return 0;
+  return enqueueGames(db, newGameIds, settings.depthPreset, false, false, requestedAt);
 }

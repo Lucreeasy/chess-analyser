@@ -9,10 +9,12 @@ import {
   finishAnalysis,
   recordAnalysisError,
   getQueueState,
+  putSettings,
 } from "../../../src/server/db.ts";
-import { gameAnalysisState, unknownGameIds, enqueueGames } from "../../../src/server/analysisQueue/queue.ts";
+import { gameAnalysisState, unknownGameIds, enqueueGames, autoQueueNewGames } from "../../../src/server/analysisQueue/queue.ts";
 import type { StoredGame } from "../../../src/server/import/parseGame.ts";
 import type { GameAnalysis } from "../../../src/server/analysis/game.ts";
+import { DEFAULT_SETTINGS } from "../../../src/server/settings.ts";
 
 function game(overrides: Partial<StoredGame>): StoredGame {
   return {
@@ -139,4 +141,32 @@ test("enqueueGames: nothing actually queued does not reset the done counter", ()
 
   enqueueGames(db, ["a"], "standard", false, false, 1000); // done, not forced: nothing queued
   assert.equal(getQueueState(db).done, 1);
+});
+
+// docs/03-IMPORT-SPEC.md section 5.2: every import that stores new games queues exactly those, bulk, at the default preset.
+test("autoQueueNewGames: queues at the saved default depth, not urgent, not forced", () => {
+  const db = openDb(":memory:");
+  insertGames(db, [game({ id: "a" })]);
+  putSettings(db, { ...DEFAULT_SETTINGS, autoAnalyse: true, depthPreset: "deep" });
+
+  const queued = autoQueueNewGames(db, ["a"], 1000);
+  assert.equal(queued, 1);
+  const entry = getQueueEntry(db, "a");
+  assert.equal(entry?.depth, "deep");
+  assert.equal(entry?.force, false);
+  assert.equal(entry?.urgent, false);
+});
+
+test("autoQueueNewGames: does nothing when autoAnalyse is off", () => {
+  const db = openDb(":memory:");
+  insertGames(db, [game({ id: "a" })]);
+  putSettings(db, { ...DEFAULT_SETTINGS, autoAnalyse: false });
+
+  assert.equal(autoQueueNewGames(db, ["a"], 1000), 0);
+  assert.equal(getQueueEntry(db, "a"), undefined);
+});
+
+test("autoQueueNewGames: an empty list does nothing", () => {
+  const db = openDb(":memory:");
+  assert.equal(autoQueueNewGames(db, [], 1000), 0);
 });
