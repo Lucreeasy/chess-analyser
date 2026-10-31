@@ -219,6 +219,11 @@ export function clearRunningFlags(db: Database.Database): void {
 }
 
 /** The queue in analysis order (section 5.4): urgent first, then newest game first, then request order, then id. */
+export function isQueueEmpty(db: Database.Database): boolean {
+  const row = db.prepare(`select 1 from analysis_queue limit 1`).get();
+  return row === undefined;
+}
+
 export function listQueueOrdered(db: Database.Database): QueueEntry[] {
   const rows = db
     .prepare(

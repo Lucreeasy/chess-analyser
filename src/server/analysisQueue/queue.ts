@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import { getQueueEntry, upsertQueueEntry, getAnalysis, getAnalysisError, listGames } from "../db.ts";
+import { getQueueEntry, upsertQueueEntry, getAnalysis, getAnalysisError, listGames, isQueueEmpty, resetDoneCount } from "../db.ts";
 import { mergeQueueValues, shouldQueue, type GameAnalysisState } from "./entryRules.ts";
 import type { DepthPreset } from "../settings.ts";
 
@@ -23,8 +23,11 @@ export function unknownGameIds(db: Database.Database, gameIds: string[]): string
  * Queues each (already known) game id per section 5.4's entry rules,
  * merging with any already-waiting entry instead of duplicating it.
  * Returns the number of NEW entries, which is what "queued" counts.
+ * Starts a new batch (section 5.6) when at least one game is added to an
+ * empty queue: the `done` counter resets to 0.
  */
 export function enqueueGames(db: Database.Database, gameIds: string[], depth: DepthPreset, force: boolean, urgent: boolean, requestedAt: number): number {
+  const wasEmpty = isQueueEmpty(db);
   let queued = 0;
   for (const gameId of gameIds) {
     if (!shouldQueue(gameAnalysisState(db, gameId), force)) continue;
@@ -33,5 +36,6 @@ export function enqueueGames(db: Database.Database, gameIds: string[], depth: De
     upsertQueueEntry(db, gameId, merged.depth, merged.force, merged.urgent, requestedAt);
     if (!existing) queued++;
   }
+  if (wasEmpty && queued > 0) resetDoneCount(db);
   return queued;
 }

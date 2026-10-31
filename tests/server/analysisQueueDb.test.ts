@@ -16,6 +16,7 @@ import {
   getQueueState,
   setPaused,
   resetDoneCount,
+  isQueueEmpty,
 } from "../../src/server/db.ts";
 import type { StoredGame } from "../../src/server/import/parseGame.ts";
 import type { GameAnalysis } from "../../src/server/analysis/game.ts";
@@ -166,4 +167,14 @@ test("queue state: paused and done default to false/0, round-trip, and done can 
   assert.equal(getQueueState(db).done, 1);
   resetDoneCount(db);
   assert.equal(getQueueState(db).done, 0);
+});
+
+test("isQueueEmpty", () => {
+  const db = openDb(":memory:");
+  insertGames(db, [game({ id: "a" })]);
+  assert.equal(isQueueEmpty(db), true);
+  upsertQueueEntry(db, "a", "standard", false, false, 1);
+  assert.equal(isQueueEmpty(db), false);
+  removeQueueEntry(db, "a");
+  assert.equal(isQueueEmpty(db), true);
 });

@@ -1,6 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { openDb, insertGames, getQueueEntry, upsertQueueEntry, setQueueEntryRunning, finishAnalysis, recordAnalysisError } from "../../../src/server/db.ts";
+import {
+  openDb,
+  insertGames,
+  getQueueEntry,
+  upsertQueueEntry,
+  setQueueEntryRunning,
+  finishAnalysis,
+  recordAnalysisError,
+  getQueueState,
+} from "../../../src/server/db.ts";
 import { gameAnalysisState, unknownGameIds, enqueueGames } from "../../../src/server/analysisQueue/queue.ts";
 import type { StoredGame } from "../../../src/server/import/parseGame.ts";
 import type { GameAnalysis } from "../../../src/server/analysis/game.ts";
@@ -105,4 +114,29 @@ test("enqueueGames: an error game can be queued again", () => {
 
   assert.equal(enqueueGames(db, ["a"], "standard", false, false, 1000), 1);
   assert.equal(getQueueEntry(db, "a")?.depth, "standard");
+});
+
+// docs/03-IMPORT-SPEC.md section 5.6: a request that adds at least one game to an empty queue starts a new batch.
+test("enqueueGames: adding to an empty queue resets the done counter", () => {
+  const db = openDb(":memory:");
+  insertGames(db, [game({ id: "a" }), game({ id: "b" }), game({ id: "c" })]);
+  finishAnalysis(db, "a", "standard", fakeAnalysis(), 1); // done = 1, queue now empty again
+  assert.equal(getQueueState(db).done, 1);
+
+  enqueueGames(db, ["b"], "standard", false, false, 1000);
+  assert.equal(getQueueState(db).done, 0); // the queue was empty: a new batch starts
+
+  enqueueGames(db, ["c"], "standard", false, false, 2000); // the queue is not empty this time
+  finishAnalysis(db, "b", "standard", fakeAnalysis(), 3000);
+  assert.equal(getQueueState(db).done, 1);
+});
+
+test("enqueueGames: nothing actually queued does not reset the done counter", () => {
+  const db = openDb(":memory:");
+  insertGames(db, [game({ id: "a" })]);
+  finishAnalysis(db, "a", "standard", fakeAnalysis(), 1);
+  assert.equal(getQueueState(db).done, 1);
+
+  enqueueGames(db, ["a"], "standard", false, false, 1000); // done, not forced: nothing queued
+  assert.equal(getQueueState(db).done, 1);
 });
