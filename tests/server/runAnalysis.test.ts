@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { openDb, putCachedEval } from "../../src/server/db.ts";
 import { epdOf } from "../../src/server/analysis/book.ts";
 import { UciEngine } from "../../src/server/engine/engine.ts";
-import { runAnalysis } from "../../src/server/runAnalysis.ts";
+import { runAnalysis, AnalysisAbortedError } from "../../src/server/runAnalysis.ts";
 
 const FAKE_ENGINE = new URL("../fixtures/fake-engine.ts", import.meta.url).pathname;
 const PGN = '[White "a"]\n[Black "b"]\n[Result "1-0"]\n\n1. e4 e5 1-0';
@@ -40,6 +40,49 @@ test("onPosition is called once per position, ply 0 through plyCount", async () 
       [1, 2],
       [2, 2],
     ]);
+  } finally {
+    await engine.quit();
+  }
+});
+
+// docs/03-IMPORT-SPEC.md section 5.8: pause aborts the running game; no partial result is saved.
+test("an already-aborted signal stops analysis before the first engine call", async () => {
+  const db = openDb(":memory:");
+  const engine = new UciEngine("node", [FAKE_ENGINE]);
+  await engine.start({ threads: 1, hashMb: 16 });
+  try {
+    const controller = new AbortController();
+    controller.abort();
+    await assert.rejects(
+      () => runAnalysis(db, engine, PGN, { depth: 16, engineName: "FakeEngine", signal: controller.signal }),
+      AnalysisAbortedError,
+    );
+  } finally {
+    await engine.quit();
+  }
+});
+
+test("aborting mid-analysis stops before the next position", async () => {
+  const db = openDb(":memory:");
+  const engine = new UciEngine("node", [FAKE_ENGINE]);
+  await engine.start({ threads: 1, hashMb: 16 });
+  try {
+    const controller = new AbortController();
+    let calls = 0;
+    await assert.rejects(
+      () =>
+        runAnalysis(db, engine, PGN, {
+          depth: 16,
+          engineName: "FakeEngine",
+          signal: controller.signal,
+          onPosition: () => {
+            calls++;
+            if (calls === 1) controller.abort();
+          },
+        }),
+      AnalysisAbortedError,
+    );
+    assert.equal(calls, 1); // stopped after the first position, before the second
   } finally {
     await engine.quit();
   }

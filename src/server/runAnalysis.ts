@@ -10,12 +10,20 @@ import { getCachedEval, putCachedEval } from "./db.ts";
 const MULTIPV = 2;
 const MOVETIME_MS = 5000;
 
+/**
+ * Thrown when `options.signal` is aborted mid-analysis (section 5.8:
+ * pause aborts the running game, no partial result is saved).
+ */
+export class AnalysisAbortedError extends Error {}
+
 export interface RunAnalysisOptions {
   depth: 12 | 16 | 20;
   engineName: string;
   myColour?: "w" | "b";
   /** Called after each position is evaluated (section 5.6's progress/plyEval events). */
   onPosition?: (ply: number, totalPlies: number, whiteWinPercent: number) => void;
+  /** Checked between positions; aborting mid-search is bounded by MOVETIME_MS (5s). */
+  signal?: AbortSignal;
 }
 
 /**
@@ -39,6 +47,7 @@ export async function runAnalysis(
   const totalPlies = fens.length - 1;
   const positions: PositionInput[] = [];
   for (let i = 0; i < fens.length; i++) {
+    if (options.signal?.aborted) throw new AnalysisAbortedError("analysis aborted");
     const fen = fens[i];
     const terminal = i === fens.length - 1 ? terminalWhiteWinPercent(fen) : undefined;
     if (terminal !== undefined) {
