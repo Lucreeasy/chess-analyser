@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { openDb, insertGames, listGames, getStoredEtag, putStoredEtag, deleteStoredEtag } from "../../src/server/db.ts";
+import { openDb, insertGames, listGames, getStoredEtag, putStoredEtag, deleteStoredEtag, getSettings, putSettings } from "../../src/server/db.ts";
 import type { StoredGame } from "../../src/server/import/parseGame.ts";
+import { DEFAULT_SETTINGS } from "../../src/server/settings.ts";
 
 function game(overrides: Partial<StoredGame>): StoredGame {
   return {
@@ -49,4 +50,16 @@ test("stored ETags: get, put (replace) and delete, keyed by username and month",
 
   deleteStoredEtag(db, "bc_tester", "2026-09");
   assert.equal(getStoredEtag(db, "bc_tester", "2026-09"), undefined);
+});
+
+test("settings: default before anything is stored, then round-trips what was put", () => {
+  const db = openDb(":memory:");
+  assert.deepEqual(getSettings(db), DEFAULT_SETTINGS);
+
+  const settings = { usernames: ["bc_tester"], depthPreset: "deep" as const, autoAnalyse: false };
+  putSettings(db, settings);
+  assert.deepEqual(getSettings(db), settings);
+
+  putSettings(db, DEFAULT_SETTINGS); // replaces, not merges
+  assert.deepEqual(getSettings(db), DEFAULT_SETTINGS);
 });

@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import Database from "better-sqlite3";
 import type { EngineLineWithPv } from "./analysis/tacticTags.ts";
 import type { StoredGame } from "./import/parseGame.ts";
+import { DEFAULT_SETTINGS, type Settings } from "./settings.ts";
 
 export function openDb(path: string): Database.Database {
   mkdirSync(dirname(path), { recursive: true });
@@ -28,6 +29,10 @@ export function openDb(path: string): Database.Database {
       etag text not null,
       fetched_at integer not null,
       primary key (username, month)
+    );
+    create table if not exists settings (
+      id integer primary key check (id = 1),
+      data_json text not null
     );
   `);
   return db;
@@ -101,4 +106,14 @@ export function putStoredEtag(db: Database.Database, username: string, month: st
 
 export function deleteStoredEtag(db: Database.Database, username: string, month: string): void {
   db.prepare(`delete from chesscom_etags where username = ? and month = ?`).run(username, month);
+}
+
+/** Settings that affect import and analysis. docs/03-IMPORT-SPEC.md section 6. There is only ever one row. */
+export function getSettings(db: Database.Database): Settings {
+  const row = db.prepare(`select data_json from settings where id = 1`).get() as { data_json: string } | undefined;
+  return row ? JSON.parse(row.data_json) : DEFAULT_SETTINGS;
+}
+
+export function putSettings(db: Database.Database, settings: Settings): void {
+  db.prepare(`insert or replace into settings (id, data_json) values (1, ?)`).run(JSON.stringify(settings));
 }

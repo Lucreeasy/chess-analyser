@@ -1,0 +1,57 @@
+import { isValidUsername } from "./chesscom/parsing.ts";
+
+/** Settings that affect import and analysis. docs/03-IMPORT-SPEC.md section 6. */
+
+export type DepthPreset = "quick" | "standard" | "deep";
+
+export interface Settings {
+  usernames: string[];
+  depthPreset: DepthPreset;
+  autoAnalyse: boolean;
+}
+
+export const DEFAULT_SETTINGS: Settings = { usernames: [], depthPreset: "standard", autoAnalyse: true };
+
+const DEPTH_PRESETS: readonly DepthPreset[] = ["quick", "standard", "deep"];
+
+export type ValidateSettingsResult = { ok: true; settings: Settings } | { ok: false; message: string };
+
+/**
+ * Validates a settings update against the current settings: fields not
+ * present in `body` keep their current value. `usernames`, when present,
+ * is trimmed, lower-cased and de-duplicated before the per-name and
+ * count checks (section 6's exact messages).
+ */
+export function validateSettingsUpdate(body: unknown, current: Settings): ValidateSettingsResult {
+  if (typeof body !== "object" || body === null) return { ok: false, message: "JSON body required" };
+  const b = body as Record<string, unknown>;
+
+  let usernames = current.usernames;
+  if (b.usernames !== undefined) {
+    if (!Array.isArray(b.usernames) || !b.usernames.every((name) => typeof name === "string")) {
+      return { ok: false, message: "usernames must be a string array" };
+    }
+    const deduped: string[] = [];
+    for (const raw of b.usernames as string[]) {
+      const name = raw.trim().toLowerCase();
+      if (!deduped.includes(name)) deduped.push(name);
+    }
+    for (const name of deduped) {
+      if (!isValidUsername(name)) {
+        return { ok: false, message: `"${name.slice(0, 40)}" is not a chess.com username (3-25 letters, digits, "_" or "-")` };
+      }
+    }
+    if (deduped.length > 10) return { ok: false, message: "at most 10 usernames" };
+    usernames = deduped;
+  }
+
+  let depthPreset = current.depthPreset;
+  if (b.depthPreset !== undefined) {
+    if (!DEPTH_PRESETS.includes(b.depthPreset as DepthPreset)) return { ok: false, message: "unknown depthPreset" };
+    depthPreset = b.depthPreset as DepthPreset;
+  }
+
+  const autoAnalyse = b.autoAnalyse !== undefined ? Boolean(b.autoAnalyse) : current.autoAnalyse;
+
+  return { ok: true, settings: { usernames, depthPreset, autoAnalyse } };
+}
