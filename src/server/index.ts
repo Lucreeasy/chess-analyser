@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { openDb, insertGames, listGames } from "./db.ts";
+import { openDb, insertGames, listGames, updateGames, getSettings, putSettings } from "./db.ts";
 import { splitIntoGames } from "./import/pgnText.ts";
 import { importGames } from "./import/report.ts";
 import { serveStatic } from "./static.ts";
@@ -11,6 +11,8 @@ import { isValidUsername } from "./chesscom/parsing.ts";
 import { validateImportRequest } from "./chesscom/requestValidation.ts";
 import { monthsInRange } from "./chesscom/monthRange.ts";
 import { syncMonths } from "./chesscom/sync.ts";
+import { validateSettingsUpdate } from "./settings.ts";
+import { rederiveMe } from "./rederiveMe.ts";
 
 const DEPTHS = { quick: 12, standard: 16, deep: 20 } as const;
 
@@ -65,12 +67,41 @@ export const server = createServer(async (req, res) => {
   if (req.url === "/api/games/import" && req.method === "POST") {
     const text = await readBody(req);
     const gameTexts = splitIntoGames(text);
-    // TODO once Settings (section 6) exists: read the saved usernames instead of an empty list.
     const alreadyStored = new Set(listGames(db).map((g) => g.id));
-    const { summary, newGames } = importGames(gameTexts, "paste", [], Date.now(), alreadyStored);
+    const { summary, newGames } = importGames(gameTexts, "paste", getSettings(db).usernames, Date.now(), alreadyStored);
     insertGames(db, newGames);
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ ...summary, queued: 0 }));
+    return;
+  }
+
+  if (req.url === "/api/settings" && req.method === "GET") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(getSettings(db)));
+    return;
+  }
+
+  if (req.url === "/api/settings" && req.method === "POST") {
+    let parsedBody: unknown;
+    try {
+      parsedBody = JSON.parse(await readBody(req));
+    } catch {
+      parsedBody = undefined;
+    }
+    const current = getSettings(db);
+    const validated = validateSettingsUpdate(parsedBody, current);
+    if (!validated.ok) {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: validated.message }));
+      return;
+    }
+    const { settings } = validated;
+    if (JSON.stringify(settings.usernames) !== JSON.stringify(current.usernames)) {
+      updateGames(db, rederiveMe(listGames(db), settings.usernames));
+    }
+    putSettings(db, settings);
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(settings));
     return;
   }
 
