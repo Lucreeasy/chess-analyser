@@ -38,13 +38,18 @@ interface RawOutcome extends AttemptOutcome {
  * need endpoint-specific text (ok and not_found are handled by the
  * caller). Undefined for kinds the caller must handle itself.
  */
-function genericFailureMessage(outcome: RawOutcome): { status: "rate_limited" | "error"; message: string } | undefined {
+function genericFailureMessage(
+  outcome: RawOutcome,
+): { status: "rate_limited" | "error"; message: string; retryAfterSeconds?: number } | undefined {
   switch (outcome.kind) {
-    case "rate_limited":
+    case "rate_limited": {
+      const retryAfterSeconds = outcome.retryAfterSeconds ?? 16;
       return {
         status: "rate_limited",
-        message: `chess.com is rate limiting requests; retry in about ${outcome.retryAfterSeconds ?? 16} s`,
+        message: `chess.com is rate limiting requests; retry in about ${retryAfterSeconds} s`,
+        retryAfterSeconds,
       };
+    }
     case "server_error":
       return { status: "error", message: `chess.com server error (HTTP ${outcome.status})` };
     case "other_status":
@@ -117,6 +122,8 @@ export interface MonthFetchResult {
   /** Present only on a full 200 fetch that returned an ETag. */
   etag?: string;
   unchanged?: boolean;
+  /** Present when status is "rate_limited". */
+  retryAfterSeconds?: number;
 }
 
 export interface FetchMonthOptions {
@@ -166,6 +173,8 @@ export interface ArchiveListResult {
   status: "ok" | "not_found" | "rate_limited" | "error";
   message?: string;
   months?: string[];
+  /** Present when status is "rate_limited". */
+  retryAfterSeconds?: number;
 }
 
 /** The months a player has archived games in, ascending. Section 3.3. */

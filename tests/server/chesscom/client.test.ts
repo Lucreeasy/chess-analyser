@@ -126,6 +126,7 @@ test("429 without a hint: retried, then rate_limited with the exact message", as
   const result = await fetchMonth(fetchImpl, fastPacer(), "bc_tester", "2026-09", fastOptions());
   assert.equal(result.status, "rate_limited");
   assert.equal(result.message, "chess.com is rate limiting requests; retry in about 16 s");
+  assert.equal(result.retryAfterSeconds, 16);
 });
 
 test("429 with Retry-After: 7 succeeds after waiting", async () => {
@@ -192,4 +193,5 @@ test("fetchArchiveMonths: 429 reuses the same rate-limit wording as fetchMonth",
   const result = await fetchArchiveMonths(fetchImpl, fastPacer(), "bc_tester", fastOptions());
   assert.equal(result.status, "rate_limited");
   assert.equal(result.message, "chess.com is rate limiting requests; retry in about 16 s");
+  assert.equal(result.retryAfterSeconds, 16);
 });
