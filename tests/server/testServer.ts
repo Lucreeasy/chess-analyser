@@ -11,3 +11,16 @@ export async function withServer<T>(server: Server, run: (baseUrl: string) => Pr
     server.close();
   }
 }
+
+/** Polls `predicate` until it is true, or rejects after `timeoutMs`. */
+export function waitFor(predicate: () => boolean | Promise<boolean>, timeoutMs = 2000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const check = async () => {
+      if (await predicate()) return resolve();
+      if (Date.now() - start > timeoutMs) return reject(new Error("timed out waiting"));
+      setTimeout(check, 10);
+    };
+    check();
+  });
+}

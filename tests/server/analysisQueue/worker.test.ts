@@ -5,6 +5,7 @@ import { enqueueGames } from "../../../src/server/analysisQueue/queue.ts";
 import { AnalysisWorker, type WorkerEvent } from "../../../src/server/analysisQueue/worker.ts";
 import { UciEngine } from "../../../src/server/engine/engine.ts";
 import type { StoredGame } from "../../../src/server/import/parseGame.ts";
+import { waitFor } from "../testServer.ts";
 
 const FAKE_ENGINE = new URL("../../fixtures/fake-engine.ts", import.meta.url).pathname;
 
@@ -37,17 +38,6 @@ async function withEngine<T>(run: (getEngine: () => Promise<UciEngine>) => Promi
   }
 }
 
-function waitFor(predicate: () => boolean, timeoutMs = 2000): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const start = Date.now();
-    const check = () => {
-      if (predicate()) return resolve();
-      if (Date.now() - start > timeoutMs) return reject(new Error("timed out waiting"));
-      setTimeout(check, 5);
-    };
-    check();
-  });
-}
 
 test("notify() runs a queued game to completion and stores the analysis", async () => {
   await withEngine(async (getEngine) => {

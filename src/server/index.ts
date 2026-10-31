@@ -1,5 +1,16 @@
 import { createServer } from "node:http";
-import { openDb, insertGames, listGames, updateGames, getSettings, putSettings, getStoredEtag, putStoredEtag, deleteStoredEtag } from "./db.ts";
+import {
+  openDb,
+  insertGames,
+  listGames,
+  updateGames,
+  getSettings,
+  putSettings,
+  getStoredEtag,
+  putStoredEtag,
+  deleteStoredEtag,
+  clearRunningFlags,
+} from "./db.ts";
 import { splitIntoGames } from "./import/pgnText.ts";
 import { importGames } from "./import/report.ts";
 import { serveStatic } from "./static.ts";
@@ -17,6 +28,9 @@ import { rederiveMe } from "./rederiveMe.ts";
 import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
 import type { DepthPreset } from "./settings.ts";
 import { SEARCH_DEPTH } from "./analysisQueue/depthPresets.ts";
+import { AnalysisWorker } from "./analysisQueue/worker.ts";
+import { validateQueueRequest, unknownIdsMessage } from "./analysisQueue/requestValidation.ts";
+import { enqueueGames, unknownGameIds } from "./analysisQueue/queue.ts";
 
 // A mutable binding so tests can point chess.com calls at a fake transport instead of the real network.
 export const chessComDeps: { fetch: FetchLike } = { fetch: fetch as FetchLike };
@@ -44,6 +58,11 @@ async function runUsernameSync(username: string): Promise<SyncResult> {
 
 export const autoSync = new AutoSyncScheduler(parseIntervalHours(process.env.AUTO_SYNC_INTERVAL_HOURS), () => getSettings(db).usernames, runUsernameSync);
 if (process.env.NODE_ENV !== "test") autoSync.start();
+
+// Start-up recovery (section 5.7): any entry left "running" by an interrupted process goes back to waiting.
+clearRunningFlags(db);
+export const analysisWorker = new AnalysisWorker(db, getEngine);
+if (process.env.NODE_ENV !== "test") analysisWorker.notify(); // resume any work waiting from a previous run
 
 async function readBody(req: import("node:http").IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
@@ -219,6 +238,53 @@ export const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.url === "/api/analyse/status" && req.method === "GET") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(analysisWorker.status()));
+    return;
+  }
+
+  if (req.url === "/api/analyse/pause" && req.method === "POST") {
+    analysisWorker.pause();
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(analysisWorker.status()));
+    return;
+  }
+
+  if (req.url === "/api/analyse/resume" && req.method === "POST") {
+    analysisWorker.resume();
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(analysisWorker.status()));
+    return;
+  }
+
+  if (req.url === "/api/analyse/queue" && req.method === "POST") {
+    let parsedBody: unknown;
+    try {
+      parsedBody = JSON.parse(await readBody(req));
+    } catch {
+      parsedBody = undefined;
+    }
+    const validated = validateQueueRequest(parsedBody);
+    if (!validated.ok) {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: validated.message }));
+      return;
+    }
+    const { gameIds, depth, force, urgent } = validated.request;
+    const unknown = unknownGameIds(db, gameIds);
+    if (unknown.length > 0) {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: unknownIdsMessage(unknown) }));
+      return;
+    }
+    enqueueGames(db, gameIds, depth ?? getSettings(db).depthPreset, force, urgent, Date.now());
+    analysisWorker.notify();
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(analysisWorker.status()));
+    return;
+  }
+
   if (req.url?.startsWith("/api/")) {
     res.writeHead(404, { "content-type": "application/json" });
     res.end(JSON.stringify({ error: "not found" }));
@@ -239,10 +305,12 @@ if (process.env.NODE_ENV !== "test") {
   for (const signal of ["SIGTERM", "SIGINT"] as const) {
     process.on(signal, () => {
       autoSync.stop();
-      server.close(() => {
-        shutdownEngine().finally(() => {
-          db.close();
-          process.exit(0);
+      analysisWorker.stop().finally(() => {
+        server.close(() => {
+          shutdownEngine().finally(() => {
+            db.close();
+            process.exit(0);
+          });
         });
       });
     });
