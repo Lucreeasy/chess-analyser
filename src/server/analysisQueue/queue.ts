@@ -1,0 +1,37 @@
+import type Database from "better-sqlite3";
+import { getQueueEntry, upsertQueueEntry, getAnalysis, getAnalysisError, listGames } from "../db.ts";
+import { mergeQueueValues, shouldQueue, type GameAnalysisState } from "./entryRules.ts";
+import type { DepthPreset } from "../settings.ts";
+
+/** Applying a queue request to the stored queue. docs/03-IMPORT-SPEC.md sections 5.1, 5.4. */
+
+export function gameAnalysisState(db: Database.Database, gameId: string): GameAnalysisState {
+  const entry = getQueueEntry(db, gameId);
+  if (entry) return entry.running ? "running" : "waiting";
+  if (getAnalysis(db, gameId)) return "done";
+  if (getAnalysisError(db, gameId)) return "error";
+  return "none";
+}
+
+/** The ids in `gameIds` that are not stored games (section 5.4's "unknown game ids" rejection). */
+export function unknownGameIds(db: Database.Database, gameIds: string[]): string[] {
+  const known = new Set(listGames(db).map((g) => g.id));
+  return gameIds.filter((id) => !known.has(id));
+}
+
+/**
+ * Queues each (already known) game id per section 5.4's entry rules,
+ * merging with any already-waiting entry instead of duplicating it.
+ * Returns the number of NEW entries, which is what "queued" counts.
+ */
+export function enqueueGames(db: Database.Database, gameIds: string[], depth: DepthPreset, force: boolean, urgent: boolean, requestedAt: number): number {
+  let queued = 0;
+  for (const gameId of gameIds) {
+    if (!shouldQueue(gameAnalysisState(db, gameId), force)) continue;
+    const existing = getQueueEntry(db, gameId);
+    const merged = mergeQueueValues(existing, { depth, force, urgent });
+    upsertQueueEntry(db, gameId, merged.depth, merged.force, merged.urgent, requestedAt);
+    if (!existing) queued++;
+  }
+  return queued;
+}
