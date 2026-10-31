@@ -15,8 +15,10 @@ import { AutoSyncScheduler, parseIntervalHours } from "./chesscom/autoSyncSchedu
 import { validateSettingsUpdate } from "./settings.ts";
 import { rederiveMe } from "./rederiveMe.ts";
 import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
+import type { DepthPreset } from "./settings.ts";
 
-const DEPTHS = { quick: 12, standard: 16, deep: 20 } as const;
+/** Search depth per preset. docs/03-IMPORT-SPEC.md section 5.3. */
+const SEARCH_DEPTH: Record<DepthPreset, 12 | 16 | 20> = { quick: 12, standard: 16, deep: 20 };
 
 // A mutable binding so tests can point chess.com calls at a fake transport instead of the real network.
 export const chessComDeps: { fetch: FetchLike } = { fetch: fetch as FetchLike };
@@ -203,11 +205,11 @@ export const server = createServer(async (req, res) => {
   }
 
   if (req.url === "/api/analyse" && req.method === "POST") {
-    const body = JSON.parse(await readBody(req)) as { pgn: string; depth?: keyof typeof DEPTHS };
+    const body = JSON.parse(await readBody(req)) as { pgn: string; depth?: DepthPreset };
     try {
       const engine = await getEngine();
       const result = await runAnalysis(db, engine, body.pgn, {
-        depth: DEPTHS[body.depth ?? "standard"],
+        depth: SEARCH_DEPTH[body.depth ?? "standard"],
         engineName: "Stockfish",
       });
       res.writeHead(200, { "content-type": "application/json" });
