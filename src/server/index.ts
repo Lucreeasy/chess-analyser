@@ -30,7 +30,8 @@ import type { DepthPreset } from "./settings.ts";
 import { SEARCH_DEPTH } from "./analysisQueue/depthPresets.ts";
 import { AnalysisWorker } from "./analysisQueue/worker.ts";
 import { validateQueueRequest, unknownIdsMessage } from "./analysisQueue/requestValidation.ts";
-import { enqueueGames, unknownGameIds } from "./analysisQueue/queue.ts";
+import { enqueueGames, unknownGameIds, autoQueueNewGames } from "./analysisQueue/queue.ts";
+import type { StoredGame } from "./import/parseGame.ts";
 
 // A mutable binding so tests can point chess.com calls at a fake transport instead of the real network.
 export const chessComDeps: { fetch: FetchLike } = { fetch: fetch as FetchLike };
@@ -44,10 +45,17 @@ export const db = openDb(dbPath);
 
 const ALL_TIME_CLASSES_SET = new Set(ALL_TIME_CLASSES);
 
+function storeAndAutoQueue(games: StoredGame[]): number {
+  insertGames(db, games);
+  const queued = autoQueueNewGames(db, games.map((g) => g.id), Date.now());
+  if (queued > 0) analysisWorker.notify();
+  return queued;
+}
+
 async function runUsernameSync(username: string): Promise<SyncResult> {
   const months = autoSyncMonths(new Date());
   const alreadyStored = new Set(listGames(db).map((g) => g.id));
-  return syncMonths(chessComDeps.fetch, chessComPacer, username, months, ALL_TIME_CLASSES_SET, alreadyStored, (games) => insertGames(db, games), Date.now(), {
+  return syncMonths(chessComDeps.fetch, chessComPacer, username, months, ALL_TIME_CLASSES_SET, alreadyStored, storeAndAutoQueue, Date.now(), {
     etags: {
       get: (month) => getStoredEtag(db, username, month),
       store: (month, etag) => putStoredEtag(db, username, month, etag, Date.now()),
@@ -107,9 +115,9 @@ export const server = createServer(async (req, res) => {
     const gameTexts = splitIntoGames(text);
     const alreadyStored = new Set(listGames(db).map((g) => g.id));
     const { summary, newGames } = importGames(gameTexts, "paste", getSettings(db).usernames, Date.now(), alreadyStored);
-    insertGames(db, newGames);
+    const queued = storeAndAutoQueue(newGames);
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ ...summary, queued: 0 }));
+    res.end(JSON.stringify({ ...summary, queued }));
     return;
   }
 
@@ -187,6 +195,7 @@ export const server = createServer(async (req, res) => {
 
     const months = monthsInRange(archives.months ?? [], from, to);
     const alreadyStored = new Set(listGames(db).map((g) => g.id));
+    let queued = 0;
     const result = await syncMonths(
       chessComDeps.fetch,
       chessComPacer,
@@ -194,12 +203,14 @@ export const server = createServer(async (req, res) => {
       months,
       timeClasses,
       alreadyStored,
-      (games) => insertGames(db, games),
+      (games) => {
+        queued += storeAndAutoQueue(games);
+      },
       Date.now(),
     );
 
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ ...result, queued: 0 }));
+    res.end(JSON.stringify({ ...result, queued }));
     return;
   }
 
