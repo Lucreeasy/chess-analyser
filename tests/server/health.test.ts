@@ -1,24 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { withServer } from "./testServer.ts";
 
 process.env.NODE_ENV = "test";
 const { server } = await import("../../src/server/index.ts");
 
-async function withServer<T>(run: (baseUrl: string) => Promise<T>): Promise<T> {
-  await new Promise<void>((resolve) => server.listen(0, resolve));
-  const address = server.address();
-  if (address === null || typeof address === "string") {
-    throw new Error("expected a port");
-  }
-  try {
-    return await run(`http://localhost:${address.port}`);
-  } finally {
-    server.close();
-  }
-}
-
 test("GET /health answers ok", async () => {
-  await withServer(async (base) => {
+  await withServer(server, async (base) => {
     const res = await fetch(`${base}/health`);
     assert.equal(res.status, 200);
     assert.deepEqual(await res.json(), { status: "ok" });
@@ -26,7 +14,7 @@ test("GET /health answers ok", async () => {
 });
 
 test("importing a PGN makes it appear in the games list; re-importing adds nothing", async () => {
-  await withServer(async (base) => {
+  await withServer(server, async (base) => {
     const pgn = '[White "alice"]\n[Black "bob"]\n[Result "1-0"]\n\n1. e4 e5 1-0';
     const importRes = await fetch(`${base}/api/games/import`, { method: "POST", body: pgn });
     assert.equal(importRes.status, 200);
