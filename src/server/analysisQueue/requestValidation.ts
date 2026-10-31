@@ -22,6 +22,8 @@ export interface QueueRequest {
   depth: DepthPreset | undefined;
   force: boolean;
   urgent: boolean;
+  /** "Re-analyse deeper" (section 5.5): force on, depth one step above the saved default. */
+  deeper: boolean;
 }
 
 export type ValidateQueueRequestResult = { ok: true; request: QueueRequest } | { ok: false; message: string };
@@ -41,8 +43,10 @@ export function validateQueueRequest(body: unknown): ValidateQueueRequestResult 
   }
 
   if (b.force !== undefined && typeof b.force !== "boolean") return { ok: false, message: '"force" must be a boolean' };
+  if (b.deeper !== undefined && typeof b.deeper !== "boolean") return { ok: false, message: '"deeper" must be a boolean' };
 
-  return { ok: true, request: { gameIds: ids.ids, depth, force: b.force === true, urgent: ids.ids.length <= 5 } };
+  const deeper = b.deeper === true;
+  return { ok: true, request: { gameIds: ids.ids, depth, force: b.force === true || deeper, urgent: ids.ids.length <= 5, deeper } };
 }
 
 /** The exact "some ids are not stored games" message. */

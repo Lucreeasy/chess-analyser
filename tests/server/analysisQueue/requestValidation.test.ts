@@ -4,7 +4,7 @@ import { validateQueueRequest, unknownIdsMessage, validateDeleteRequest } from "
 
 test("a valid request with no depth/force: force defaults false, urgent from the id count", () => {
   const result = validateQueueRequest({ gameIds: ["a", "b"] });
-  assert.deepEqual(result, { ok: true, request: { gameIds: ["a", "b"], depth: undefined, force: false, urgent: true } });
+  assert.deepEqual(result, { ok: true, request: { gameIds: ["a", "b"], depth: undefined, force: false, urgent: true, deeper: false } });
 });
 
 test("urgent is true at exactly 5 ids, false at 6", () => {
@@ -48,6 +48,23 @@ test("depth: must be quick/standard/deep when present", () => {
 test("force: must be a boolean when present", () => {
   assert.equal(validateQueueRequest({ gameIds: ["a"], force: true }).ok, true);
   assert.deepEqual(validateQueueRequest({ gameIds: ["a"], force: "yes" }), { ok: false, message: '"force" must be a boolean' });
+});
+
+// docs/03-IMPORT-SPEC.md section 5.5: "Re-analyse deeper" implies force on.
+test("deeper: must be a boolean when present, and implies force", () => {
+  const result = validateQueueRequest({ gameIds: ["a"], deeper: true });
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.request.deeper, true);
+    assert.equal(result.request.force, true);
+  }
+  assert.deepEqual(validateQueueRequest({ gameIds: ["a"], deeper: "yes" }), { ok: false, message: '"deeper" must be a boolean' });
+});
+
+test("deeper defaults to false", () => {
+  const result = validateQueueRequest({ gameIds: ["a"] });
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.request.deeper, false);
 });
 
 test("unknownIdsMessage: count and the first three ids joined by ', '", () => {

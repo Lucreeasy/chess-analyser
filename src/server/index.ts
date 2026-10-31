@@ -29,7 +29,7 @@ import { validateSettingsUpdate } from "./settings.ts";
 import { rederiveMe } from "./rederiveMe.ts";
 import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
 import type { DepthPreset } from "./settings.ts";
-import { SEARCH_DEPTH } from "./analysisQueue/depthPresets.ts";
+import { SEARCH_DEPTH, oneStepDeeper } from "./analysisQueue/depthPresets.ts";
 import { AnalysisWorker } from "./analysisQueue/worker.ts";
 import { validateQueueRequest, unknownIdsMessage, validateDeleteRequest } from "./analysisQueue/requestValidation.ts";
 import { enqueueGames, unknownGameIds, autoQueueNewGames } from "./analysisQueue/queue.ts";
@@ -284,14 +284,15 @@ export const server = createServer(async (req, res) => {
       res.end(JSON.stringify({ error: validated.message }));
       return;
     }
-    const { gameIds, depth, force, urgent } = validated.request;
+    const { gameIds, depth, force, urgent, deeper } = validated.request;
     const unknown = unknownGameIds(db, gameIds);
     if (unknown.length > 0) {
       res.writeHead(400, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: unknownIdsMessage(unknown) }));
       return;
     }
-    enqueueGames(db, gameIds, depth ?? getSettings(db).depthPreset, force, urgent, Date.now());
+    const defaultDepth = getSettings(db).depthPreset;
+    enqueueGames(db, gameIds, deeper ? oneStepDeeper(defaultDepth) : depth ?? defaultDepth, force, urgent, Date.now());
     analysisWorker.notify();
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(analysisWorker.status()));

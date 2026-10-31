@@ -30,9 +30,11 @@ test("the analysis queue HTTP routes", async (t) => {
         assert.deepEqual(await res.json(), { error: "unknown game ids (1): ghost" });
       });
 
+      let gameIds: string[] = [];
+
       await t.test("POST /api/analyse/queue: a known game is queued and run to completion", async () => {
         const importRes = await fetch(`${base}/api/games/import`, { method: "POST", body: pgn });
-        const { gameIds } = (await importRes.json()) as { gameIds: string[] };
+        ({ gameIds } = (await importRes.json()) as { gameIds: string[] });
 
         const queueRes = await fetch(`${base}/api/analyse/queue`, { method: "POST", body: JSON.stringify({ gameIds }) });
         assert.equal(queueRes.status, 200);
@@ -42,6 +44,16 @@ test("the analysis queue HTTP routes", async (t) => {
         await waitFor(async () => {
           const s = (await (await fetch(`${base}/api/analyse/status`)).json()) as { done: number; pending: number; running: unknown };
           return s.done === 1 && s.pending === 0 && s.running === null;
+        });
+      });
+
+      // docs/03-IMPORT-SPEC.md section 5.5: "Re-analyse deeper" re-queues a done game (force is implied).
+      await t.test("POST /api/analyse/queue with deeper: true re-queues an already-done game", async () => {
+        const deeperRes = await fetch(`${base}/api/analyse/queue`, { method: "POST", body: JSON.stringify({ gameIds, deeper: true }) });
+        assert.equal(deeperRes.status, 200);
+        await waitFor(async () => {
+          const s = (await (await fetch(`${base}/api/analyse/status`)).json()) as { done: number; pending: number; running: unknown };
+          return s.done === 1 && s.pending === 0 && s.running === null; // a new batch: done reset to 0, then this finishes
         });
       });
 
