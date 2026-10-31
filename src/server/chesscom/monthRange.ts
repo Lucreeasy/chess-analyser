@@ -12,3 +12,22 @@ export function defaultRange(availableMonths: string[]): { from: string; to: str
 export function monthsInRange(availableMonths: string[], from: string, to: string): string[] {
   return availableMonths.filter((month) => month >= from && month <= to);
 }
+
+function formatMonth(year: number, month0: number): string {
+  return `${year}-${String(month0 + 1).padStart(2, "0")}`;
+}
+
+/**
+ * The months auto-sync fetches for `now` (UTC): always the current month,
+ * plus the previous month on the 1st-3rd so late games are not missed.
+ * docs/03-IMPORT-SPEC.md section 4.2. Order: previous month first.
+ */
+export function autoSyncMonths(now: Date): string[] {
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth();
+  const current = formatMonth(year, month);
+  if (now.getUTCDate() > 3) return [current];
+
+  const previous = new Date(Date.UTC(year, month - 1, 1));
+  return [formatMonth(previous.getUTCFullYear(), previous.getUTCMonth()), current];
+}
