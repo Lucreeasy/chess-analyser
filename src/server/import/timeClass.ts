@@ -4,6 +4,8 @@ import { parseTimeControl } from "../analysis/clock.ts";
 
 export type TimeClass = "bullet" | "blitz" | "rapid" | "daily" | "classical";
 
+export const ALL_TIME_CLASSES: readonly TimeClass[] = ["bullet", "blitz", "rapid", "daily", "classical"];
+
 /** The trimmed TimeControl tag, or "-" if missing/empty. */
 export function timeControlText(tagValue: string | undefined): string {
   const trimmed = (tagValue ?? "").trim();

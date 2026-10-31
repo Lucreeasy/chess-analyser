@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { openDb, insertGames, listGames, updateGames, getSettings, putSettings } from "./db.ts";
+import { openDb, insertGames, listGames, updateGames, getSettings, putSettings, getStoredEtag, putStoredEtag, deleteStoredEtag } from "./db.ts";
 import { splitIntoGames } from "./import/pgnText.ts";
 import { importGames } from "./import/report.ts";
 import { serveStatic } from "./static.ts";
@@ -9,10 +9,12 @@ import { fetchArchiveMonths, type FetchLike } from "./chesscom/client.ts";
 import { chessComPacer } from "./chesscom/sharedPacer.ts";
 import { isValidUsername } from "./chesscom/parsing.ts";
 import { validateImportRequest } from "./chesscom/requestValidation.ts";
-import { monthsInRange } from "./chesscom/monthRange.ts";
-import { syncMonths } from "./chesscom/sync.ts";
+import { monthsInRange, autoSyncMonths } from "./chesscom/monthRange.ts";
+import { syncMonths, type SyncResult } from "./chesscom/sync.ts";
+import { AutoSyncScheduler, parseIntervalHours } from "./chesscom/autoSyncScheduler.ts";
 import { validateSettingsUpdate } from "./settings.ts";
 import { rederiveMe } from "./rederiveMe.ts";
+import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
 
 const DEPTHS = { quick: 12, standard: 16, deep: 20 } as const;
 
@@ -25,6 +27,23 @@ const dbPath =
 const staticRoot = process.env.STATIC_DIR || "dist/web";
 
 export const db = openDb(dbPath);
+
+const ALL_TIME_CLASSES_SET = new Set(ALL_TIME_CLASSES);
+
+async function runUsernameSync(username: string): Promise<SyncResult> {
+  const months = autoSyncMonths(new Date());
+  const alreadyStored = new Set(listGames(db).map((g) => g.id));
+  return syncMonths(chessComDeps.fetch, chessComPacer, username, months, ALL_TIME_CLASSES_SET, alreadyStored, (games) => insertGames(db, games), Date.now(), {
+    etags: {
+      get: (month) => getStoredEtag(db, username, month),
+      store: (month, etag) => putStoredEtag(db, username, month, etag, Date.now()),
+      clear: (month) => deleteStoredEtag(db, username, month),
+    },
+  });
+}
+
+export const autoSync = new AutoSyncScheduler(parseIntervalHours(process.env.AUTO_SYNC_INTERVAL_HOURS), () => getSettings(db).usernames, runUsernameSync);
+if (process.env.NODE_ENV !== "test") autoSync.start();
 
 async function readBody(req: import("node:http").IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
@@ -165,6 +184,24 @@ export const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.url === "/api/autosync/status" && req.method === "GET") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(autoSync.status()));
+    return;
+  }
+
+  if (req.url === "/api/autosync/sync-now" && req.method === "POST") {
+    const result = autoSync.triggerNow();
+    if (!result.ok) {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: result.message }));
+      return;
+    }
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(result.status));
+    return;
+  }
+
   if (req.url === "/api/analyse" && req.method === "POST") {
     const body = JSON.parse(await readBody(req)) as { pgn: string; depth?: keyof typeof DEPTHS };
     try {
@@ -201,6 +238,7 @@ if (process.env.NODE_ENV !== "test") {
   // silently ignored and the container never stops cleanly (DOC-5).
   for (const signal of ["SIGTERM", "SIGINT"] as const) {
     process.on(signal, () => {
+      autoSync.stop();
       server.close(() => {
         shutdownEngine().finally(() => {
           db.close();

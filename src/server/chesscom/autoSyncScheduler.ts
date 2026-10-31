@@ -27,6 +27,16 @@ export interface SchedulerDeps {
 const FIRST_RUN_DELAY_MS = 60_000;
 
 /**
+ * The configured sync interval in whole hours, clamped to 0-48; empty or
+ * non-numeric becomes the default, 6. Section 4.3.
+ */
+export function parseIntervalHours(value: string | undefined): number {
+  const hours = Number(value);
+  if (value === undefined || value.trim() === "" || !Number.isFinite(hours)) return 6;
+  return Math.min(48, Math.max(0, Math.trunc(hours)));
+}
+
+/**
  * Runs each saved username's sync one after another (section 4.3), never
  * overlapping: a tick that finds a run already in progress waits for it
  * and then schedules the next, without running itself. "Sync now" starts

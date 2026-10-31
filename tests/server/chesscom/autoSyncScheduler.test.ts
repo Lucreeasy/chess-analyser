@@ -1,11 +1,22 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AutoSyncScheduler, type TimerHandle } from "../../../src/server/chesscom/autoSyncScheduler.ts";
+import { AutoSyncScheduler, parseIntervalHours, type TimerHandle } from "../../../src/server/chesscom/autoSyncScheduler.ts";
 import type { SyncResult } from "../../../src/server/chesscom/sync.ts";
 
 function okResult(added: number): SyncResult {
   return { months: [], added, duplicates: 0, failed: 0 };
 }
+
+test("parseIntervalHours: clamped to 0-48, empty/non-numeric defaults to 6", () => {
+  assert.equal(parseIntervalHours(undefined), 6);
+  assert.equal(parseIntervalHours(""), 6);
+  assert.equal(parseIntervalHours("not-a-number"), 6);
+  assert.equal(parseIntervalHours("12"), 12);
+  assert.equal(parseIntervalHours("0"), 0);
+  assert.equal(parseIntervalHours("-5"), 0);
+  assert.equal(parseIntervalHours("100"), 48);
+  assert.equal(parseIntervalHours("48"), 48);
+});
 
 interface FakeTimer extends TimerHandle {
   at: number;

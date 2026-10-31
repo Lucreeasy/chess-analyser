@@ -1,9 +1,7 @@
 import { isValidUsername, isValidMonth } from "./parsing.ts";
-import type { TimeClass } from "../import/timeClass.ts";
+import { ALL_TIME_CLASSES, type TimeClass } from "../import/timeClass.ts";
 
 /** Validates a manual chess.com import request. docs/03-IMPORT-SPEC.md section 3.2 (exact messages). */
-
-const ALL_TIME_CLASSES: readonly TimeClass[] = ["bullet", "blitz", "rapid", "daily", "classical"];
 
 export interface ImportRequest {
   username: string;
