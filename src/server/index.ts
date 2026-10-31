@@ -16,9 +16,7 @@ import { validateSettingsUpdate } from "./settings.ts";
 import { rederiveMe } from "./rederiveMe.ts";
 import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
 import type { DepthPreset } from "./settings.ts";
-
-/** Search depth per preset. docs/03-IMPORT-SPEC.md section 5.3. */
-const SEARCH_DEPTH: Record<DepthPreset, 12 | 16 | 20> = { quick: 12, standard: 16, deep: 20 };
+import { SEARCH_DEPTH } from "./analysisQueue/depthPresets.ts";
 
 // A mutable binding so tests can point chess.com calls at a fake transport instead of the real network.
 export const chessComDeps: { fetch: FetchLike } = { fetch: fetch as FetchLike };

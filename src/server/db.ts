@@ -79,6 +79,11 @@ export function listGames(db: Database.Database): StoredGame[] {
   return rows.map((row) => JSON.parse(row.data_json));
 }
 
+export function getGame(db: Database.Database, gameId: string): StoredGame | undefined {
+  const row = db.prepare(`select data_json from games where id = ?`).get(gameId) as { data_json: string } | undefined;
+  return row ? JSON.parse(row.data_json) : undefined;
+}
+
 /** Overwrites already-stored games in place, keyed by id (section 6: re-deriving colour/result). */
 export function updateGames(db: Database.Database, games: StoredGame[]): void {
   const update = db.prepare(`update games set data_json = ? where id = ?`);
