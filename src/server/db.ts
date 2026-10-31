@@ -305,3 +305,39 @@ export function setPaused(db: Database.Database, paused: boolean): void {
 export function resetDoneCount(db: Database.Database): void {
   db.prepare(`update queue_state set done = 0 where id = 1`).run();
 }
+
+/**
+ * Deletes games (and their analyses/queue entries/errors) atomically.
+ * Returns how many were actually stored. docs/03-IMPORT-SPEC.md section
+ * 5.10. Does not touch the running flag; the caller aborts the running
+ * game first if it is among `gameIds`.
+ */
+export function deleteGames(db: Database.Database, gameIds: string[]): number {
+  if (gameIds.length === 0) return 0;
+  const placeholders = gameIds.map(() => "?").join(",");
+  const tx = db.transaction((ids: string[]) => {
+    const result = db.prepare(`delete from games where id in (${placeholders})`).run(...ids);
+    db.prepare(`delete from analysis_queue where game_id in (${placeholders})`).run(...ids);
+    db.prepare(`delete from analyses where game_id in (${placeholders})`).run(...ids);
+    db.prepare(`delete from analysis_errors where game_id in (${placeholders})`).run(...ids);
+    return result.changes;
+  });
+  return tx(gameIds);
+}
+
+/**
+ * "Delete all data": every game, analysis, queue entry, error, cached
+ * evaluation and stored ETag; settings are kept. Section 5.10.
+ */
+export function deleteAllData(db: Database.Database): void {
+  const tx = db.transaction(() => {
+    db.prepare(`delete from games`).run();
+    db.prepare(`delete from analysis_queue`).run();
+    db.prepare(`delete from analyses`).run();
+    db.prepare(`delete from analysis_errors`).run();
+    db.prepare(`delete from eval_cache`).run();
+    db.prepare(`delete from chesscom_etags`).run();
+    db.prepare(`update queue_state set done = 0 where id = 1`).run();
+  });
+  tx();
+}

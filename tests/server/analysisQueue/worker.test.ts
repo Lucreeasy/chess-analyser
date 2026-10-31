@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { openDb, insertGames, getQueueEntry, getAnalysis, getAnalysisError, getQueueState, setPaused } from "../../../src/server/db.ts";
+import { openDb, insertGames, getQueueEntry, getAnalysis, getAnalysisError, getQueueState, setPaused, deleteGames } from "../../../src/server/db.ts";
 import { enqueueGames } from "../../../src/server/analysisQueue/queue.ts";
 import { AnalysisWorker, type WorkerEvent } from "../../../src/server/analysisQueue/worker.ts";
 import { UciEngine } from "../../../src/server/engine/engine.ts";
@@ -150,6 +150,49 @@ test("while paused, new games can still be queued and wait", async () => {
     assert.equal(queued, 1);
     assert.equal(getQueueEntry(db, "a")?.running, false); // accepted, but not run while paused
     assert.equal(getAnalysis(db, "a"), undefined);
+    await worker.stop();
+  });
+});
+
+// docs/03-IMPORT-SPEC.md section 5.10: deleting a running game aborts it, no error recorded.
+test("abortGame: aborts the running game, not an error; deleting it then stops it for good", async () => {
+  await withEngine(async (getEngine) => {
+    const db = openDb(":memory:");
+    insertGames(db, [game({ id: "a" })]);
+    enqueueGames(db, ["a"], "standard", false, false, 1000);
+
+    let abortedOnce = false;
+    const worker = new AnalysisWorker(db, getEngine, {
+      onEvent: (e) => {
+        // Mirrors the real flow (section 5.10): abort, then delete the game so the
+        // worker's loop does not simply pick the same (now-waiting) entry straight back up.
+        if (!abortedOnce && e.type === "progress" && e.ply === 0) {
+          abortedOnce = true;
+          worker.abortGame("a");
+          deleteGames(db, ["a"]);
+        }
+      },
+    });
+    worker.notify();
+    await waitFor(() => abortedOnce);
+    await worker.stop();
+
+    assert.equal(getAnalysis(db, "a"), undefined);
+    assert.equal(getAnalysisError(db, "a"), undefined);
+    assert.equal(getQueueEntry(db, "a"), undefined);
+  });
+});
+
+test("abortGame: a no-op when that game is not the one running", async () => {
+  await withEngine(async (getEngine) => {
+    const db = openDb(":memory:");
+    insertGames(db, [game({ id: "a" })]);
+    enqueueGames(db, ["a"], "standard", false, false, 1000);
+
+    const worker = new AnalysisWorker(db, getEngine);
+    worker.abortGame("not-running");
+    worker.notify();
+    await waitFor(() => getAnalysis(db, "a") !== undefined);
     await worker.stop();
   });
 });

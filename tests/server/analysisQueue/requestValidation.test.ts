@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { validateQueueRequest, unknownIdsMessage } from "../../../src/server/analysisQueue/requestValidation.ts";
+import { validateQueueRequest, unknownIdsMessage, validateDeleteRequest } from "../../../src/server/analysisQueue/requestValidation.ts";
 
 test("a valid request with no depth/force: force defaults false, urgent from the id count", () => {
   const result = validateQueueRequest({ gameIds: ["a", "b"] });
@@ -53,4 +53,21 @@ test("force: must be a boolean when present", () => {
 test("unknownIdsMessage: count and the first three ids joined by ', '", () => {
   assert.equal(unknownIdsMessage(["a", "b"]), "unknown game ids (2): a, b");
   assert.equal(unknownIdsMessage(["a", "b", "c", "d"]), "unknown game ids (4): a, b, c");
+});
+
+// docs/03-IMPORT-SPEC.md section 5.10: deleting games, field "ids" (not "gameIds").
+test("validateDeleteRequest: a valid request is de-duplicated", () => {
+  assert.deepEqual(validateDeleteRequest({ ids: ["a", "a", "b"] }), { ok: true, ids: ["a", "b"] });
+});
+
+test("validateDeleteRequest: body missing or not an object", () => {
+  for (const body of [undefined, null, "x", 1]) {
+    assert.deepEqual(validateDeleteRequest(body), { ok: false, message: "JSON body required" });
+  }
+});
+
+test("validateDeleteRequest: ids must be a non-empty array of strings, up to 10000", () => {
+  for (const ids of [undefined, [], "a", [1, 2], Array.from({ length: 10_001 }, (_, i) => `g${i}`)]) {
+    assert.deepEqual(validateDeleteRequest({ ids }), { ok: false, message: '"ids" must be a non-empty array of up to 10000 game ids' });
+  }
 });

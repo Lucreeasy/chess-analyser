@@ -84,6 +84,16 @@ export class AnalysisWorker {
     this.notify();
   }
 
+  /**
+   * Aborts `gameId` if it is the one currently running; a no-op
+   * otherwise. For deleting a running game (section 5.10): the abort
+   * takes the same AnalysisAbortedError path as pause (no error
+   * recorded), and the caller deletes the game's rows itself.
+   */
+  abortGame(gameId: string): void {
+    if (this.#runningGameId === gameId) this.#abortController?.abort();
+  }
+
   /** Graceful shutdown: aborts the running game (back to waiting) and waits for the loop to settle. */
   async stop(): Promise<void> {
     this.#stopped = true;
