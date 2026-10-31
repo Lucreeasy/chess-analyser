@@ -60,3 +60,28 @@ test("a doubled multi-timecontrols.pgn: 8 new, 8 duplicates; a third paste adds 
   assert.equal(third.summary.added, 0);
   assert.equal(third.summary.duplicates, 8);
 });
+
+// docs/03-IMPORT-SPEC.md section 3.7: filtered-out games are neither counted nor reported.
+test("timeClasses filter: only games of the wanted classes are counted and added", () => {
+  const texts = textsOf("multi-timecontrols.pgn"); // blitz, bullet, blitz, rapid, rapid, bullet, blitz, rapid
+  const { summary } = importGames(texts, "chesscom_api", ["bc_tester"], NOW, new Set(), new Set(["blitz"]));
+  assert.equal(summary.total, 3);
+  assert.equal(summary.added, 3);
+  assert.equal(summary.duplicates, 0);
+  assert.equal(summary.failed.length, 0);
+});
+
+test("timeClasses filter: a failing game of an unwanted class is skipped silently, not a failure", () => {
+  const texts = textsOf("malformed.pgn"); // the failing middle game is blitz (TimeControl 180+2)
+  const { summary } = importGames(texts, "file", ["bc_tester"], NOW, new Set(), new Set(["rapid"]));
+  assert.equal(summary.total, 0);
+  assert.equal(summary.failed.length, 0);
+});
+
+test("timeClasses filter: with all five classes selected, nothing is filtered out", () => {
+  const texts = textsOf("multi-timecontrols.pgn");
+  const all = new Set<"bullet" | "blitz" | "rapid" | "daily" | "classical">(["bullet", "blitz", "rapid", "daily", "classical"]);
+  const { summary } = importGames(texts, "chesscom_api", ["bc_tester"], NOW, new Set(), all);
+  assert.equal(summary.total, 8);
+  assert.equal(summary.added, 8);
+});
