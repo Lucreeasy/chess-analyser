@@ -22,6 +22,13 @@ export function openDb(path: string): Database.Database {
       reached_depth integer not null,
       primary key (epd, depth, multipv)
     );
+    create table if not exists chesscom_etags (
+      username text not null,
+      month text not null,
+      etag text not null,
+      fetched_at integer not null,
+      primary key (username, month)
+    );
   `);
   return db;
 }
@@ -70,4 +77,28 @@ export function putCachedEval(
   db.prepare(
     `insert or ignore into eval_cache (epd, depth, multipv, lines_json, reached_depth) values (?, ?, ?, ?, ?)`,
   ).run(epd, depth, multipv, JSON.stringify(lines), reachedDepth);
+}
+
+/**
+ * The stored ETag for one (lower-cased username, month), used only by
+ * auto-sync's conditional requests. docs/03-IMPORT-SPEC.md section 3.6.
+ */
+export function getStoredEtag(db: Database.Database, username: string, month: string): string | undefined {
+  const row = db.prepare(`select etag from chesscom_etags where username = ? and month = ?`).get(username, month) as
+    | { etag: string }
+    | undefined;
+  return row?.etag;
+}
+
+export function putStoredEtag(db: Database.Database, username: string, month: string, etag: string, fetchedAt: number): void {
+  db.prepare(`insert or replace into chesscom_etags (username, month, etag, fetched_at) values (?, ?, ?, ?)`).run(
+    username,
+    month,
+    etag,
+    fetchedAt,
+  );
+}
+
+export function deleteStoredEtag(db: Database.Database, username: string, month: string): void {
+  db.prepare(`delete from chesscom_etags where username = ? and month = ?`).run(username, month);
 }
