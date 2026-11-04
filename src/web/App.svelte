@@ -1,6 +1,7 @@
 <script lang="ts">
   import { route } from "./lib/router.svelte.ts";
   import Nav from "./components/Nav.svelte";
+  import GamesScreen from "./screens/GamesScreen.svelte";
   import ComingSoonScreen from "./screens/ComingSoonScreen.svelte";
 </script>
 
@@ -8,7 +9,7 @@
 
 <main>
   {#if route.path === "/" || route.path.startsWith("/games")}
-    <ComingSoonScreen title="Games" />
+    <GamesScreen />
   {:else if route.path === "/insights"}
     <ComingSoonScreen title="Insights" />
   {:else if route.path === "/puzzles"}
