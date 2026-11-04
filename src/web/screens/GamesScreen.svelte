@@ -7,6 +7,7 @@
   import { showToast } from "../lib/toasts.svelte.ts";
   import { defaultFilters, filterGames, activeFilterCount, computeFacets, type GamesFilters } from "../lib/gamesFilter.ts";
   import { sortGames, FIRST_DIRECTION, type SortKey, type SortDirection } from "../lib/gamesSort.ts";
+  import { paginate, pageCount, clampPage } from "../lib/paginate.ts";
   import type { GameRow } from "../lib/types.ts";
 
   let games: GameRow[] | undefined = $state(undefined);
@@ -43,6 +44,17 @@
   }
 
   const sortedGames = $derived(filteredGames ? sortGames(filteredGames, sortKey, sortDirection) : undefined);
+
+  let page = $state(1);
+  $effect(() => {
+    filters;
+    sortKey;
+    sortDirection;
+    page = 1;
+  });
+  const totalPages = $derived(pageCount(sortedGames?.length ?? 0));
+  const currentPage = $derived(clampPage(page, sortedGames?.length ?? 0));
+  const pagedGames = $derived(sortedGames ? paginate(sortedGames, page) : undefined);
 
   async function load(): Promise<void> {
     loadError = undefined;
@@ -165,8 +177,13 @@
         <p>No games match these filters.</p>
         <button type="button" onclick={() => (filters = defaultFilters())}>Clear all filters</button>
       </div>
-    {:else if sortedGames}
-      <GamesList games={sortedGames} {sortKey} {sortDirection} {onSort} />
+    {:else if pagedGames}
+      <GamesList games={pagedGames} {sortKey} {sortDirection} {onSort} />
+      <nav class="pagination" aria-label="Pagination">
+        <button type="button" disabled={currentPage === 1} onclick={() => (page = currentPage - 1)}>Previous</button>
+        <span class="page-label">Page {currentPage} of {totalPages}</span>
+        <button type="button" disabled={currentPage === totalPages} onclick={() => (page = currentPage + 1)}>Next</button>
+      </nav>
     {/if}
   {/if}
 </div>
@@ -301,5 +318,29 @@
     .filters-panel.hidden-on-phone {
       display: block;
     }
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .pagination button {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .pagination button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .page-label {
+    color: var(--muted);
+    font-size: 14px;
   }
 </style>
