@@ -1,3 +1,5 @@
+export type TimeClass = "bullet" | "blitz" | "rapid" | "daily" | "classical";
+
 /** Mirrors the server's GameListRow (src/server/games/listRows.ts). */
 export interface GameRow {
   id: string;
@@ -9,7 +11,7 @@ export interface GameRow {
   result: "1-0" | "0-1" | "1/2-1/2" | "*";
   myResult?: "win" | "loss" | "draw";
   timeControlText: string;
-  timeClass: "bullet" | "blitz" | "rapid" | "daily" | "classical";
+  timeClass: TimeClass;
   playedAt: number;
   eco?: string;
   openingName?: string;

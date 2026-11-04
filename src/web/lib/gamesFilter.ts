@@ -1,0 +1,89 @@
+import type { GameRow, TimeClass } from "./types.ts";
+
+/** Search and filters for the Games list. docs/06-GAMES-SPEC.md sections A5-A7. */
+
+export interface GamesFilters {
+  search: string;
+  timeClasses: Set<TimeClass>;
+  colour: "any" | "w" | "b";
+  results: Set<"win" | "loss" | "draw">;
+  analysis: "any" | "analysed" | "not_analysed";
+  openingFamily: string | undefined;
+  /** UTC day boundaries, inclusive: From = 00:00:00.000 UTC, To = 23:59:59.999 UTC. */
+  from: number | undefined;
+  to: number | undefined;
+}
+
+export function defaultFilters(): GamesFilters {
+  return {
+    search: "",
+    timeClasses: new Set(),
+    colour: "any",
+    results: new Set(),
+    analysis: "any",
+    openingFamily: undefined,
+    from: undefined,
+    to: undefined,
+  };
+}
+
+function matchesSearch(game: GameRow, search: string): boolean {
+  if (search === "") return true;
+  const needle = search.toLowerCase();
+  const haystacks: string[] = [];
+  if (game.myColour === undefined) haystacks.push(game.white, game.black);
+  else if (game.opponent) haystacks.push(game.opponent);
+  if (game.openingName) haystacks.push(game.openingName);
+  if (game.eco) haystacks.push(game.eco);
+  return haystacks.some((h) => h.toLowerCase().includes(needle));
+}
+
+export function matchesFilters(game: GameRow, filters: GamesFilters): boolean {
+  if (!matchesSearch(game, filters.search)) return false;
+  if (filters.timeClasses.size > 0 && !filters.timeClasses.has(game.timeClass)) return false;
+  if (filters.colour === "w" && game.myColour !== "w") return false;
+  if (filters.colour === "b" && game.myColour !== "b") return false;
+  if (filters.results.size > 0 && (game.myResult === undefined || !filters.results.has(game.myResult))) return false;
+  if (filters.analysis === "analysed" && game.analysisStatus !== "done") return false;
+  if (filters.analysis === "not_analysed" && game.analysisStatus === "done") return false;
+  if (filters.openingFamily !== undefined && game.openingFamily !== filters.openingFamily) return false;
+  if (filters.from !== undefined && game.playedAt < filters.from) return false;
+  if (filters.to !== undefined && game.playedAt > filters.to) return false;
+  return true;
+}
+
+export function filterGames(games: GameRow[], filters: GamesFilters): GameRow[] {
+  return games.filter((game) => matchesFilters(game, filters));
+}
+
+/** One for each of time class, colour, result, opening family, analysis, search, and the date range as a whole. */
+export function activeFilterCount(filters: GamesFilters): number {
+  let count = 0;
+  if (filters.timeClasses.size > 0) count++;
+  if (filters.colour !== "any") count++;
+  if (filters.results.size > 0) count++;
+  if (filters.analysis !== "any") count++;
+  if (filters.openingFamily !== undefined) count++;
+  if (filters.search !== "") count++;
+  if (filters.from !== undefined || filters.to !== undefined) count++;
+  return count;
+}
+
+export interface Facets {
+  timeClasses: Set<TimeClass>;
+  openingFamilies: Array<{ family: string; count: number }>;
+}
+
+/** Over the whole (unfiltered) library. docs/06-GAMES-SPEC.md section A7. */
+export function computeFacets(games: GameRow[]): Facets {
+  const timeClasses = new Set<TimeClass>();
+  const familyCounts = new Map<string, number>();
+  for (const game of games) {
+    timeClasses.add(game.timeClass);
+    if (game.openingFamily) familyCounts.set(game.openingFamily, (familyCounts.get(game.openingFamily) ?? 0) + 1);
+  }
+  const openingFamilies = [...familyCounts.entries()]
+    .map(([family, count]) => ({ family, count }))
+    .sort((a, b) => b.count - a.count || a.family.localeCompare(b.family));
+  return { timeClasses, openingFamilies };
+}
