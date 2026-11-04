@@ -12,10 +12,37 @@
     sortKey,
     sortDirection,
     onSort,
-  }: { games: GameRow[]; sortKey: SortKey; sortDirection: SortDirection; onSort: (key: SortKey) => void } = $props();
+    selected,
+    onToggleSelect,
+    onToggleSelectAll,
+  }: {
+    games: GameRow[];
+    sortKey: SortKey;
+    sortDirection: SortDirection;
+    onSort: (key: SortKey) => void;
+    selected: Set<string>;
+    onToggleSelect: (id: string) => void;
+    onToggleSelectAll: () => void;
+  } = $props();
 
   function openingLabel(game: GameRow): string {
     return game.openingName ?? game.openingFamily ?? game.eco ?? "–";
+  }
+
+  function opponentLabel(game: GameRow): string {
+    return game.opponent ?? `${game.white} vs ${game.black}`;
+  }
+
+  const allSelected = $derived(games.length > 0 && games.every((g) => selected.has(g.id)));
+  const someSelected = $derived(!allSelected && games.some((g) => selected.has(g.id)));
+
+  function indeterminate(node: HTMLInputElement, value: boolean) {
+    node.indeterminate = value;
+    return {
+      update(v: boolean) {
+        node.indeterminate = v;
+      },
+    };
   }
 
   const columns: Array<{ key: SortKey; label: string }> = [
@@ -43,6 +70,9 @@
   </caption>
   <thead>
     <tr>
+      <th scope="col" class="checkbox-col">
+        <input type="checkbox" checked={allSelected} use:indeterminate={someSelected} onchange={onToggleSelectAll} aria-label="Select all games on this page" />
+      </th>
       {#each columns as column (column.key)}
         <th scope="col" aria-sort={ariaSort(column.key)}>
           <button type="button" onclick={() => onSort(column.key)}>
@@ -57,7 +87,10 @@
   </thead>
   <tbody>
     {#each games as game (game.id)}
-      <tr>
+      <tr class:selected={selected.has(game.id)}>
+        <td class="checkbox-col">
+          <input type="checkbox" checked={selected.has(game.id)} onchange={() => onToggleSelect(game.id)} aria-label={`Select game vs ${opponentLabel(game)}`} />
+        </td>
         <td>{formatDate(game.playedAt)}</td>
         <td>
           {#if game.opponent}
@@ -79,9 +112,21 @@
   </tbody>
 </table>
 
+<label class="select-all-row">
+  <input type="checkbox" checked={allSelected} use:indeterminate={someSelected} onchange={onToggleSelectAll} />
+  Select all on this page
+</label>
+
 <ul class="games-cards">
   {#each games as game (game.id)}
-    <li class="card">
+    <li class="card" class:selected={selected.has(game.id)}>
+      <input
+        type="checkbox"
+        class="card-checkbox"
+        checked={selected.has(game.id)}
+        onchange={() => onToggleSelect(game.id)}
+        aria-label={`Select game vs ${opponentLabel(game)}`}
+      />
       <div class="card-line1">
         <a href={`#/games/${encodeURIComponent(game.id)}`} class="card-link">
           {#if game.opponent}
@@ -124,8 +169,23 @@
     clip: rect(0, 0, 0, 0);
   }
 
+  .select-all-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
   .games-table {
     display: none;
+  }
+  .checkbox-col {
+    width: 44px;
+  }
+  .games-table tr.selected {
+    background: var(--surface-2);
   }
   .games-cards {
     list-style: none;
@@ -136,16 +196,27 @@
     gap: 8px;
   }
   .card {
+    position: relative;
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 12px;
     background: var(--surface);
+  }
+  .card.selected {
+    border-color: var(--brand);
+    background: var(--surface-2);
+  }
+  .card-checkbox {
+    position: absolute;
+    top: 12px;
+    left: 12px;
   }
   .card-line1 {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    padding-left: 32px;
   }
   .card-link {
     font-size: 16px;
@@ -167,6 +238,9 @@
   }
 
   @media (min-width: 768px) {
+    .select-all-row {
+      display: none;
+    }
     .games-cards {
       display: none;
     }

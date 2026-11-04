@@ -56,6 +56,30 @@
   const currentPage = $derived(clampPage(page, sortedGames?.length ?? 0));
   const pagedGames = $derived(sortedGames ? paginate(sortedGames, page) : undefined);
 
+  let selected: Set<string> = $state(new Set());
+
+  function toggleSelect(id: string): void {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    selected = next;
+  }
+
+  function toggleSelectAll(): void {
+    const pageIds = pagedGames?.map((g) => g.id) ?? [];
+    const allSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+    const next = new Set(selected);
+    for (const id of pageIds) {
+      if (allSelected) next.delete(id);
+      else next.add(id);
+    }
+    selected = next;
+  }
+
+  function clearSelection(): void {
+    selected = new Set();
+  }
+
   async function load(): Promise<void> {
     loadError = undefined;
     try {
@@ -116,7 +140,7 @@
   );
 </script>
 
-<div class="page">
+<div class="page" class:with-bulk-bar={selected.size > 0}>
   <div class="heading-row">
     <div>
       <h1><Logo />Games</h1>
@@ -178,7 +202,15 @@
         <button type="button" onclick={() => (filters = defaultFilters())}>Clear all filters</button>
       </div>
     {:else if pagedGames}
-      <GamesList games={pagedGames} {sortKey} {sortDirection} {onSort} />
+      <GamesList
+        games={pagedGames}
+        {sortKey}
+        {sortDirection}
+        {onSort}
+        {selected}
+        onToggleSelect={toggleSelect}
+        onToggleSelectAll={toggleSelectAll}
+      />
       <nav class="pagination" aria-label="Pagination">
         <button type="button" disabled={currentPage === 1} onclick={() => (page = currentPage - 1)}>Previous</button>
         <span class="page-label">Page {currentPage} of {totalPages}</span>
@@ -187,6 +219,15 @@
     {/if}
   {/if}
 </div>
+
+{#if selected.size > 0}
+  <div class="bulk-bar">
+    <div class="bulk-bar-inner">
+      <span class="bulk-count" aria-live="polite">{selected.size} selected</span>
+      <button type="button" class="quiet" onclick={clearSelection}>Clear</button>
+    </div>
+  </div>
+{/if}
 
 <style>
   .page {
@@ -342,5 +383,49 @@
   .page-label {
     color: var(--muted);
     font-size: 14px;
+  }
+
+  .page.with-bulk-bar {
+    padding-bottom: 80px;
+  }
+  .bulk-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 56px; /* phone bottom tab bar */
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.12);
+    padding: 8px 16px;
+    z-index: 10;
+  }
+  @media (min-width: 768px) {
+    .bulk-bar {
+      bottom: 0;
+    }
+  }
+  .bulk-bar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bulk-count {
+    font-size: 14px;
+    font-weight: 500;
+    margin-right: auto;
+  }
+  .bulk-bar button {
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .bulk-bar button.quiet {
+    border: none;
+    background: none;
+    color: var(--ink);
   }
 </style>
