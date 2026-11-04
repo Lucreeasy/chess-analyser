@@ -1,10 +1,12 @@
 <script lang="ts">
   import { route } from "./lib/router.svelte.ts";
   import Nav from "./components/Nav.svelte";
+  import Toasts from "./components/Toasts.svelte";
   import GamesScreen from "./screens/GamesScreen.svelte";
   import ComingSoonScreen from "./screens/ComingSoonScreen.svelte";
 </script>
 
+<Toasts />
 <Nav />
 
 <main>

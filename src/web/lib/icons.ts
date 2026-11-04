@@ -15,4 +15,7 @@ export const icons: Record<string, string> = {
   import: `<line x1="12" y1="3" x2="12" y2="15"/><polyline points="7,10 12,15 17,10"/><line x1="4" y1="20" x2="20" y2="20"/>`,
   sync: `<path d="M20 11a8 8 0 0 0-14.9-3.4"/><polyline points="5,3 5,8 10,8"/>
     <path d="M4 13a8 8 0 0 0 14.9 3.4"/><polyline points="19,21 19,16 14,16"/>`,
+  check: `<polyline points="4,13 9,18 20,6"/>`,
+  alert: `<path d="M12 3 L22 20 L2 20 Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>`,
+  close: `<line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/>`,
 };

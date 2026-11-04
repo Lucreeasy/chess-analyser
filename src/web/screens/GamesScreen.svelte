@@ -3,12 +3,12 @@
   import Icon from "../components/Icon.svelte";
   import GamesList from "../components/GamesList.svelte";
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
+  import { showToast } from "../lib/toasts.svelte.ts";
   import type { GameRow } from "../lib/types.ts";
 
   let games: GameRow[] | undefined = $state(undefined);
   let loadError: string | undefined = $state(undefined);
   let syncing = $state(false);
-  let syncError: string | undefined = $state(undefined);
 
   async function load(): Promise<void> {
     loadError = undefined;
@@ -19,27 +19,43 @@
     }
   }
 
-  interface AutoSyncStatus {
-    running: boolean;
+  interface UsernameSyncResult {
+    username: string;
+    added: number;
+    error?: string;
   }
 
-  async function pollWhileSyncing(): Promise<void> {
+  interface AutoSyncStatus {
+    running: boolean;
+    lastResults: UsernameSyncResult[];
+  }
+
+  async function pollUntilDone(): Promise<AutoSyncStatus> {
     while (true) {
       const status = await apiGet<AutoSyncStatus>("autosync/status");
-      if (!status.running) break;
+      if (!status.running) return status;
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }
 
+  function syncResultToast(status: AutoSyncStatus): void {
+    const withErrors = status.lastResults.filter((r) => r.error);
+    if (withErrors.length > 0) {
+      showToast(`Sync problem: ${withErrors.map((r) => `${r.username}: ${r.error}`).join("; ")}`, "error");
+      return;
+    }
+    const added = status.lastResults.reduce((sum, r) => sum + r.added, 0);
+    showToast(added === 0 ? "No new games." : added === 1 ? "1 new game." : `${added} new games.`);
+  }
+
   async function syncNow(): Promise<void> {
     syncing = true;
-    syncError = undefined;
     try {
       await apiPost("autosync/sync-now");
-      await pollWhileSyncing();
+      syncResultToast(await pollUntilDone());
       await load();
     } catch (e) {
-      syncError = e instanceof ApiError ? e.message : String(e);
+      showToast(`Sync failed: ${e instanceof ApiError ? e.message : String(e)}`, "error");
     } finally {
       syncing = false;
     }
@@ -71,10 +87,6 @@
       <a href="#/import" class="import-button phone-only"><Icon name="import" size={18} />Import</a>
     </div>
   </div>
-
-  {#if syncError}
-    <p class="error-line" role="alert">Sync failed: {syncError}</p>
-  {/if}
 
   {#if games === undefined && loadError === undefined}
     <p class="status-line">Loading games…</p>
@@ -172,13 +184,9 @@
       display: none;
     }
   }
-  .status-line,
-  .error-line {
+  .status-line {
     color: var(--muted);
     font-size: 14px;
-  }
-  .error-line {
-    color: var(--danger);
   }
   .error-card,
   .empty-card {
