@@ -2,13 +2,32 @@
   import Logo from "../components/Logo.svelte";
   import Icon from "../components/Icon.svelte";
   import GamesList from "../components/GamesList.svelte";
+  import FilterPanel from "../components/FilterPanel.svelte";
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
   import { showToast } from "../lib/toasts.svelte.ts";
+  import { defaultFilters, filterGames, activeFilterCount, computeFacets, type GamesFilters } from "../lib/gamesFilter.ts";
   import type { GameRow } from "../lib/types.ts";
 
   let games: GameRow[] | undefined = $state(undefined);
   let loadError: string | undefined = $state(undefined);
   let syncing = $state(false);
+
+  let filters: GamesFilters = $state(defaultFilters());
+  let searchInput = $state("");
+  let showFiltersPanel = $state(false);
+  let searchDebounce: ReturnType<typeof setTimeout> | undefined;
+
+  function onSearchInput(value: string): void {
+    searchInput = value;
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      filters = { ...filters, search: value.trim().slice(0, 100) };
+    }, 300);
+  }
+
+  const facets = $derived(computeFacets(games ?? []));
+  const filteredGames = $derived(games ? filterGames(games, filters) : undefined);
+  const filterCount = $derived(activeFilterCount(filters));
 
   async function load(): Promise<void> {
     loadError = undefined;
@@ -63,7 +82,11 @@
 
   load();
 
-  const countLine = $derived(games === undefined ? "" : `${games.length} ${games.length === 1 ? "game" : "games"}`);
+  const countLine = $derived(
+    filteredGames === undefined
+      ? ""
+      : `${filteredGames.length} ${filteredGames.length === 1 ? "game" : "games"}${filterCount > 0 ? " match your filters" : ""}`,
+  );
 </script>
 
 <div class="page">
@@ -102,8 +125,34 @@
       <p class="muted">Pick a source. All three end in the same report.</p>
       <a href="#/import">Upload PGN files, paste PGN text, or fetch by username</a>
     </div>
-  {:else if games}
-    <GamesList {games} />
+  {:else if games && filteredGames}
+    <div class="toolbar">
+      <div class="search-box">
+        <input
+          type="search"
+          aria-label="Search opponent or opening"
+          placeholder="Search games"
+          value={searchInput}
+          oninput={(e) => onSearchInput(e.currentTarget.value)}
+        />
+      </div>
+      <button type="button" class="filters-toggle phone-only" onclick={() => (showFiltersPanel = !showFiltersPanel)}>
+        <Icon name="filter" size={18} />Filters{filterCount > 0 ? ` (${filterCount})` : ""}
+      </button>
+    </div>
+
+    <div class="filters-panel" class:hidden-on-phone={!showFiltersPanel}>
+      <FilterPanel bind:filters {facets} />
+    </div>
+
+    {#if filteredGames.length === 0}
+      <div class="empty-card">
+        <p>No games match these filters.</p>
+        <button type="button" onclick={() => (filters = defaultFilters())}>Clear all filters</button>
+      </div>
+    {:else}
+      <GamesList games={filteredGames} />
+    {/if}
   {/if}
 </div>
 
@@ -200,5 +249,42 @@
   }
   .muted {
     color: var(--muted);
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+  }
+  .search-box {
+    flex: 1;
+  }
+  .search-box input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 16px;
+  }
+  .filters-toggle {
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .filters-panel.hidden-on-phone {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .filters-panel.hidden-on-phone {
+      display: block;
+    }
   }
 </style>
