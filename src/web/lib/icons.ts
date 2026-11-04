@@ -19,4 +19,6 @@ export const icons: Record<string, string> = {
   alert: `<path d="M12 3 L22 20 L2 20 Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>`,
   close: `<line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/>`,
   filter: `<line x1="4" y1="7" x2="20" y2="7"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="17" x2="14" y2="17"/>`,
+  sortAsc: `<polyline points="6,15 12,9 18,15"/>`,
+  sortDesc: `<polyline points="6,9 12,15 18,9"/>`,
 };

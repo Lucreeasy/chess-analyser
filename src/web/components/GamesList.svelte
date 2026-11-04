@@ -2,30 +2,57 @@
   import ColourMarker from "./ColourMarker.svelte";
   import ResultBadge from "./ResultBadge.svelte";
   import StatusBadge from "./StatusBadge.svelte";
+  import Icon from "./Icon.svelte";
   import { formatDate, timeClassLabel, accuracyText, countText } from "../lib/format.ts";
+  import type { SortKey, SortDirection } from "../lib/gamesSort.ts";
   import type { GameRow } from "../lib/types.ts";
 
-  let { games }: { games: GameRow[] } = $props();
+  let {
+    games,
+    sortKey,
+    sortDirection,
+    onSort,
+  }: { games: GameRow[]; sortKey: SortKey; sortDirection: SortDirection; onSort: (key: SortKey) => void } = $props();
 
   function openingLabel(game: GameRow): string {
     return game.openingName ?? game.openingFamily ?? game.eco ?? "–";
   }
+
+  const columns: Array<{ key: SortKey; label: string }> = [
+    { key: "date", label: "Date" },
+    { key: "opponent", label: "Opponent" },
+    { key: "rating", label: "Rating" },
+    { key: "colour", label: "Colour" },
+    { key: "result", label: "Result" },
+    { key: "time", label: "Time" },
+    { key: "opening", label: "Opening" },
+    { key: "accuracy", label: "Accuracy" },
+    { key: "blunders", label: "Blunders" },
+    { key: "status", label: "Status" },
+  ];
+
+  function ariaSort(key: SortKey): "ascending" | "descending" | "none" {
+    if (key !== sortKey) return "none";
+    return sortDirection === "asc" ? "ascending" : "descending";
+  }
 </script>
 
 <table class="games-table">
-  <caption class="sr-only">Games, sorted by date descending</caption>
+  <caption class="sr-only">
+    Games, sorted by {columns.find((c) => c.key === sortKey)?.label} {sortDirection === "asc" ? "ascending" : "descending"}
+  </caption>
   <thead>
     <tr>
-      <th scope="col">Date</th>
-      <th scope="col">Opponent</th>
-      <th scope="col">Rating</th>
-      <th scope="col">Colour</th>
-      <th scope="col">Result</th>
-      <th scope="col">Time</th>
-      <th scope="col">Opening</th>
-      <th scope="col">Accuracy</th>
-      <th scope="col">Blunders</th>
-      <th scope="col">Status</th>
+      {#each columns as column (column.key)}
+        <th scope="col" aria-sort={ariaSort(column.key)}>
+          <button type="button" onclick={() => onSort(column.key)}>
+            {column.label}
+            {#if column.key === sortKey}
+              <Icon name={sortDirection === "asc" ? "sortAsc" : "sortDesc"} size={14} />
+            {/if}
+          </button>
+        </th>
+      {/each}
     </tr>
   </thead>
   <tbody>
@@ -160,7 +187,24 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--muted);
-      padding: 8px 12px;
+      padding: 0;
+    }
+    .games-table th button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 44px;
+      padding: 0 12px;
+      border: none;
+      background: none;
+      color: inherit;
+      font: inherit;
+      text-transform: inherit;
+      letter-spacing: inherit;
+      cursor: pointer;
+    }
+    .games-table th[aria-sort]:not([aria-sort="none"]) button {
+      color: var(--ink);
     }
     .games-table td {
       padding: 10px 12px;

@@ -6,6 +6,7 @@
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
   import { showToast } from "../lib/toasts.svelte.ts";
   import { defaultFilters, filterGames, activeFilterCount, computeFacets, type GamesFilters } from "../lib/gamesFilter.ts";
+  import { sortGames, FIRST_DIRECTION, type SortKey, type SortDirection } from "../lib/gamesSort.ts";
   import type { GameRow } from "../lib/types.ts";
 
   let games: GameRow[] | undefined = $state(undefined);
@@ -28,6 +29,20 @@
   const facets = $derived(computeFacets(games ?? []));
   const filteredGames = $derived(games ? filterGames(games, filters) : undefined);
   const filterCount = $derived(activeFilterCount(filters));
+
+  let sortKey: SortKey = $state("date");
+  let sortDirection: SortDirection = $state("desc");
+
+  function onSort(key: SortKey): void {
+    if (key === sortKey) {
+      sortDirection = sortDirection === "asc" ? "desc" : "asc";
+    } else {
+      sortKey = key;
+      sortDirection = FIRST_DIRECTION[key];
+    }
+  }
+
+  const sortedGames = $derived(filteredGames ? sortGames(filteredGames, sortKey, sortDirection) : undefined);
 
   async function load(): Promise<void> {
     loadError = undefined;
@@ -145,13 +160,13 @@
       <FilterPanel bind:filters {facets} />
     </div>
 
-    {#if filteredGames.length === 0}
+    {#if sortedGames && sortedGames.length === 0}
       <div class="empty-card">
         <p>No games match these filters.</p>
         <button type="button" onclick={() => (filters = defaultFilters())}>Clear all filters</button>
       </div>
-    {:else}
-      <GamesList games={filteredGames} />
+    {:else if sortedGames}
+      <GamesList games={sortedGames} {sortKey} {sortDirection} {onSort} />
     {/if}
   {/if}
 </div>
