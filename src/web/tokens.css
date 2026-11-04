@@ -1,0 +1,91 @@
+/* Design tokens. docs/07-UI-SPEC.md sections 3.1, 3.3, 3.4. */
+
+:root {
+  color-scheme: light dark;
+
+  --background: #f4f2ec;
+  --surface: #ffffff;
+  --surface-2: #ebe8df;
+  --ink: #1b2430;
+  --muted: #5b6876;
+  --line: #dcd7ca;
+  --brand: #1f6f6b;
+  --brand-ink: #ffffff;
+  --accent: #c9731c;
+  --danger: #b3342a;
+  --danger-ink: #ffffff;
+  --ok: #1b7236;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  --radius-control: 12px;
+  --radius-card: 16px;
+  --radius-tile: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #10161d;
+    --surface: #18212b;
+    --surface-2: #223040;
+    --ink: #e8edf2;
+    --muted: #97a5b3;
+    --line: #2a3947;
+    --brand: #4fb3ad;
+    --brand-ink: #0b1a19;
+    --accent: #f0a04b;
+    --danger: #f2786c;
+    --danger-ink: #1a0b09;
+    --ok: #5ac17c;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--ink);
+  font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--brand);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
