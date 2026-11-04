@@ -3,6 +3,7 @@
   import Icon from "../components/Icon.svelte";
   import GamesList from "../components/GamesList.svelte";
   import FilterPanel from "../components/FilterPanel.svelte";
+  import ConfirmDialog from "../components/ConfirmDialog.svelte";
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
   import { showToast } from "../lib/toasts.svelte.ts";
   import { defaultFilters, filterGames, activeFilterCount, computeFacets, type GamesFilters } from "../lib/gamesFilter.ts";
@@ -78,6 +79,26 @@
 
   function clearSelection(): void {
     selected = new Set();
+  }
+
+  let showDeleteConfirm = $state(false);
+  let deleting = $state(false);
+
+  async function confirmDelete(): Promise<void> {
+    deleting = true;
+    const ids = [...selected];
+    try {
+      const result = await apiPost<{ deleted: number }>("games/delete", { ids });
+      showToast(result.deleted === 1 ? "Deleted 1 game." : `Deleted ${result.deleted} games.`);
+      clearSelection();
+      showDeleteConfirm = false;
+      await load();
+    } catch (e) {
+      showDeleteConfirm = false;
+      showToast(`Could not delete: ${e instanceof ApiError ? e.message : String(e)}`, "error");
+    } finally {
+      deleting = false;
+    }
   }
 
   async function load(): Promise<void> {
@@ -221,12 +242,28 @@
 </div>
 
 {#if selected.size > 0}
-  <div class="bulk-bar">
+  <div class="bulk-bar" role="region" aria-label="Bulk actions">
     <div class="bulk-bar-inner">
       <span class="bulk-count" aria-live="polite">{selected.size} selected</span>
+      <button type="button" class="danger-text" onclick={() => (showDeleteConfirm = true)}>Delete</button>
       <button type="button" class="quiet" onclick={clearSelection}>Clear</button>
     </div>
   </div>
+{/if}
+
+{#if showDeleteConfirm}
+  <ConfirmDialog
+    title={selected.size === 1 ? "Delete 1 game?" : `Delete ${selected.size} games?`}
+    body={selected.size === 1
+      ? "The game and its analysis are removed from this app. This cannot be undone. You can import them again later."
+      : "The games and their analysis are removed from this app. This cannot be undone. You can import them again later."}
+    confirmLabel="Delete"
+    busyLabel="Deleting…"
+    busy={deleting}
+    danger
+    onConfirm={confirmDelete}
+    onCancel={() => (showDeleteConfirm = false)}
+  />
 {/if}
 
 <style>
@@ -427,5 +464,10 @@
     border: none;
     background: none;
     color: var(--ink);
+  }
+  .bulk-bar button.danger-text {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--danger);
   }
 </style>
