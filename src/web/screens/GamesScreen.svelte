@@ -9,6 +9,7 @@
   import { defaultFilters, filterGames, activeFilterCount, computeFacets, type GamesFilters } from "../lib/gamesFilter.ts";
   import { sortGames, FIRST_DIRECTION, type SortKey, type SortDirection } from "../lib/gamesSort.ts";
   import { paginate, pageCount, clampPage } from "../lib/paginate.ts";
+  import { onGamesChanged } from "../lib/live.svelte.ts";
   import { SEARCH_DEPTH, oneStepDeeper } from "../../server/analysisQueue/depthPresets.ts";
   import type { DepthPreset } from "../../server/settings.ts";
   import type { GameRow } from "../lib/types.ts";
@@ -188,6 +189,7 @@
   }
 
   load();
+  $effect(() => onGamesChanged(load));
 
   const countLine = $derived(
     filteredGames === undefined
