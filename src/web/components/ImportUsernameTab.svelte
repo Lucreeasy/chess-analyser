@@ -9,6 +9,7 @@
   import { ALL_TIME_CLASSES } from "../../server/import/timeClass.ts";
   import type { TimeClass } from "../lib/types.ts";
   import type { MonthReport, ImportReport } from "../lib/importReport.ts";
+  import { onImportProgress } from "../lib/live.svelte.ts";
 
   const OFFERED_CLASSES = ALL_TIME_CLASSES.filter((c) => c !== "classical") as TimeClass[];
 
@@ -26,8 +27,20 @@
 
   let fetching = $state(false);
   let fetchProgress: string | undefined = $state(undefined);
+  let fetchDone = $state(0);
+  let fetchTotal = $state(0);
   let report: ImportReport | undefined = $state(undefined);
   let fetchError: string | undefined = $state(undefined);
+
+  $effect(() =>
+    onImportProgress((e) => {
+      if (!fetching || e.username !== username.trim().toLowerCase()) return;
+      fetchDone = e.done;
+      fetchTotal = e.total;
+      // docs/03-IMPORT-SPEC.md section 3.1.4: show the month being fetched (done + 1), not the raw count of finished months.
+      fetchProgress = `Fetching ${e.month} (${e.done + 1} of ${e.total})…`;
+    }),
+  );
 
   apiGet<Settings>("settings")
     .then((s) => {
@@ -108,6 +121,8 @@
   async function run(): Promise<void> {
     fetching = true;
     fetchProgress = "Starting…";
+    fetchDone = 0;
+    fetchTotal = 0;
     fetchError = undefined;
     report = undefined;
     try {
@@ -187,6 +202,9 @@
 
   {#if fetching}
     <p class="muted" aria-live="polite">{fetchProgress}</p>
+    <div class="progress-bar">
+      <div class="fill" style={`width: ${fetchTotal > 0 ? Math.max(4, Math.round((fetchDone / fetchTotal) * 100)) : 4}%`}></div>
+    </div>
   {/if}
 
   {#if fetchError}
@@ -271,5 +289,16 @@
     border: 1px solid var(--line);
     border-radius: 12px;
     font-weight: 400;
+  }
+  .progress-bar {
+    margin-top: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: var(--brand);
   }
 </style>
