@@ -35,6 +35,8 @@ import { AnalysisWorker } from "./analysisQueue/worker.ts";
 import { validateQueueRequest, unknownIdsMessage, validateDeleteRequest } from "./analysisQueue/requestValidation.ts";
 import { enqueueGames, unknownGameIds, autoQueueNewGames } from "./analysisQueue/queue.ts";
 import type { StoredGame } from "./import/parseGame.ts";
+import { EventHub } from "./events/hub.ts";
+import type { WorkerEvent } from "./analysisQueue/worker.ts";
 
 // A mutable binding so tests can point chess.com calls at a fake transport instead of the real network.
 export const chessComDeps: { fetch: FetchLike } = { fetch: fetch as FetchLike };
@@ -45,6 +47,7 @@ const dbPath =
 const staticRoot = process.env.STATIC_DIR || "dist/web";
 
 export const db = openDb(dbPath);
+export const eventHub = new EventHub();
 
 const ALL_TIME_CLASSES_SET = new Set(ALL_TIME_CLASSES);
 
@@ -52,6 +55,7 @@ function storeAndAutoQueue(games: StoredGame[]): number {
   insertGames(db, games);
   const queued = autoQueueNewGames(db, games.map((g) => g.id), Date.now());
   if (queued > 0) analysisWorker.notify();
+  eventHub.broadcast({ type: "gamesChanged" });
   return queued;
 }
 
@@ -70,9 +74,14 @@ async function runUsernameSync(username: string): Promise<SyncResult> {
 export const autoSync = new AutoSyncScheduler(parseIntervalHours(process.env.AUTO_SYNC_INTERVAL_HOURS), () => getSettings(db).usernames, runUsernameSync);
 if (process.env.NODE_ENV !== "test") autoSync.start();
 
+function onWorkerEvent(event: WorkerEvent): void {
+  eventHub.broadcast(event);
+  if (event.type === "queue") eventHub.broadcast({ type: "gamesChanged" });
+}
+
 // Start-up recovery (section 5.7): any entry left "running" by an interrupted process goes back to waiting.
 clearRunningFlags(db);
-export const analysisWorker = new AnalysisWorker(db, getEngine);
+export const analysisWorker = new AnalysisWorker(db, getEngine, { onEvent: onWorkerEvent });
 if (process.env.NODE_ENV !== "test") analysisWorker.notify(); // resume any work waiting from a previous run
 
 async function readBody(req: import("node:http").IncomingMessage): Promise<string> {
@@ -104,6 +113,12 @@ export const server = createServer(async (req, res) => {
   if (req.url === "/health") {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ status: "ok" }));
+    return;
+  }
+
+  if (req.url === "/api/events" && req.method === "GET") {
+    res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
+    eventHub.addClient({ write: (chunk) => res.write(chunk), onClose: (cb) => req.on("close", cb) });
     return;
   }
 
@@ -147,6 +162,7 @@ export const server = createServer(async (req, res) => {
     const { settings } = validated;
     if (JSON.stringify(settings.usernames) !== JSON.stringify(current.usernames)) {
       updateGames(db, rederiveMe(listGames(db), settings.usernames));
+      eventHub.broadcast({ type: "gamesChanged" });
     }
     putSettings(db, settings);
     res.writeHead(200, { "content-type": "application/json" });
@@ -210,6 +226,7 @@ export const server = createServer(async (req, res) => {
         queued += storeAndAutoQueue(games);
       },
       Date.now(),
+      { onProgress: (e) => eventHub.broadcast({ type: "importProgress", ...e }) },
     );
 
     res.writeHead(200, { "content-type": "application/json" });
@@ -295,6 +312,8 @@ export const server = createServer(async (req, res) => {
     const defaultDepth = getSettings(db).depthPreset;
     enqueueGames(db, gameIds, deeper ? oneStepDeeper(defaultDepth) : depth ?? defaultDepth, force, urgent, Date.now());
     analysisWorker.notify();
+    eventHub.broadcast({ type: "queue", status: analysisWorker.status() });
+    eventHub.broadcast({ type: "gamesChanged" });
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(analysisWorker.status()));
     return;
@@ -315,6 +334,7 @@ export const server = createServer(async (req, res) => {
     }
     for (const id of validated.ids) analysisWorker.abortGame(id);
     const deleted = deleteGames(db, validated.ids);
+    eventHub.broadcast({ type: "gamesChanged" });
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ deleted }));
     return;
@@ -324,6 +344,7 @@ export const server = createServer(async (req, res) => {
     const running = analysisWorker.status().running;
     if (running) analysisWorker.abortGame(running.gameId);
     deleteAllData(db);
+    eventHub.broadcast({ type: "gamesChanged" });
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ ok: true }));
     return;
