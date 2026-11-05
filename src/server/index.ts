@@ -3,6 +3,7 @@ import {
   openDb,
   insertGames,
   listGames,
+  getGame,
   updateGames,
   getSettings,
   putSettings,
@@ -31,6 +32,7 @@ import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
 import type { DepthPreset } from "./settings.ts";
 import { SEARCH_DEPTH, oneStepDeeper } from "./analysisQueue/depthPresets.ts";
 import { toGameListRow } from "./games/listRows.ts";
+import { toGameReviewRow } from "./games/reviewRow.ts";
 import { AnalysisWorker } from "./analysisQueue/worker.ts";
 import { validateQueueRequest, unknownIdsMessage, validateDeleteRequest } from "./analysisQueue/requestValidation.ts";
 import { enqueueGames, unknownGameIds, autoQueueNewGames } from "./analysisQueue/queue.ts";
@@ -125,6 +127,19 @@ export const server = createServer(async (req, res) => {
   if (req.url === "/api/games" && req.method === "GET") {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(listGames(db).map((game) => toGameListRow(db, game))));
+    return;
+  }
+
+  if (req.url?.startsWith("/api/games/") && req.method === "GET") {
+    const id = decodeURIComponent(req.url.slice("/api/games/".length));
+    const game = getGame(db, id);
+    if (!game) {
+      res.writeHead(404, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "game not found" }));
+      return;
+    }
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(toGameReviewRow(db, game)));
     return;
   }
 
