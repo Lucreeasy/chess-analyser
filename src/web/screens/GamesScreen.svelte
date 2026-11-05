@@ -9,11 +9,21 @@
   import { defaultFilters, filterGames, activeFilterCount, computeFacets, type GamesFilters } from "../lib/gamesFilter.ts";
   import { sortGames, FIRST_DIRECTION, type SortKey, type SortDirection } from "../lib/gamesSort.ts";
   import { paginate, pageCount, clampPage } from "../lib/paginate.ts";
+  import { SEARCH_DEPTH, oneStepDeeper } from "../../server/analysisQueue/depthPresets.ts";
+  import type { DepthPreset } from "../../server/settings.ts";
   import type { GameRow } from "../lib/types.ts";
 
   let games: GameRow[] | undefined = $state(undefined);
   let loadError: string | undefined = $state(undefined);
   let syncing = $state(false);
+  let defaultDepth: DepthPreset = $state("standard");
+
+  apiGet<{ depthPreset: DepthPreset }>("settings")
+    .then((s) => (defaultDepth = s.depthPreset))
+    .catch(() => {});
+
+  const deeperDepth = $derived(oneStepDeeper(defaultDepth));
+  const deeperTooltip = $derived(`Depth ${SEARCH_DEPTH[deeperDepth]} (${deeperDepth})`);
 
   let filters: GamesFilters = $state(defaultFilters());
   let searchInput = $state("");
@@ -79,6 +89,31 @@
 
   function clearSelection(): void {
     selected = new Set();
+  }
+
+  let queuing = $state(false);
+
+  async function queueSelected(deeper: boolean): Promise<void> {
+    queuing = true;
+    const n = selected.size;
+    try {
+      await apiPost("analyse/queue", { gameIds: [...selected], ...(deeper ? { deeper: true } : {}) });
+      showToast(
+        deeper
+          ? n === 1
+            ? "Queued 1 game for deeper analysis."
+            : `Queued ${n} games for deeper analysis.`
+          : n === 1
+            ? "Queued 1 game for analysis."
+            : `Queued ${n} games for analysis.`,
+      );
+      clearSelection();
+      await load();
+    } catch (e) {
+      showToast(`Could not queue analysis: ${e instanceof ApiError ? e.message : String(e)}`, "error");
+    } finally {
+      queuing = false;
+    }
   }
 
   let showDeleteConfirm = $state(false);
@@ -245,6 +280,8 @@
   <div class="bulk-bar" role="region" aria-label="Bulk actions">
     <div class="bulk-bar-inner">
       <span class="bulk-count" aria-live="polite">{selected.size} selected</span>
+      <button type="button" class="primary" disabled={queuing} onclick={() => queueSelected(false)}>Analyse selected</button>
+      <button type="button" disabled={queuing} title={deeperTooltip} onclick={() => queueSelected(true)}>Re-analyse deeper</button>
       <button type="button" class="danger-text" onclick={() => (showDeleteConfirm = true)}>Delete</button>
       <button type="button" class="quiet" onclick={clearSelection}>Clear</button>
     </div>
@@ -458,7 +495,19 @@
     padding: 0 16px;
     border-radius: 12px;
     font-size: 14px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
     cursor: pointer;
+  }
+  .bulk-bar button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .bulk-bar button.primary {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: var(--brand-ink);
   }
   .bulk-bar button.quiet {
     border: none;
@@ -466,8 +515,6 @@
     color: var(--ink);
   }
   .bulk-bar button.danger-text {
-    border: 1px solid var(--line);
-    background: var(--surface);
     color: var(--danger);
   }
 </style>
