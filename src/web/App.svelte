@@ -18,7 +18,7 @@
     <ComingSoonScreen title="Puzzles" />
   {:else if route.path === "/settings"}
     <ComingSoonScreen title="Settings" />
-  {:else if route.path === "/import"}
+  {:else if route.path.startsWith("/import")}
     <ComingSoonScreen title="Import" />
   {:else}
     <ComingSoonScreen title="Not found" />

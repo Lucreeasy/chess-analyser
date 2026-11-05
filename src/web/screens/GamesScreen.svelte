@@ -230,7 +230,35 @@
     <div class="empty-card">
       <h2>Import your first games</h2>
       <p class="muted">Pick a source. All three end in the same report.</p>
-      <a href="#/import">Upload PGN files, paste PGN text, or fetch by username</a>
+      <ul class="import-sources">
+        <li>
+          <a href="#/import/file">
+            <Icon name="file" size={24} />
+            <span>
+              <strong>Upload PGN files</strong>
+              <span class="muted">From chess.com's archive download.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="#/import/paste">
+            <Icon name="clipboard" size={24} />
+            <span>
+              <strong>Paste PGN text</strong>
+              <span class="muted">One game or a whole export.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="#/import/username">
+            <Icon name="user" size={24} />
+            <span>
+              <strong>Fetch by username</strong>
+              <span class="muted">Pick months straight from chess.com.</span>
+            </span>
+          </a>
+        </li>
+      </ul>
     </div>
   {:else if games && filteredGames}
     <div class="toolbar">
@@ -396,6 +424,39 @@
   }
   .muted {
     color: var(--muted);
+  }
+
+  .import-sources {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .import-sources a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .import-sources a > span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14px;
+  }
+  .import-sources a .muted {
+    font-size: 13px;
+  }
+  @media (min-width: 768px) {
+    .import-sources {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 
   .toolbar {
