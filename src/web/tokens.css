@@ -89,3 +89,12 @@ a {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spinning svg {
+  animation: spin 1s linear infinite;
+}

@@ -3,6 +3,7 @@
   import Nav from "./components/Nav.svelte";
   import Toasts from "./components/Toasts.svelte";
   import GamesScreen from "./screens/GamesScreen.svelte";
+  import ImportScreen from "./screens/ImportScreen.svelte";
   import ComingSoonScreen from "./screens/ComingSoonScreen.svelte";
 </script>
 
@@ -19,7 +20,7 @@
   {:else if route.path === "/settings"}
     <ComingSoonScreen title="Settings" />
   {:else if route.path.startsWith("/import")}
-    <ComingSoonScreen title="Import" />
+    <ImportScreen />
   {:else}
     <ComingSoonScreen title="Not found" />
   {/if}

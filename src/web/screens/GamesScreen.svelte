@@ -379,14 +379,6 @@
     opacity: 0.55;
     cursor: not-allowed;
   }
-  .icon-button.spinning :global(svg) {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
   .import-button {
     display: inline-flex;
     align-items: center;
