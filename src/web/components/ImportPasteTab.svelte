@@ -21,7 +21,14 @@
     report = undefined;
     try {
       const result = await apiPostText<ImportApiResult>("games/import", text);
-      report = { title: "Import finished", added: result.added, duplicates: result.duplicates, failed: result.failed, queued: result.queued };
+      report = {
+        title: "Import finished",
+        added: result.added,
+        duplicates: result.duplicates,
+        failed: result.failed,
+        failedCount: result.failed.length,
+        queued: result.queued,
+      };
     } catch (e) {
       error = e instanceof ApiError ? e.message : "unexpected error";
     } finally {

@@ -26,7 +26,10 @@ export interface ImportReport {
   title: string;
   added: number;
   duplicates: number;
+  /** Per-game detail (file/paste); empty when only the count is known (chess.com import). */
   failed: Failure[];
+  /** The real failed-game count: failed.length for file/paste, the server's own count for chess.com import. */
+  failedCount: number;
   queued: number;
   months?: MonthReport[];
 }

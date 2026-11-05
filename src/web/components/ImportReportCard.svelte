@@ -4,13 +4,13 @@
 
   let { report }: { report: ImportReport } = $props();
 
-  const ok = $derived(report.failed.length === 0);
+  const ok = $derived(report.failedCount === 0);
   const queued = $derived(queuedLine(report.queued));
 </script>
 
 <div class="report-card" role={ok ? "status" : "alert"}>
   <h2><Icon name={ok ? "check" : "alert"} size={20} />{report.title}</h2>
-  <p class="summary">{summaryLine(report.added, report.duplicates, report.failed.length)}</p>
+  <p class="summary">{summaryLine(report.added, report.duplicates, report.failedCount)}</p>
   {#if queued}
     <p class="muted">{queued}</p>
   {/if}

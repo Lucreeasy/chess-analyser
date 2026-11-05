@@ -4,6 +4,7 @@
   import Icon from "../components/Icon.svelte";
   import ImportFileTab from "../components/ImportFileTab.svelte";
   import ImportPasteTab from "../components/ImportPasteTab.svelte";
+  import ImportUsernameTab from "../components/ImportUsernameTab.svelte";
 
   const TABS = [
     { id: "file", label: "File", icon: "file" },
@@ -58,7 +59,7 @@
     {:else if active === "paste"}
       <ImportPasteTab />
     {:else}
-      <p class="muted">Coming soon.</p>
+      <ImportUsernameTab />
     {/if}
   </div>
 </div>

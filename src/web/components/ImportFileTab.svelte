@@ -41,11 +41,13 @@
 
     const succeeded = files.filter((f): f is FileEntry & { result: ImportApiResult } => f.status === "done" && f.result !== undefined);
     if (succeeded.length > 0) {
+      const failed = succeeded.flatMap((f) => f.result.failed);
       report = {
         title: chosen.length > 1 ? `Import finished: ${succeeded.length} of ${chosen.length} files` : "Import finished",
         added: succeeded.reduce((s, f) => s + f.result.added, 0),
         duplicates: succeeded.reduce((s, f) => s + f.result.duplicates, 0),
-        failed: succeeded.flatMap((f) => f.result.failed),
+        failed,
+        failedCount: failed.length,
         queued: succeeded.reduce((s, f) => s + f.result.queued, 0),
       };
     }
