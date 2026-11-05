@@ -1,6 +1,7 @@
 <script lang="ts">
   import { route } from "./lib/router.svelte.ts";
   import Nav from "./components/Nav.svelte";
+  import QueueStrip from "./components/QueueStrip.svelte";
   import Toasts from "./components/Toasts.svelte";
   import GamesScreen from "./screens/GamesScreen.svelte";
   import ImportScreen from "./screens/ImportScreen.svelte";
@@ -9,6 +10,7 @@
 
 <Toasts />
 <Nav />
+<QueueStrip />
 
 <main>
   {#if route.path === "/" || route.path.startsWith("/games")}

@@ -24,4 +24,6 @@ export const icons: Record<string, string> = {
   file: `<path d="M7 3h7l4 4v14H7z"/><polyline points="14,3 14,7 18,7"/>`,
   clipboard: `<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1H9z"/>`,
   user: `<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>`,
+  pause: `<line x1="8" y1="5" x2="8" y2="19" stroke-width="4"/><line x1="16" y1="5" x2="16" y2="19" stroke-width="4"/>`,
+  play: `<path d="M7 4 L20 12 L7 20 Z" fill="currentColor" stroke="none"/>`,
 };
