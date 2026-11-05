@@ -4,6 +4,7 @@ import type { GameAnalysis } from "../analysis/game.ts";
 import type { DepthPreset } from "../settings.ts";
 import { getAnalysis, getAnalysisError } from "../db.ts";
 import { analysisStatusOf, opponentOf, opponentRatingOf, type AnalysisStatus } from "./shared.ts";
+import { positionsOf, type BoardPositions } from "./positions.ts";
 
 /** A game as the Review screen needs it. docs/06-GAMES-SPEC.md Part B. */
 export interface GameReviewRow extends Omit<StoredGame, "analysisStatus"> {
@@ -13,6 +14,7 @@ export interface GameReviewRow extends Omit<StoredGame, "analysisStatus"> {
   depth?: DepthPreset;
   analysis?: GameAnalysis;
   errorMessage?: string;
+  positions: BoardPositions;
 }
 
 export function toGameReviewRow(db: Database.Database, game: StoredGame): GameReviewRow {
@@ -27,5 +29,6 @@ export function toGameReviewRow(db: Database.Database, game: StoredGame): GameRe
     depth: stored?.depth,
     analysis: stored?.analysis,
     errorMessage: status === "error" ? getAnalysisError(db, game.id) : undefined,
+    positions: positionsOf(game.pgn),
   };
 }

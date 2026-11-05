@@ -53,6 +53,15 @@ test("opponent and opponentRating: the other side, from my colour", () => {
   assert.equal(row.opponentRating, 1600);
 });
 
+test("positions: the board positions from replaying the stored PGN", () => {
+  const db = openDb(":memory:");
+  const g = game({ id: "a", myColour: "w", pgn: "1. e4 e5 2. Nf3" });
+  insertGames(db, [g]);
+  const row = toGameReviewRow(db, g);
+  assert.equal(row.positions.failure, undefined);
+  assert.equal(row.positions.fens.length, 4); // start + 3 plies
+});
+
 test("analysisStatus and analysis/depth: only present once done", () => {
   const db = openDb(":memory:");
   const g = game({ id: "a", myColour: "w" });
