@@ -4,7 +4,13 @@
  * "when the server cannot be reached at all" gets a fixed message.
  */
 
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status = 0) {
+    super(message);
+    this.status = status;
+  }
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
@@ -16,7 +22,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const body = await res.json().catch(() => undefined);
   if (!res.ok) {
     const message = body && typeof body === "object" && "error" in body ? String(body.error) : `server answered ${res.status}`;
-    throw new ApiError(message);
+    throw new ApiError(message, res.status);
   }
   return body as T;
 }
@@ -31,4 +37,9 @@ export function apiPost<T>(path: string, body?: unknown): Promise<T> {
     headers: body === undefined ? undefined : { "content-type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+}
+
+/** For endpoints that read a raw text body instead of JSON (games/import). */
+export function apiPostText<T>(path: string, text: string): Promise<T> {
+  return request<T>(path, { method: "POST", body: text });
 }
