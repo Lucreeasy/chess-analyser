@@ -3,6 +3,7 @@
   import Logo from "../components/Logo.svelte";
   import Icon from "../components/Icon.svelte";
   import ImportFileTab from "../components/ImportFileTab.svelte";
+  import ImportPasteTab from "../components/ImportPasteTab.svelte";
 
   const TABS = [
     { id: "file", label: "File", icon: "file" },
@@ -54,6 +55,8 @@
   <div class="card">
     {#if active === "file"}
       <ImportFileTab />
+    {:else if active === "paste"}
+      <ImportPasteTab />
     {:else}
       <p class="muted">Coming soon.</p>
     {/if}

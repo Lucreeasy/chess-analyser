@@ -98,3 +98,52 @@ a {
 .spinning svg {
   animation: spin 1s linear infinite;
 }
+
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 8px 0 0;
+}
+button.primary,
+button.neutral {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  margin-top: 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.primary {
+  border: none;
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+button.neutral {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.error-card {
+  border: 1px solid var(--danger);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--surface);
+  margin-top: 16px;
+}
+.error-card h2 {
+  font-size: 16px;
+  margin: 0;
+}

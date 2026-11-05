@@ -88,37 +88,9 @@
 </div>
 
 <style>
-  label {
-    font-size: 14px;
-    font-weight: 600;
-  }
   input[type="file"] {
     display: block;
     margin-top: 8px;
-  }
-  .muted {
-    color: var(--muted);
-    font-size: 14px;
-    margin: 8px 0 0;
-  }
-  button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 44px;
-    padding: 0 16px;
-    margin-top: 16px;
-    border: none;
-    border-radius: 12px;
-    background: var(--brand);
-    color: var(--brand-ink);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  button:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
   }
   .file-list {
     list-style: none;
