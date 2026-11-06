@@ -238,6 +238,7 @@
         onLast={() => jumpTo(plyCount)}
       />
       <GameReviewPanel
+        {game}
         sans={game.positions.sans}
         analysisMoves={game.analysis?.moves}
         keyMoments={game.analysis?.summary.keyMoments}

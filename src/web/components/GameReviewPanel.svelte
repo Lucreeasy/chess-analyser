@@ -1,8 +1,10 @@
 <script lang="ts">
   import MovesList from "./MovesList.svelte";
   import KeyMomentsList from "./KeyMomentsList.svelte";
+  import SummaryTab from "./SummaryTab.svelte";
   import { tabArrowKey } from "../lib/tablist.ts";
   import type { MoveRecord, KeyMoment } from "../../server/analysis/game.ts";
+  import type { GameReviewRow } from "../../server/games/reviewRow.ts";
 
   const TABS = [
     { id: "moves", label: "Moves" },
@@ -13,12 +15,14 @@
   const TAB_IDS = TABS.map((t) => t.id);
 
   let {
+    game,
     sans,
     analysisMoves,
     keyMoments,
     currentPly,
     onJump,
   }: {
+    game: GameReviewRow;
     sans: (string | undefined)[];
     analysisMoves: MoveRecord[] | undefined;
     keyMoments: KeyMoment[] | undefined;
@@ -60,7 +64,7 @@
     </div>
   {:else if active === "summary"}
     <div id="review-panel-summary" role="tabpanel" aria-labelledby="review-tab-summary">
-      <p class="muted">Coming soon.</p>
+      <SummaryTab {game} />
     </div>
   {:else if analysisMoves && keyMoments}
     <div id="review-panel-keyMoments" role="tabpanel" aria-labelledby="review-tab-keyMoments">

@@ -4,7 +4,7 @@ import { moveAccuracy } from "./moveAccuracy.ts";
 import { gameAccuracy } from "./gameAccuracy.ts";
 import { epdOf, isInBook } from "./book.ts";
 import { isSacrifice } from "./sacrifice.ts";
-import { classifyMove, type MoveClass } from "./classification.ts";
+import { classifyMove, ALL_CLASSES, type MoveClass } from "./classification.ts";
 import { tacticTag, type EngineLineWithPv, type TacticTag } from "./tacticTags.ts";
 import { phasesOf, type Phase } from "./phases.ts";
 import { parseTimeControl, deriveClocks, type PlyClockInput } from "./clock.ts";
@@ -15,9 +15,6 @@ import { sanOf, pieceCapturedBy } from "./notation.ts";
 export type Colour = "w" | "b";
 
 const ERROR_CLASSES: MoveClass[] = ["inaccuracy", "mistake", "miss", "blunder"];
-const ALL_CLASSES: MoveClass[] = [
-  "book", "brilliant", "great", "best", "excellent", "good", "inaccuracy", "mistake", "miss", "blunder",
-];
 const ALL_PHASES: Phase[] = ["opening", "middlegame", "endgame"];
 
 export interface PositionInput {

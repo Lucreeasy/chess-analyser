@@ -16,6 +16,11 @@ export type MoveClass =
   | "miss"
   | "blunder";
 
+/** Table order everywhere (docs/06-GAMES-SPEC.md section B6). */
+export const ALL_CLASSES: MoveClass[] = [
+  "book", "brilliant", "great", "best", "excellent", "good", "inaccuracy", "mistake", "miss", "blunder",
+];
+
 export interface ClassificationInput {
   playedUci: string;
   /** First move of the best line of the position before; undefined if the engine move is unknown. */
