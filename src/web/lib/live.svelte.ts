@@ -8,6 +8,7 @@
 
 import { SvelteMap } from "svelte/reactivity";
 import { apiGet } from "./api.ts";
+import type { ExploreLine } from "../../server/explore/session.ts";
 
 export interface QueueStatus {
   paused: boolean;
@@ -30,7 +31,22 @@ export interface AnalyseProgress {
   total: number;
 }
 
+export interface ExploreProgress {
+  clientId: string;
+  requestId: string;
+  lines: ExploreLine[];
+  reachedDepth: number;
+}
+export interface ExploreError {
+  clientId: string;
+  requestId: string;
+  message: string;
+}
+
 export const queue: { status: QueueStatus | undefined } = $state({ status: undefined });
+
+// docs/06-GAMES-SPEC.md section B10: "socket/engine channel down" is this live channel itself, not the engine.
+export const live: { connected: boolean } = $state({ connected: false });
 
 // docs/06-GAMES-SPEC.md section B8: live Win% per ply while a game is being analysed, kept
 // across visits to the Review screen and discarded (by key prefix) once the game finishes.
@@ -67,15 +83,31 @@ const gamesChanged = listenerSet<void>();
 const importProgress = listenerSet<ImportProgress>();
 const analyseProgress = listenerSet<AnalyseProgress>();
 const gameAnalysed = listenerSet<string>();
+const exploreProgress = listenerSet<ExploreProgress>();
+const exploreDone = listenerSet<ExploreProgress>();
+const exploreError = listenerSet<ExploreError>();
+const exploreBusy = listenerSet<string>();
 
 export const onGamesChanged = gamesChanged.on;
 export const onImportProgress = importProgress.on;
 export const onAnalyseProgress = analyseProgress.on;
 export const onGameAnalysed = gameAnalysed.on;
+export const onExploreProgress = exploreProgress.on;
+export const onExploreDone = exploreDone.on;
+export const onExploreError = exploreError.on;
+export const onExploreBusy = exploreBusy.on;
 
 const source = new EventSource("api/events");
 
+source.addEventListener("open", () => {
+  live.connected = true;
+});
+source.addEventListener("error", () => {
+  live.connected = false;
+});
+
 source.addEventListener("greeting", () => {
+  live.connected = true;
   apiGet<QueueStatus>("analyse/status")
     .then((status) => (queue.status = status))
     .catch(() => {});
@@ -108,4 +140,24 @@ source.addEventListener("gameAnalysed", (e) => {
   const data = JSON.parse((e as MessageEvent).data) as { gameId: string };
   clearLiveEvals(data.gameId);
   for (const listener of gameAnalysed.listeners) listener(data.gameId);
+});
+
+source.addEventListener("exploreProgress", (e) => {
+  const data = JSON.parse((e as MessageEvent).data) as ExploreProgress;
+  for (const listener of exploreProgress.listeners) listener(data);
+});
+
+source.addEventListener("exploreDone", (e) => {
+  const data = JSON.parse((e as MessageEvent).data) as ExploreProgress;
+  for (const listener of exploreDone.listeners) listener(data);
+});
+
+source.addEventListener("exploreError", (e) => {
+  const data = JSON.parse((e as MessageEvent).data) as ExploreError;
+  for (const listener of exploreError.listeners) listener(data);
+});
+
+source.addEventListener("exploreBusy", (e) => {
+  const data = JSON.parse((e as MessageEvent).data) as { clientId: string };
+  for (const listener of exploreBusy.listeners) listener(data.clientId);
 });
