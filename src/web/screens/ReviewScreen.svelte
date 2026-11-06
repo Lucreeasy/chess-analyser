@@ -5,6 +5,7 @@
   import Board from "../components/Board.svelte";
   import EvalBar from "../components/EvalBar.svelte";
   import Transport from "../components/Transport.svelte";
+  import GameReviewPanel from "../components/GameReviewPanel.svelte";
   import { scoreTextFromLine, scoreTextFromWinPercent } from "../lib/scoreText.ts";
   import ResultBadge from "../components/ResultBadge.svelte";
   import { apiGet, ApiError } from "../lib/api.ts";
@@ -236,6 +237,7 @@
         onNext={() => jumpTo(currentPly + 1)}
         onLast={() => jumpTo(plyCount)}
       />
+      <GameReviewPanel sans={game.positions.sans} analysisMoves={game.analysis?.moves} {currentPly} onJump={jumpTo} />
     </div>
   {/if}
 </div>

@@ -5,6 +5,7 @@
   import ImportFileTab from "../components/ImportFileTab.svelte";
   import ImportPasteTab from "../components/ImportPasteTab.svelte";
   import ImportUsernameTab from "../components/ImportUsernameTab.svelte";
+  import { tabArrowKey } from "../lib/tablist.ts";
 
   const TABS = [
     { id: "file", label: "File", icon: "file" },
@@ -12,6 +13,7 @@
     { id: "username", label: "Username", icon: "user" },
   ] as const;
   type TabId = (typeof TABS)[number]["id"];
+  const TAB_IDS = TABS.map((t) => t.id);
 
   function tabFromPath(path: string): TabId {
     const segment = path.split("/")[2];
@@ -21,15 +23,8 @@
   const active = $derived(tabFromPath(route.path));
 
   function onKeydown(e: KeyboardEvent): void {
-    const i = TABS.findIndex((t) => t.id === active);
-    let next = i;
-    if (e.key === "ArrowLeft") next = (i - 1 + TABS.length) % TABS.length;
-    else if (e.key === "ArrowRight") next = (i + 1) % TABS.length;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = TABS.length - 1;
-    else return;
-    e.preventDefault();
-    const id = TABS[next]!.id;
+    const id = tabArrowKey(e, TAB_IDS, active);
+    if (!id) return;
     navigate(`/import/${id}`);
     document.getElementById(`import-tab-${id}`)?.focus();
   }
