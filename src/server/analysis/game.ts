@@ -10,7 +10,7 @@ import { phasesOf, type Phase } from "./phases.ts";
 import { parseTimeControl, deriveClocks, type PlyClockInput } from "./clock.ts";
 import { selectKeyMoments } from "./keyMoments.ts";
 import { annotatedSan, buildKeyMomentSentence } from "./texts.ts";
-import { sanOf, pieceCapturedBy } from "./notation.ts";
+import { sanOf, pieceCapturedBy, sanLineOf } from "./notation.ts";
 
 export type Colour = "w" | "b";
 
@@ -54,6 +54,8 @@ export interface MoveRecord {
   bestLine?: EngineLineWithPv;
   /** SAN of bestLine's first move, when it can be played from fenBefore (docs/06-GAMES-SPEC.md section B3). */
   bestSan?: string;
+  /** bestLine's first 6 plies as move text, from fenBefore (docs/06-GAMES-SPEC.md section B7's Explanation). */
+  engineLineText?: string;
   secondLine?: EngineLineWithPv;
   /** White POV. */
   winPercentBefore: number;
@@ -184,6 +186,7 @@ export function analyseGame(input: AnalyseGameInput): GameAnalysis {
       fenBefore: before.fen,
       bestLine: best,
       bestSan: best?.pv[0] ? sanOf(before.fen, best.pv[0]) : undefined,
+      engineLineText: best ? sanLineOf(before.fen, best.pv, 6) : undefined,
       secondLine: second,
       winPercentBefore: whiteWinPercents[i - 1],
       winPercentAfter: whiteWinPercents[i],

@@ -8,6 +8,7 @@
   import EvalGraph from "../components/EvalGraph.svelte";
   import GameReviewPanel from "../components/GameReviewPanel.svelte";
   import AnalysePanel from "../components/AnalysePanel.svelte";
+  import Explanation from "../components/Explanation.svelte";
   import { scoreTextFromLine, scoreTextFromWinPercent } from "../lib/scoreText.ts";
   import ResultBadge from "../components/ResultBadge.svelte";
   import { apiGet, ApiError } from "../lib/api.ts";
@@ -257,20 +258,23 @@
         onNext={() => jumpTo(currentPly + 1)}
         onLast={() => jumpTo(plyCount)}
       />
-      <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
-      {#if game.analysis}
-        <GameReviewPanel
-          {game}
-          sans={game.positions.sans}
-          analysisMoves={game.analysis.moves}
-          keyMoments={game.analysis.summary.keyMoments}
-          {currentPly}
-          onJump={jumpTo}
-        />
+      <!-- docs/06-GAMES-SPEC.md section B8/B9: the info card is the Explanation or (while unanalysed) the
+           Analyse panel; the graph and the tabs below it are always visible either way. -->
+      {#if game.analysis || plyCount === 0}
+        <Explanation {game} {currentPly} {plyCount} />
       {:else}
         <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set (docs/06-GAMES-SPEC.md B8). -->
         <AnalysePanel gameId={game.id} analysisStatus={game.analysisStatus as "none" | "queued" | "running" | "error"} onQueued={load} />
       {/if}
+      <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
+      <GameReviewPanel
+        {game}
+        sans={game.positions.sans}
+        analysisMoves={game.analysis?.moves}
+        keyMoments={game.analysis?.summary.keyMoments}
+        {currentPly}
+        onJump={jumpTo}
+      />
     </div>
   {/if}
 </div>

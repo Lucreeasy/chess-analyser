@@ -70,6 +70,12 @@ test("per-move classes, tags and Win%/accuracy match the spec's table", () => {
   }
 });
 
+test("engineLineText: bestLine's first plies as move text, from fenBefore (docs/06-GAMES-SPEC.md B7)", () => {
+  const { moves } = analyseGame(input);
+  assert.equal(moves[0]!.engineLineText, "1. e4 e5"); // from the start position, White to move
+  assert.equal(moves[6]!.engineLineText, "4. Qxf7#"); // mating line, one ply only
+});
+
 test("per-game summary: accuracy, counts, phase accuracy, max/min EP", () => {
   const { summary } = analyseGame(input);
 
