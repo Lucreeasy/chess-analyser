@@ -9,6 +9,9 @@
   import type { DrawShape } from "@lichess-org/chessground/draw";
   import type { MoveClass } from "../../server/analysis/classification.ts";
   import ClassBadge from "./ClassBadge.svelte";
+  import PromotionDialog from "./PromotionDialog.svelte";
+
+  const PROMOTION_ROLE = { q: "queen", r: "rook", b: "bishop", n: "knight" } as const;
 
   /** docs/06-GAMES-SPEC.md section B3: amber played arrow, green best-move arrow (the rest are chessground's own defaults, unused here but required by its Config type). */
   const BRUSHES = {
@@ -26,6 +29,7 @@
     arrows = [],
     badge,
     label,
+    movable,
   }: {
     fen: string;
     orientation: Color;
@@ -36,10 +40,19 @@
     badge?: { square: string; cls: MoveClass };
     /** docs/06-GAMES-SPEC.md section B3: the board's accessible name. */
     label: string;
+    /** When set, the board is interactive for this side (docs/06-GAMES-SPEC.md section B10 Explore mode). */
+    movable?: {
+      colour: Color;
+      /** Legal destinations per origin square, from GET /api/explore/dests. */
+      dests: Record<string, string[]>;
+      /** Called with a finished move's UCI, e.g. "e2e4" or "e7e8q" once any promotion is chosen. */
+      onMove: (uci: string) => void;
+    };
   } = $props();
 
   let el: HTMLDivElement;
   let api: Api | undefined;
+  let promotion: { orig: Key; dest: Key } | undefined = $state();
 
   function cgLastMove(move: string | undefined): [Key, Key] | undefined {
     return move ? [move.slice(0, 2) as Key, move.slice(2, 4) as Key] : undefined;
@@ -49,25 +62,73 @@
     return shapes.map((s) => ({ orig: s.orig as Key, dest: s.dest as Key, brush: s.brush }));
   }
 
+  function cgDests(dests: Record<string, string[]> | undefined): Map<Key, Key[]> {
+    const map = new Map<Key, Key[]>();
+    for (const [from, tos] of Object.entries(dests ?? {})) map.set(from as Key, tos as Key[]);
+    return map;
+  }
+
+  /** A pawn landing on the last rank needs the promotion picker before the move can be finalised. */
+  function handleAfter(orig: Key, dest: Key): void {
+    const piece = api?.state.pieces.get(dest);
+    if (piece?.role === "pawn" && (dest[1] === "8" || dest[1] === "1")) {
+      promotion = { orig, dest };
+    } else {
+      movable?.onMove(`${orig}${dest}`);
+    }
+  }
+
+  function choosePromotion(letter: "q" | "r" | "b" | "n"): void {
+    if (!promotion) return;
+    const { orig, dest } = promotion;
+    const colour = api?.state.pieces.get(dest)?.color;
+    if (colour) api?.setPieces(new Map([[dest, { role: PROMOTION_ROLE[letter], color: colour }]]));
+    promotion = undefined;
+    movable?.onMove(`${orig}${dest}${letter}`);
+  }
+
+  function cancelPromotion(): void {
+    promotion = undefined;
+    api?.set({ fen }); // revert the optimistic move chessground already drew
+  }
+
   $effect(() => {
     api = Chessground(
       el,
       untrack(() => ({
         fen,
         orientation,
+        turnColor: movable?.colour ?? "white",
         lastMove: cgLastMove(lastMove),
-        viewOnly: true,
+        // Always false: chessground only binds its pointer listeners once, at construction
+        // (events.js's bindBoard checks viewOnly then and never re-binds on a later .set()), so
+        // toggling it reactively for Explore mode would leave an interactive board that never
+        // actually responds to clicks or drags. Interactivity is instead gated by movable.color/
+        // dests below, which board.js does read fresh on every pointer event.
+        viewOnly: false,
         coordinates: false,
         highlight: { lastMove: true },
         animation: { enabled: true },
         drawable: { enabled: false, autoShapes: cgShapes(arrows), brushes: BRUSHES },
+        movable: { free: false, color: movable?.colour, dests: cgDests(movable?.dests), showDests: true, events: { after: handleAfter } },
+        draggable: { enabled: !!movable },
+        selectable: { enabled: !!movable },
       })),
     );
     return () => api?.destroy();
   });
 
   $effect(() => {
-    api?.set({ fen, orientation, lastMove: cgLastMove(lastMove), drawable: { autoShapes: cgShapes(arrows) } });
+    api?.set({
+      fen,
+      orientation,
+      turnColor: movable?.colour ?? "white",
+      lastMove: cgLastMove(lastMove),
+      drawable: { autoShapes: cgShapes(arrows) },
+      movable: { color: movable?.colour, dests: cgDests(movable?.dests) },
+      draggable: { enabled: !!movable },
+      selectable: { enabled: !!movable },
+    });
   });
 
   /** The destination square's position as a percentage of the board, from the top-left, for the badge overlay. */
@@ -90,6 +151,9 @@
     </div>
   {/if}
 </div>
+{#if promotion}
+  <PromotionDialog colour={movable?.colour ?? "white"} onChoose={choosePromotion} onCancel={cancelPromotion} />
+{/if}
 
 <style>
   .board-wrap {

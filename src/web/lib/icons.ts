@@ -33,4 +33,9 @@ export const icons: Record<string, string> = {
   chevronRight: `<polyline points="9,6 15,12 9,18"/>`,
   firstMove: `<line x1="7" y1="5" x2="7" y2="19"/><polyline points="17,6 10,12 17,18"/>`,
   lastMove: `<line x1="17" y1="5" x2="17" y2="19"/><polyline points="7,6 14,12 7,18"/>`,
+  explore: `<line x1="7" y1="7" x2="7" y2="17"/>
+    <circle cx="7" cy="17" r="1.6" fill="currentColor" stroke="none"/>
+    <circle cx="7" cy="7" r="1.6" fill="currentColor" stroke="none"/>
+    <path d="M7 12c4 0 6-3 6-6"/>
+    <circle cx="17" cy="6" r="1.6" fill="currentColor" stroke="none"/>`,
 };
