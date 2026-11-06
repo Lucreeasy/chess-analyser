@@ -5,15 +5,23 @@
   import Toasts from "./components/Toasts.svelte";
   import GamesScreen from "./screens/GamesScreen.svelte";
   import ImportScreen from "./screens/ImportScreen.svelte";
+  import ReviewScreen from "./screens/ReviewScreen.svelte";
   import ComingSoonScreen from "./screens/ComingSoonScreen.svelte";
+
+  // docs/06-GAMES-SPEC.md section B1: the game id (URL-encoded) plus an optional ply, out-of-range clamped by the screen itself.
+  const reviewMatch = $derived(route.path.match(/^\/games\/([^/]+)(?:\/(\d+))?$/));
 </script>
 
 <Toasts />
-<Nav />
-<QueueStrip />
+{#if !reviewMatch}
+  <Nav />
+  <QueueStrip />
+{/if}
 
-<main>
-  {#if route.path === "/" || route.path.startsWith("/games")}
+<main class:review={!!reviewMatch}>
+  {#if reviewMatch}
+    <ReviewScreen gameId={decodeURIComponent(reviewMatch[1]!)} ply={reviewMatch[2] ? Number(reviewMatch[2]) : 0} />
+  {:else if route.path === "/" || route.path.startsWith("/games")}
     <GamesScreen />
   {:else if route.path === "/insights"}
     <ComingSoonScreen title="Insights" />
@@ -31,6 +39,9 @@
 <style>
   main {
     padding-bottom: 96px; /* phone bottom tab bar */
+  }
+  main.review {
+    padding-bottom: 0;
   }
   @media (min-width: 768px) {
     main {

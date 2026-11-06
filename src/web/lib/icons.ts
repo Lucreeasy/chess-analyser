@@ -26,4 +26,7 @@ export const icons: Record<string, string> = {
   user: `<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>`,
   pause: `<line x1="8" y1="5" x2="8" y2="19" stroke-width="4"/><line x1="16" y1="5" x2="16" y2="19" stroke-width="4"/>`,
   play: `<path d="M7 4 L20 12 L7 20 Z" fill="currentColor" stroke="none"/>`,
+  chevron: `<polyline points="6,9 12,15 18,9"/>`,
+  flip: `<line x1="9" y1="19" x2="9" y2="5"/><polyline points="5,9 9,5 13,9"/>
+    <line x1="15" y1="5" x2="15" y2="19"/><polyline points="11,15 15,19 19,15"/>`,
 };
