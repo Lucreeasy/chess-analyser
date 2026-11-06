@@ -29,4 +29,8 @@ export const icons: Record<string, string> = {
   chevron: `<polyline points="6,9 12,15 18,9"/>`,
   flip: `<line x1="9" y1="19" x2="9" y2="5"/><polyline points="5,9 9,5 13,9"/>
     <line x1="15" y1="5" x2="15" y2="19"/><polyline points="11,15 15,19 19,15"/>`,
+  chevronLeft: `<polyline points="15,6 9,12 15,18"/>`,
+  chevronRight: `<polyline points="9,6 15,12 9,18"/>`,
+  firstMove: `<line x1="7" y1="5" x2="7" y2="19"/><polyline points="17,6 10,12 17,18"/>`,
+  lastMove: `<line x1="17" y1="5" x2="17" y2="19"/><polyline points="7,6 14,12 7,18"/>`,
 };

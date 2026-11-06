@@ -15,6 +15,16 @@ window.addEventListener("hashchange", () => {
   route.path = currentRoute();
 });
 
-export function navigate(path: string): void {
-  window.location.hash = path;
+/**
+ * `replace: true` updates the address without adding a history entry
+ * (docs/06-GAMES-SPEC.md section B1: the Review screen's ply number
+ * "replacing, not adding, history entries").
+ */
+export function navigate(path: string, options: { replace?: boolean } = {}): void {
+  if (options.replace) {
+    history.replaceState(null, "", `#${path}`);
+    route.path = currentRoute();
+  } else {
+    window.location.hash = path;
+  }
 }

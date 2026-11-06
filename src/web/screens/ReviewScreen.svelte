@@ -1,11 +1,14 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import Logo from "../components/Logo.svelte";
   import Icon from "../components/Icon.svelte";
   import Board from "../components/Board.svelte";
+  import Transport from "../components/Transport.svelte";
   import ResultBadge from "../components/ResultBadge.svelte";
   import { apiGet, ApiError } from "../lib/api.ts";
   import { navigate } from "../lib/router.svelte.ts";
   import { timeClassLabel, formatDate } from "../lib/format.ts";
+  import { clampPly } from "../lib/ply.ts";
   import type { GameReviewRow } from "../../server/games/reviewRow.ts";
 
   let { gameId, ply }: { gameId: string; ply: number } = $props();
@@ -14,6 +17,7 @@
   let notFound = $state(false);
   let loadError: string | undefined = $state(undefined);
   let flipped = $state(false);
+  let playing = $state(false);
 
   async function load(): Promise<void> {
     notFound = false;
@@ -40,15 +44,68 @@
     else navigate("/games");
   }
 
+  const plyCount = $derived(game?.positions.fens.length ? game.positions.fens.length - 1 : 0);
+  const currentPly = $derived(clampPly(ply, plyCount));
+
+  // docs/06-GAMES-SPEC.md section B1: the ply replaces, not adds, a history entry.
+  function jumpTo(p: number): void {
+    playing = false;
+    navigate(`/games/${encodeURIComponent(gameId)}/${clampPly(p, plyCount)}`, { replace: true });
+  }
+
+  function togglePlay(): void {
+    if (currentPly >= plyCount) return;
+    playing = !playing;
+  }
+
+  // docs/06-GAMES-SPEC.md section B5: advances one ply per second, stops at the last ply.
+  $effect(() => {
+    if (!playing) return;
+    const timer = setInterval(() => {
+      const next = untrack(() => currentPly) + 1;
+      if (next > untrack(() => plyCount)) {
+        playing = false;
+        return;
+      }
+      navigate(`/games/${encodeURIComponent(gameId)}/${next}`, { replace: true });
+    }, 1000);
+    return () => clearInterval(timer);
+  });
+
   // docs/06-GAMES-SPEC.md section B11: shortcuts are ignored while typing or with a modifier held.
   function isTyping(target: EventTarget | null): boolean {
     const el = target as HTMLElement | null;
     return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
   }
 
+  function keepsOwnSpaceMeaning(target: EventTarget | null): boolean {
+    const el = target as HTMLElement | null;
+    if (!el) return false;
+    if (["BUTTON", "A", "SUMMARY"].includes(el.tagName)) return true;
+    const role = el.getAttribute("role");
+    return role === "tab" || role === "slider";
+  }
+
   function onKeydown(e: KeyboardEvent): void {
     if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || isTyping(e.target)) return;
-    if (e.key === "f" || e.key === "F") flipped = !flipped;
+    if (e.key === "f" || e.key === "F") {
+      flipped = !flipped;
+    } else if (e.key === "ArrowLeft" && plyCount > 0) {
+      e.preventDefault();
+      jumpTo(currentPly - 1);
+    } else if (e.key === "ArrowRight" && plyCount > 0) {
+      e.preventDefault();
+      jumpTo(currentPly + 1);
+    } else if (e.key === "Home" && plyCount > 0) {
+      e.preventDefault();
+      jumpTo(0);
+    } else if (e.key === "End" && plyCount > 0) {
+      e.preventDefault();
+      jumpTo(plyCount);
+    } else if (e.key === " " && plyCount > 0 && !keepsOwnSpaceMeaning(e.target)) {
+      e.preventDefault();
+      togglePlay();
+    }
   }
 
   $effect(() => {
@@ -56,8 +113,6 @@
     return () => window.removeEventListener("keydown", onKeydown);
   });
 
-  const plyCount = $derived(game?.positions.fens.length ? game.positions.fens.length - 1 : 0);
-  const currentPly = $derived(Math.max(0, Math.min(ply, plyCount)));
   const fen = $derived(game?.positions.fens[currentPly]);
   const lastMove = $derived(game?.positions.lastMoves[currentPly]);
   // docs/06-GAMES-SPEC.md section B3: my colour at the bottom by default; Flip inverts it for this visit.
@@ -116,6 +171,17 @@
   {:else}
     <div class="board-area">
       <Board fen={fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"} {orientation} {lastMove} />
+      <Transport
+        {currentPly}
+        {plyCount}
+        {playing}
+        disabled={plyCount === 0}
+        onFirst={() => jumpTo(0)}
+        onPrevious={() => jumpTo(currentPly - 1)}
+        onTogglePlay={togglePlay}
+        onNext={() => jumpTo(currentPly + 1)}
+        onLast={() => jumpTo(plyCount)}
+      />
     </div>
   {/if}
 </div>
