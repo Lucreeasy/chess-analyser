@@ -2,6 +2,7 @@
   import MovesList from "./MovesList.svelte";
   import KeyMomentsList from "./KeyMomentsList.svelte";
   import SummaryTab from "./SummaryTab.svelte";
+  import Icon from "./Icon.svelte";
   import { tabArrowKey } from "../lib/tablist.ts";
   import type { MoveRecord, KeyMoment } from "../../server/analysis/game.ts";
   import type { GameReviewRow } from "../../server/games/reviewRow.ts";
@@ -21,6 +22,9 @@
     keyMoments,
     currentPly,
     onJump,
+    hideContent = false,
+    onTabActivate,
+    onExpand,
   }: {
     game: GameReviewRow;
     sans: (string | undefined)[];
@@ -28,16 +32,29 @@
     keyMoments: KeyMoment[] | undefined;
     currentPly: number;
     onJump: (ply: number) => void;
+    /** docs/06-GAMES-SPEC.md section B9: the phone bottom sheet's collapsed peek doesn't create the tab content. */
+    hideContent?: boolean;
+    /** Called whenever a tab button is activated (click or arrow-key), with the element that triggered it. */
+    onTabActivate?: (source: HTMLElement) => void;
+    /** When set, an "Expand the moves panel" button is shown at the end of the tab row (the collapsed phone sheet). */
+    onExpand?: (source: HTMLElement) => void;
   } = $props();
 
   // docs/06-GAMES-SPEC.md section B7: "The chosen tab is remembered while the screen is open" - plain state, not the address.
   let active: TabId = $state("moves");
 
+  function activate(id: TabId, source: HTMLElement): void {
+    active = id;
+    onTabActivate?.(source);
+  }
+
   function onKeydown(e: KeyboardEvent): void {
     const id = tabArrowKey(e, TAB_IDS, active);
     if (!id) return;
-    active = id;
-    document.getElementById(`review-tab-${id}`)?.focus();
+    const el = document.getElementById(`review-tab-${id}`);
+    if (!el) return;
+    activate(id, el);
+    el.focus();
   }
 </script>
 
@@ -53,27 +70,34 @@
         tabindex={active === tab.id ? 0 : -1}
         class="tab"
         class:active={active === tab.id}
-        onclick={() => (active = tab.id)}
+        onclick={(e) => activate(tab.id, e.currentTarget)}
       >{tab.label}</button>
     {/each}
+    {#if onExpand}
+      <button type="button" class="expand" aria-label="Expand the moves panel" onclick={(e) => onExpand(e.currentTarget)}>
+        <Icon name="chevron" size={18} />
+      </button>
+    {/if}
   </div>
 
-  {#if active === "moves"}
-    <div id="review-panel-moves" role="tabpanel" aria-labelledby="review-tab-moves">
-      <MovesList {sans} {analysisMoves} {currentPly} {onJump} />
-    </div>
-  {:else if active === "summary"}
-    <div id="review-panel-summary" role="tabpanel" aria-labelledby="review-tab-summary">
-      <SummaryTab {game} />
-    </div>
-  {:else if analysisMoves && keyMoments}
-    <div id="review-panel-keyMoments" role="tabpanel" aria-labelledby="review-tab-keyMoments">
-      <KeyMomentsList {keyMoments} {analysisMoves} {currentPly} {onJump} />
-    </div>
-  {:else}
-    <div id="review-panel-keyMoments" role="tabpanel" aria-labelledby="review-tab-keyMoments">
-      <p class="muted">Key moments appear here once the game is analysed.</p>
-    </div>
+  {#if !hideContent}
+    {#if active === "moves"}
+      <div id="review-panel-moves" role="tabpanel" aria-labelledby="review-tab-moves">
+        <MovesList {sans} {analysisMoves} {currentPly} {onJump} />
+      </div>
+    {:else if active === "summary"}
+      <div id="review-panel-summary" role="tabpanel" aria-labelledby="review-tab-summary">
+        <SummaryTab {game} />
+      </div>
+    {:else if analysisMoves && keyMoments}
+      <div id="review-panel-keyMoments" role="tabpanel" aria-labelledby="review-tab-keyMoments">
+        <KeyMomentsList {keyMoments} {analysisMoves} {currentPly} {onJump} />
+      </div>
+    {:else}
+      <div id="review-panel-keyMoments" role="tabpanel" aria-labelledby="review-tab-keyMoments">
+        <p class="muted">Key moments appear here once the game is analysed.</p>
+      </div>
+    {/if}
   {/if}
 </section>
 
@@ -100,6 +124,18 @@
   .tab.active {
     color: var(--ink);
     border-bottom-color: var(--brand);
+  }
+  .expand {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
   }
   .muted {
     color: var(--muted);

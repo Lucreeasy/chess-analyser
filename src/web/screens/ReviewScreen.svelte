@@ -9,6 +9,8 @@
   import GameReviewPanel from "../components/GameReviewPanel.svelte";
   import AnalysePanel from "../components/AnalysePanel.svelte";
   import Explanation from "../components/Explanation.svelte";
+  import BottomSheet from "../components/BottomSheet.svelte";
+  import { viewport } from "../lib/viewport.svelte.ts";
   import { scoreTextFromLine, scoreTextFromWinPercent } from "../lib/scoreText.ts";
   import ResultBadge from "../components/ResultBadge.svelte";
   import { apiGet, ApiError } from "../lib/api.ts";
@@ -243,7 +245,7 @@
     <p class="status-line">Loading game…</p>
   {:else}
     <!-- docs/06-GAMES-SPEC.md section B9: desktop puts the board+transport and the info/graph/tabs side by
-         side in two columns; phone stacks them (and later gets its own bottom-sheet treatment for the second). -->
+         side in two columns; phone stacks them, with the graph+tabs in a collapsible bottom sheet. -->
     <div class="board-area">
       <div class="board-column">
         <div class="board-row">
@@ -271,15 +273,35 @@
           <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set (docs/06-GAMES-SPEC.md B8). -->
           <AnalysePanel gameId={game.id} analysisStatus={game.analysisStatus as "none" | "queued" | "running" | "error"} onQueued={load} />
         {/if}
-        <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
-        <GameReviewPanel
-          {game}
-          sans={game.positions.sans}
-          analysisMoves={game.analysis?.moves}
-          keyMoments={game.analysis?.summary.keyMoments}
-          {currentPly}
-          onJump={jumpTo}
-        />
+        {#if viewport.isDesktop}
+          <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
+          <GameReviewPanel
+            {game}
+            sans={game.positions.sans}
+            analysisMoves={game.analysis?.moves}
+            keyMoments={game.analysis?.summary.keyMoments}
+            {currentPly}
+            onJump={jumpTo}
+          />
+        {:else}
+          <BottomSheet
+            {game}
+            sans={game.positions.sans}
+            analysisMoves={game.analysis?.moves}
+            keyMoments={game.analysis?.summary.keyMoments}
+            {winPercents}
+            {classifications}
+            {currentPly}
+            {plyCount}
+            {playing}
+            onJump={jumpTo}
+            onFirst={() => jumpTo(0)}
+            onPrevious={() => jumpTo(currentPly - 1)}
+            onTogglePlay={togglePlay}
+            onNext={() => jumpTo(currentPly + 1)}
+            onLast={() => jumpTo(plyCount)}
+          />
+        {/if}
       </div>
     </div>
   {/if}

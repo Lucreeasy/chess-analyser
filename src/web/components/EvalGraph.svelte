@@ -9,16 +9,19 @@
     classifications,
     currentPly,
     onJump,
+    height = 80,
   }: {
     /** Length N+1, ply 0..N; undefined entries are gaps (live analysis still in progress). */
     winPercents: (number | undefined)[];
     classifications: (MoveClass | undefined)[];
     currentPly: number;
     onJump: (ply: number) => void;
+    /** docs/07-UI-SPEC.md section 7: 80 desktop (default), 40 collapsed phone sheet, 96 expanded sheet. */
+    height?: number;
   } = $props();
 
   const WIDTH = 400;
-  const HEIGHT = 80;
+  const HEIGHT = $derived(height);
   // docs/07-UI-SPEC.md section 7: dots are 9px; a diamond's diagonal (not its side) is what reads as 9px.
   const DIAMOND_SIDE = 9 / Math.SQRT2;
 
@@ -95,6 +98,7 @@
     viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
     preserveAspectRatio="none"
     class="graph"
+    style={`height: ${height}px`}
     role="slider"
     tabindex="0"
     aria-label="Evaluation graph. Tap to jump to a move."
