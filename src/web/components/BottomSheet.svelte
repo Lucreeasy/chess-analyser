@@ -18,6 +18,7 @@
     currentPly,
     plyCount,
     playing,
+    exploring = false,
     onJump,
     onFirst,
     onPrevious,
@@ -34,6 +35,8 @@
     currentPly: number;
     plyCount: number;
     playing: boolean;
+    /** docs/06-GAMES-SPEC.md section B10: transport is disabled while exploring. */
+    exploring?: boolean;
     onJump: (ply: number) => void;
     onFirst: () => void;
     onPrevious: () => void;
@@ -111,7 +114,7 @@
         {currentPly}
         {plyCount}
         {playing}
-        disabled={plyCount === 0}
+        disabled={plyCount === 0 || exploring}
         {onFirst}
         {onPrevious}
         {onTogglePlay}

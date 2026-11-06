@@ -9,8 +9,10 @@
   import GameReviewPanel from "../components/GameReviewPanel.svelte";
   import AnalysePanel from "../components/AnalysePanel.svelte";
   import Explanation from "../components/Explanation.svelte";
+  import ExplorePanel from "../components/ExplorePanel.svelte";
   import BottomSheet from "../components/BottomSheet.svelte";
   import { viewport } from "../lib/viewport.svelte.ts";
+  import { ExploreState } from "../lib/explore.svelte.ts";
   import { scoreTextFromLine, scoreTextFromWinPercent } from "../lib/scoreText.ts";
   import ResultBadge from "../components/ResultBadge.svelte";
   import { apiGet, ApiError } from "../lib/api.ts";
@@ -28,6 +30,29 @@
   let loadError: string | undefined = $state(undefined);
   let flipped = $state(false);
   let playing = $state(false);
+  let explore: ExploreState | undefined = $state();
+
+  // docs/06-GAMES-SPEC.md section B10: the start position is the board's current ply; ends on leaving the screen.
+  function startExploring(): void {
+    if (explore || !fen) return;
+    playing = false;
+    explore = new ExploreState(fen, (fen.split(" ")[1] ?? "w") as "w" | "b");
+  }
+
+  function stopExploring(): void {
+    explore?.destroy();
+    explore = undefined;
+  }
+
+  function toggleExplore(): void {
+    if (explore) stopExploring();
+    else startExploring();
+  }
+
+  $effect(() => {
+    gameId; // leaving for a different game also ends exploring
+    return () => explore?.destroy();
+  });
 
   async function load(): Promise<void> {
     notFound = false;
@@ -66,8 +91,10 @@
   const currentPly = $derived(clampPly(ply, plyCount));
 
   // docs/06-GAMES-SPEC.md section B1: the ply replaces, not adds, a history entry.
+  // Section B10: jumping to a move (graph, move list, key moment) ends exploring.
   function jumpTo(p: number): void {
     playing = false;
+    stopExploring();
     navigate(`/games/${encodeURIComponent(gameId)}/${clampPly(p, plyCount)}`, { replace: true });
   }
 
@@ -104,10 +131,20 @@
     return role === "tab" || role === "slider";
   }
 
+  // docs/06-GAMES-SPEC.md section B11: Escape leaves explore mode; Left arrow undoes instead of navigating;
+  // Right arrow/Home/End/Space do nothing while exploring (F still flips the board either way).
   function onKeydown(e: KeyboardEvent): void {
     if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || isTyping(e.target)) return;
-    if (e.key === "f" || e.key === "F") {
+    if (e.key === "Escape" && explore) {
+      e.preventDefault();
+      stopExploring();
+    } else if (e.key === "f" || e.key === "F") {
       flipped = !flipped;
+    } else if (explore) {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        explore.undo();
+      }
     } else if (e.key === "ArrowLeft" && plyCount > 0) {
       e.preventDefault();
       jumpTo(currentPly - 1);
@@ -170,6 +207,18 @@
     return label;
   });
 
+  // docs/06-GAMES-SPEC.md section B10: while exploring, the board shows the explored position instead -
+  // no game badge/arrows, the explored last move and the best line's arrow, a fixed accessible name.
+  const boardFen = $derived(explore ? explore.fen : (fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"));
+  const boardLastMove = $derived(explore ? explore.lastMove : lastMove);
+  const boardBadge = $derived(explore ? undefined : badge);
+  const boardArrows = $derived(explore ? (explore.bestMoveArrow ? [explore.bestMoveArrow] : []) : arrows);
+  const boardLabelText = $derived(explore ? "Chess board, explore mode" : boardLabel);
+  const boardMovable = $derived.by(() => {
+    if (!explore) return undefined;
+    return { colour: (explore.sideToMove === "w" ? "white" : "black") as "white" | "black", dests: explore.dests, onMove: (uci: string) => explore?.playMove(uci) };
+  });
+
   // docs/06-GAMES-SPEC.md section B4: Win% for ply p = the stored "after" Win% of ply p (ply 0 = "before" of the first move).
   // Section B8: before the stored analysis arrives, the same array is filled from live per-ply values instead, with
   // gaps where none has arrived yet, so the eval bar and graph fill in as the engine goes.
@@ -192,6 +241,15 @@
     if (!moves) return "–";
     if (currentPly < plyCount) return scoreTextFromLine(moves[currentPly]?.bestLine);
     return winPercent !== undefined ? scoreTextFromWinPercent(winPercent) : "–";
+  });
+
+  // docs/06-GAMES-SPEC.md section B10: the eval bar follows the explored position's best line instead;
+  // a finished position shows the fixed result text, keeping the last known value otherwise.
+  const evalWinPercent = $derived(explore ? explore.lastWinPercent : winPercent);
+  const evalScoreText = $derived.by(() => {
+    if (!explore) return scoreText;
+    if (explore.gameOver) return explore.gameOver.type === "checkmate" ? (explore.gameOver.winner === "w" ? "1-0" : "0-1") : "½";
+    return scoreTextFromLine(explore.lines[0]);
   });
 
   const whiteTitle = $derived(game ? (game.whiteElo ? `${game.white} (${game.whiteElo})` : game.white) : "");
@@ -220,6 +278,19 @@
       <div class="badge-slot">
         <ResultBadge myResult={game.myResult} result={game.result} />
       </div>
+      <button
+        type="button"
+        class="explore-toggle"
+        class:active={!!explore}
+        aria-label="Explore"
+        aria-pressed={!!explore}
+        title="Explore moves from this position with live engine lines"
+        disabled={plyCount === 0}
+        onclick={toggleExplore}
+      >
+        <Icon name="explore" size={18} />
+        <span class="explore-label" aria-hidden="true">Explore</span>
+      </button>
       <button type="button" class="flip" onclick={() => (flipped = !flipped)} aria-label="Flip board" title="Flip board (F)">
         <Icon name="flip" size={18} />
       </button>
@@ -249,14 +320,22 @@
     <div class="board-area">
       <div class="board-column">
         <div class="board-row">
-          <EvalBar {winPercent} {scoreText} flipped={orientation === "black"} />
-          <Board fen={fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"} {orientation} {lastMove} {arrows} {badge} label={boardLabel} />
+          <EvalBar winPercent={evalWinPercent} scoreText={evalScoreText} flipped={orientation === "black"} />
+          <Board
+            fen={boardFen}
+            {orientation}
+            lastMove={boardLastMove}
+            arrows={boardArrows}
+            badge={boardBadge}
+            label={boardLabelText}
+            movable={boardMovable}
+          />
         </div>
         <Transport
           {currentPly}
           {plyCount}
           {playing}
-          disabled={plyCount === 0}
+          disabled={plyCount === 0 || !!explore}
           onFirst={() => jumpTo(0)}
           onPrevious={() => jumpTo(currentPly - 1)}
           onTogglePlay={togglePlay}
@@ -265,9 +344,11 @@
         />
       </div>
       <div class="info-column">
-        <!-- The info card is the Explanation or (while unanalysed) the Analyse panel; the graph and the
-             tabs below it are always visible either way. -->
-        {#if game.analysis || plyCount === 0}
+        <!-- The info card is the Explanation, the Analyse panel (unanalysed) or the Explore panel; the
+             graph and the tabs below it are always visible either way. -->
+        {#if explore}
+          <ExplorePanel {explore} onBackToGame={stopExploring} />
+        {:else if game.analysis || plyCount === 0}
           <Explanation {game} {currentPly} {plyCount} />
         {:else}
           <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set (docs/06-GAMES-SPEC.md B8). -->
@@ -294,6 +375,7 @@
             {currentPly}
             {plyCount}
             {playing}
+            exploring={!!explore}
             onJump={jumpTo}
             onFirst={() => jumpTo(0)}
             onPrevious={() => jumpTo(currentPly - 1)}
@@ -331,6 +413,34 @@
     color: var(--ink);
     cursor: pointer;
     flex: none;
+  }
+  .explore-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    flex: none;
+  }
+  .explore-toggle.active {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: var(--brand-ink);
+  }
+  .explore-label {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .explore-label {
+      display: inline;
+    }
   }
   .back :global(svg) {
     transform: rotate(90deg);
