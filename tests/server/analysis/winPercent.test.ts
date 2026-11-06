@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { winPercentFromCp, winPercentOfLine, isForcedMateFor } from "../../../src/server/analysis/winPercent.ts";
+import { winPercentFromCp, winPercentOfLine, isForcedMateFor, cpFromWinPercent } from "../../../src/server/analysis/winPercent.ts";
 
 // docs/02-ANALYSIS-SPEC.md 18.1, White POV.
 test("Win% reference table (section 18.1)", () => {
@@ -45,6 +45,19 @@ test("mate scores: any White mate 97.544744, any Black mate (or mate 0) 2.455256
 
 test("a line with neither cp nor mate counts as 0 cp (Win% 50)", () => {
   assert.equal(winPercentOfLine({}), 50);
+});
+
+// docs/06-GAMES-SPEC.md section B4: the eval bar's score text for the last ply recovers cp by inverting the curve.
+test("cpFromWinPercent: inverts winPercentFromCp", () => {
+  for (const cp of [-900, -500, -100, 0, 50, 300, 900]) {
+    assert.ok(Math.abs(cpFromWinPercent(winPercentFromCp(cp)) - cp) < 0.5);
+  }
+});
+
+test("cpFromWinPercent: 50% is 0 cp, clamps extreme Win% so it never returns Infinity/NaN", () => {
+  assert.equal(cpFromWinPercent(50), 0);
+  assert.ok(Number.isFinite(cpFromWinPercent(100)));
+  assert.ok(Number.isFinite(cpFromWinPercent(0)));
 });
 
 test("isForcedMateFor", () => {

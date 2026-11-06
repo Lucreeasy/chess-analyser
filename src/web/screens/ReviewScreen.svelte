@@ -3,7 +3,9 @@
   import Logo from "../components/Logo.svelte";
   import Icon from "../components/Icon.svelte";
   import Board from "../components/Board.svelte";
+  import EvalBar from "../components/EvalBar.svelte";
   import Transport from "../components/Transport.svelte";
+  import { scoreTextFromLine, scoreTextFromWinPercent } from "../lib/scoreText.ts";
   import ResultBadge from "../components/ResultBadge.svelte";
   import { apiGet, ApiError } from "../lib/api.ts";
   import { navigate } from "../lib/router.svelte.ts";
@@ -153,6 +155,21 @@
     return label;
   });
 
+  // docs/06-GAMES-SPEC.md section B4: Win% for ply p = the stored "after" Win% of ply p (ply 0 = "before" of the first move).
+  const winPercent = $derived.by(() => {
+    const moves = game?.analysis?.moves;
+    if (!moves || moves.length === 0) return undefined;
+    return currentPly === 0 ? moves[0]!.winPercentBefore : moves[currentPly - 1]?.winPercentAfter;
+  });
+
+  // The score of the best line of the next move; for the last ply, derived from Win% instead.
+  const scoreText = $derived.by(() => {
+    const moves = game?.analysis?.moves;
+    if (!moves) return "–";
+    if (currentPly < plyCount) return scoreTextFromLine(moves[currentPly]?.bestLine);
+    return winPercent !== undefined ? scoreTextFromWinPercent(winPercent) : "–";
+  });
+
   const whiteTitle = $derived(game ? (game.whiteElo ? `${game.white} (${game.whiteElo})` : game.white) : "");
   const blackTitle = $derived(game ? (game.blackElo ? `${game.black} (${game.blackElo})` : game.black) : "");
 
@@ -204,7 +221,10 @@
     <p class="status-line">Loading game…</p>
   {:else}
     <div class="board-area">
-      <Board fen={fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"} {orientation} {lastMove} {arrows} {badge} label={boardLabel} />
+      <div class="board-row">
+        <EvalBar {winPercent} {scoreText} flipped={orientation === "black"} />
+        <Board fen={fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"} {orientation} {lastMove} {arrows} {badge} label={boardLabel} />
+      </div>
       <Transport
         {currentPly}
         {plyCount}
@@ -306,5 +326,20 @@
   .board-area {
     max-width: 560px;
     margin: 16px auto 0;
+  }
+  .board-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .board-row > :global(.board-wrap) {
+    flex: 1;
+    min-width: 0;
+  }
+  @media (min-width: 768px) {
+    .board-row {
+      flex-direction: row;
+      align-items: stretch;
+    }
   }
 </style>

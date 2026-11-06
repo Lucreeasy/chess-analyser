@@ -7,6 +7,12 @@ export function winPercentFromCp(cp: number): number {
   return 50 + 50 * ((2 / (1 + Math.exp(-0.00368208 * c))) - 1);
 }
 
+/** Inverts winPercentFromCp: recovers a centipawn score from a Win% (docs/06-GAMES-SPEC.md section B4). */
+export function cpFromWinPercent(winPercent: number): number {
+  const w = Math.max(0.01, Math.min(99.99, winPercent));
+  return Math.log(w / (100 - w)) / 0.00368208;
+}
+
 export interface EngineLine {
   cp?: number;
   mate?: number;
