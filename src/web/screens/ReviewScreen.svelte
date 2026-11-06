@@ -237,7 +237,13 @@
         onNext={() => jumpTo(currentPly + 1)}
         onLast={() => jumpTo(plyCount)}
       />
-      <GameReviewPanel sans={game.positions.sans} analysisMoves={game.analysis?.moves} {currentPly} onJump={jumpTo} />
+      <GameReviewPanel
+        sans={game.positions.sans}
+        analysisMoves={game.analysis?.moves}
+        keyMoments={game.analysis?.summary.keyMoments}
+        {currentPly}
+        onJump={jumpTo}
+      />
     </div>
   {/if}
 </div>

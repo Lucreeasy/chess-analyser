@@ -1,7 +1,8 @@
 <script lang="ts">
   import MovesList from "./MovesList.svelte";
+  import KeyMomentsList from "./KeyMomentsList.svelte";
   import { tabArrowKey } from "../lib/tablist.ts";
-  import type { MoveRecord } from "../../server/analysis/game.ts";
+  import type { MoveRecord, KeyMoment } from "../../server/analysis/game.ts";
 
   const TABS = [
     { id: "moves", label: "Moves" },
@@ -14,11 +15,13 @@
   let {
     sans,
     analysisMoves,
+    keyMoments,
     currentPly,
     onJump,
   }: {
     sans: (string | undefined)[];
     analysisMoves: MoveRecord[] | undefined;
+    keyMoments: KeyMoment[] | undefined;
     currentPly: number;
     onJump: (ply: number) => void;
   } = $props();
@@ -59,9 +62,13 @@
     <div id="review-panel-summary" role="tabpanel" aria-labelledby="review-tab-summary">
       <p class="muted">Coming soon.</p>
     </div>
+  {:else if analysisMoves && keyMoments}
+    <div id="review-panel-keyMoments" role="tabpanel" aria-labelledby="review-tab-keyMoments">
+      <KeyMomentsList {keyMoments} {analysisMoves} {currentPly} {onJump} />
+    </div>
   {:else}
     <div id="review-panel-keyMoments" role="tabpanel" aria-labelledby="review-tab-keyMoments">
-      <p class="muted">Coming soon.</p>
+      <p class="muted">Key moments appear here once the game is analysed.</p>
     </div>
   {/if}
 </section>
