@@ -1,10 +1,12 @@
 import type { WorkerEvent } from "../analysisQueue/worker.ts";
+import type { ExploreEvent } from "../explore/session.ts";
 import { Throttle } from "./throttle.ts";
 import { APP_VERSION } from "../version.ts";
 
 /** Live events pushed to every connected interface. docs/03-IMPORT-SPEC.md section 5.6. */
 export type LiveEvent =
   | WorkerEvent
+  | ExploreEvent
   | { type: "gamesChanged" }
   | { type: "importProgress"; username: string; month: string; done: number; total: number };
 

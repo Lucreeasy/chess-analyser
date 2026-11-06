@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { legalDestinations, applyMove, isLegalPosition } from "../../../src/server/explore/position.ts";
+import { legalDestinations, applyMove, isLegalPosition, explorePositionError } from "../../../src/server/explore/position.ts";
 
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -61,4 +61,10 @@ test("applyMove: stalemate", () => {
 test("applyMove: an illegal move or an illegal starting position returns ok: false", () => {
   assert.equal(applyMove(START, "a1a5").ok, false); // nothing on a1 can reach a5 like that
   assert.equal(applyMove("not a fen", "e2e4").ok, false);
+});
+
+test("explorePositionError: undefined for a legal position, a message in the spec's style otherwise", () => {
+  assert.equal(explorePositionError(START), undefined);
+  assert.match(explorePositionError("not a fen")!, /^invalid FEN:/);
+  assert.match(explorePositionError("4q3/8/8/8/8/8/8/4K2k b - - 0 1")!, /^invalid FEN:.*in check/);
 });

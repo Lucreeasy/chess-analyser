@@ -40,6 +40,7 @@ import type { StoredGame } from "./import/parseGame.ts";
 import { EventHub } from "./events/hub.ts";
 import type { WorkerEvent } from "./analysisQueue/worker.ts";
 import { legalDestinations, applyMove } from "./explore/position.ts";
+import { ExploreSession } from "./explore/session.ts";
 
 // A mutable binding so tests can point chess.com calls at a fake transport instead of the real network.
 export const chessComDeps: { fetch: FetchLike } = { fetch: fetch as FetchLike };
@@ -86,6 +87,8 @@ function onWorkerEvent(event: WorkerEvent): void {
 clearRunningFlags(db);
 export const analysisWorker = new AnalysisWorker(db, getEngine, { onEvent: onWorkerEvent });
 if (process.env.NODE_ENV !== "test") analysisWorker.notify(); // resume any work waiting from a previous run
+
+export const exploreSession = new ExploreSession({ getEngine, onEvent: (event) => eventHub.broadcast(event) });
 
 async function readBody(req: import("node:http").IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
@@ -388,6 +391,37 @@ export const server = createServer(async (req, res) => {
     }
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(applyMove(b.fen, b.uci)));
+    return;
+  }
+
+  if (req.url === "/api/explore/search" && req.method === "POST") {
+    let body: unknown;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      body = undefined;
+    }
+    const b = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
+    if (
+      typeof b.fen !== "string" ||
+      (b.sideToMove !== "w" && b.sideToMove !== "b") ||
+      typeof b.clientId !== "string" ||
+      typeof b.requestId !== "string"
+    ) {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: '"fen", "sideToMove" ("w"/"b"), "clientId" and "requestId" are required' }));
+      return;
+    }
+    const result = exploreSession.start({ fen: b.fen, sideToMove: b.sideToMove, clientId: b.clientId, requestId: b.requestId });
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(result));
+    return;
+  }
+
+  if (req.url === "/api/explore/stop" && req.method === "POST") {
+    exploreSession.stop();
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ ok: true }));
     return;
   }
 

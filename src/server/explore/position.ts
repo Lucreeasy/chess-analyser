@@ -48,12 +48,23 @@ export function applyMove(fen: string, uci: string): MoveResult {
 
 /** Well-formed and not leaving the side not to move in check (the one case chess.js's own validator misses). */
 export function isLegalPosition(fen: string): boolean {
-  if (!validateFen(fen).ok) return false;
+  return explorePositionError(fen) === undefined;
+}
+
+/**
+ * docs/06-GAMES-SPEC.md section B10: "positions the engine cannot take (invalid, or the side not to move
+ * is in check) are rejected with `invalid FEN: ...`-style messages shown as the engine error." Undefined
+ * when `fen` is fine to search.
+ */
+export function explorePositionError(fen: string): string | undefined {
+  const validation = validateFen(fen);
+  if (!validation.ok) return `invalid FEN: ${validation.error}`;
   try {
     const [board, side, castling] = fen.split(" ");
     const flipped = [board, side === "w" ? "b" : "w", castling, "-", "0", "1"].join(" ");
-    return !new Chess(flipped).inCheck();
+    if (new Chess(flipped).inCheck()) return "invalid FEN: the side not to move is in check";
+    return undefined;
   } catch {
-    return false;
+    return `invalid FEN: ${fen}`;
   }
 }
