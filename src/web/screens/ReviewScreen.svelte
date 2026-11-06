@@ -242,39 +242,45 @@
   {:else if game === undefined}
     <p class="status-line">Loading game…</p>
   {:else}
+    <!-- docs/06-GAMES-SPEC.md section B9: desktop puts the board+transport and the info/graph/tabs side by
+         side in two columns; phone stacks them (and later gets its own bottom-sheet treatment for the second). -->
     <div class="board-area">
-      <div class="board-row">
-        <EvalBar {winPercent} {scoreText} flipped={orientation === "black"} />
-        <Board fen={fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"} {orientation} {lastMove} {arrows} {badge} label={boardLabel} />
+      <div class="board-column">
+        <div class="board-row">
+          <EvalBar {winPercent} {scoreText} flipped={orientation === "black"} />
+          <Board fen={fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"} {orientation} {lastMove} {arrows} {badge} label={boardLabel} />
+        </div>
+        <Transport
+          {currentPly}
+          {plyCount}
+          {playing}
+          disabled={plyCount === 0}
+          onFirst={() => jumpTo(0)}
+          onPrevious={() => jumpTo(currentPly - 1)}
+          onTogglePlay={togglePlay}
+          onNext={() => jumpTo(currentPly + 1)}
+          onLast={() => jumpTo(plyCount)}
+        />
       </div>
-      <Transport
-        {currentPly}
-        {plyCount}
-        {playing}
-        disabled={plyCount === 0}
-        onFirst={() => jumpTo(0)}
-        onPrevious={() => jumpTo(currentPly - 1)}
-        onTogglePlay={togglePlay}
-        onNext={() => jumpTo(currentPly + 1)}
-        onLast={() => jumpTo(plyCount)}
-      />
-      <!-- docs/06-GAMES-SPEC.md section B8/B9: the info card is the Explanation or (while unanalysed) the
-           Analyse panel; the graph and the tabs below it are always visible either way. -->
-      {#if game.analysis || plyCount === 0}
-        <Explanation {game} {currentPly} {plyCount} />
-      {:else}
-        <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set (docs/06-GAMES-SPEC.md B8). -->
-        <AnalysePanel gameId={game.id} analysisStatus={game.analysisStatus as "none" | "queued" | "running" | "error"} onQueued={load} />
-      {/if}
-      <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
-      <GameReviewPanel
-        {game}
-        sans={game.positions.sans}
-        analysisMoves={game.analysis?.moves}
-        keyMoments={game.analysis?.summary.keyMoments}
-        {currentPly}
-        onJump={jumpTo}
-      />
+      <div class="info-column">
+        <!-- The info card is the Explanation or (while unanalysed) the Analyse panel; the graph and the
+             tabs below it are always visible either way. -->
+        {#if game.analysis || plyCount === 0}
+          <Explanation {game} {currentPly} {plyCount} />
+        {:else}
+          <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set (docs/06-GAMES-SPEC.md B8). -->
+          <AnalysePanel gameId={game.id} analysisStatus={game.analysisStatus as "none" | "queued" | "running" | "error"} onQueued={load} />
+        {/if}
+        <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
+        <GameReviewPanel
+          {game}
+          sans={game.positions.sans}
+          analysisMoves={game.analysis?.moves}
+          keyMoments={game.analysis?.summary.keyMoments}
+          {currentPly}
+          onJump={jumpTo}
+        />
+      </div>
     </div>
   {/if}
 </div>
@@ -375,10 +381,28 @@
     flex: 1;
     min-width: 0;
   }
+  .info-column {
+    margin-top: 16px;
+  }
   @media (min-width: 768px) {
     .board-row {
       flex-direction: row;
       align-items: stretch;
+    }
+    .board-area {
+      max-width: 1200px;
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+    }
+    .board-column {
+      flex: none;
+      width: 560px;
+    }
+    .info-column {
+      flex: 1;
+      min-width: 0;
+      margin-top: 0;
     }
   }
 </style>
