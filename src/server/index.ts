@@ -39,6 +39,7 @@ import { enqueueGames, unknownGameIds, autoQueueNewGames } from "./analysisQueue
 import type { StoredGame } from "./import/parseGame.ts";
 import { EventHub } from "./events/hub.ts";
 import type { WorkerEvent } from "./analysisQueue/worker.ts";
+import { legalDestinations, applyMove } from "./explore/position.ts";
 
 // A mutable binding so tests can point chess.com calls at a fake transport instead of the real network.
 export const chessComDeps: { fetch: FetchLike } = { fetch: fetch as FetchLike };
@@ -362,6 +363,31 @@ export const server = createServer(async (req, res) => {
     eventHub.broadcast({ type: "gamesChanged" });
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ ok: true }));
+    return;
+  }
+
+  if (req.url?.startsWith("/api/explore/dests") && req.method === "GET") {
+    const fen = new URL(req.url, "http://localhost").searchParams.get("fen") ?? "";
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(legalDestinations(fen)));
+    return;
+  }
+
+  if (req.url === "/api/explore/move" && req.method === "POST") {
+    let body: unknown;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      body = undefined;
+    }
+    const b = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
+    if (typeof b.fen !== "string" || typeof b.uci !== "string") {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: '"fen" and "uci" must be strings' }));
+      return;
+    }
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(applyMove(b.fen, b.uci)));
     return;
   }
 
