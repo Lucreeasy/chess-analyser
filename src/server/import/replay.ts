@@ -43,6 +43,8 @@ export interface ReplayResult {
   finalFen?: string;
   /** The FEN after each fully-replayed ply, for opening lookup (section 2.14). */
   fens: string[];
+  /** Each fully-replayed ply's move, from/to squares as "e2e4" (docs/06-GAMES-SPEC.md section B3), parallel to `fens`. */
+  uci: string[];
   failure?: string;
 }
 
@@ -54,6 +56,7 @@ export interface ReplayResult {
 export function replayGame(startFen: string, moves: MovetextToken[], fullReplay: boolean): ReplayResult {
   const chess = new Chess(startFen);
   const fens: string[] = [];
+  const uci: string[] = [];
 
   for (let i = 0; i < moves.length; i++) {
     const token = moves[i].raw;
@@ -62,22 +65,24 @@ export function replayGame(startFen: string, moves: MovetextToken[], fullReplay:
 
     if (!fullReplay && i >= BOOK_DEPTH) {
       if (!PLAUSIBLE_SHAPE.test(token)) {
-        return { plyCount: moves.length, fens, failure: moveFailure("Illegal or unreadable", token, moveNumber, colour) };
+        return { plyCount: moves.length, fens, uci, failure: moveFailure("Illegal or unreadable", token, moveNumber, colour) };
       }
       continue;
     }
 
     if (NULL_MOVES.has(token)) {
-      return { plyCount: moves.length, fens, failure: moveFailure("Unsupported null", token, moveNumber, colour) };
+      return { plyCount: moves.length, fens, uci, failure: moveFailure("Unsupported null", token, moveNumber, colour) };
     }
+    let move;
     try {
-      chess.move(token);
+      move = chess.move(token);
     } catch {
-      return { plyCount: moves.length, fens, failure: moveFailure("Illegal or unreadable", token, moveNumber, colour) };
+      return { plyCount: moves.length, fens, uci, failure: moveFailure("Illegal or unreadable", token, moveNumber, colour) };
     }
     fens.push(chess.fen());
+    uci.push(move.lan);
   }
 
   const replayedToTheEnd = fullReplay || moves.length <= BOOK_DEPTH;
-  return { plyCount: moves.length, fens, finalFen: replayedToTheEnd ? chess.fen() : undefined };
+  return { plyCount: moves.length, fens, uci, finalFen: replayedToTheEnd ? chess.fen() : undefined };
 }

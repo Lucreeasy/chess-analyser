@@ -17,6 +17,14 @@ test("positionsOf: one FEN per ply plus the start position, for a clean game", (
   assert.ok(result.fens.length > 1);
 });
 
+test("positionsOf: lastMoves holds the from/to squares, undefined at the start position", () => {
+  const [gameText] = splitIntoGames(sample("annotations.pgn"));
+  const result = positionsOf(gameText!);
+  assert.equal(result.lastMoves.length, result.fens.length);
+  assert.equal(result.lastMoves[0], undefined);
+  assert.equal(result.lastMoves[1], "e2e4"); // the game's first move
+});
+
 test("positionsOf: a late illegal move reports the failure but keeps the positions reached so far", () => {
   const games = splitIntoGames(sample("late-illegal.pgn"));
   const result = positionsOf(games[1]!); // "20. e1" is unplayable
