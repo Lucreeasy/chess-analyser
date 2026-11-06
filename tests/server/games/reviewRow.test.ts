@@ -102,6 +102,23 @@ test("errorMessage: only present when analysisStatus is error", () => {
   assert.equal(row.errorMessage, "the engine crashed");
 });
 
+test("analysis: a re-analysed game keeps its old analysis while queued/running (docs/06-GAMES-SPEC.md B8)", () => {
+  const db = openDb(":memory:");
+  const g = game({ id: "a", myColour: "w" });
+  insertGames(db, [g]);
+  finishAnalysis(db, "a", "standard", fakeAnalysis(), 1);
+
+  upsertQueueEntry(db, "a", "deep", true, true, 2);
+  const queuedRow = toGameReviewRow(db, g);
+  assert.equal(queuedRow.analysisStatus, "queued");
+  assert.equal(queuedRow.analysis?.summary.accuracy.w, 91.2);
+
+  setQueueEntryRunning(db, "a", true);
+  const runningRow = toGameReviewRow(db, g);
+  assert.equal(runningRow.analysisStatus, "running");
+  assert.equal(runningRow.analysis?.summary.accuracy.w, 91.2);
+});
+
 test("errorMessage is undefined for a game with no error", () => {
   const db = openDb(":memory:");
   const g = game({ id: "a", myColour: "w" });

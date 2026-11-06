@@ -19,7 +19,9 @@ export interface GameReviewRow extends Omit<StoredGame, "analysisStatus"> {
 
 export function toGameReviewRow(db: Database.Database, game: StoredGame): GameReviewRow {
   const status = analysisStatusOf(db, game.id);
-  const stored = status === "done" ? getAnalysis(db, game.id) : undefined;
+  // docs/06-GAMES-SPEC.md section B8: a re-analysed game keeps showing its old analysis
+  // (not the Analyse panel) until the new one replaces it, so this isn't gated on status.
+  const stored = getAnalysis(db, game.id);
 
   return {
     ...game,
