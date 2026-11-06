@@ -26,6 +26,18 @@
   --radius-control: 12px;
   --radius-card: 16px;
   --radius-tile: 12px;
+
+  /* docs/07-UI-SPEC.md section 4.1: move-classification badge fills. */
+  --class-book: #a58a6a;
+  --class-brilliant: #14a7bd;
+  --class-great: #4a7fe0;
+  --class-best: #3fa35a;
+  --class-excellent: #7fb868;
+  --class-good: #a3ad4a;
+  --class-inaccuracy: #dcb92c;
+  --class-mistake: #e68a35;
+  --class-miss: #c9529a;
+  --class-blunder: #d03f3f;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -42,6 +54,17 @@
     --danger: #f2786c;
     --danger-ink: #1a0b09;
     --ok: #5ac17c;
+
+    --class-book: #b09672;
+    --class-brilliant: #1fb4ca;
+    --class-great: #5b8ce8;
+    --class-best: #46b162;
+    --class-excellent: #8cc476;
+    --class-good: #b0ba55;
+    --class-inaccuracy: #e5c335;
+    --class-mistake: #ee9743;
+    --class-miss: #d25fa5;
+    --class-blunder: #e05050;
   }
 }
 

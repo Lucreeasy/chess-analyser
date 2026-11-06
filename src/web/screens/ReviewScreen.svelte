@@ -9,6 +9,7 @@
   import { navigate } from "../lib/router.svelte.ts";
   import { timeClassLabel, formatDate } from "../lib/format.ts";
   import { clampPly } from "../lib/ply.ts";
+  import { CLASS_INFO } from "../../server/analysis/texts.ts";
   import type { GameReviewRow } from "../../server/games/reviewRow.ts";
 
   let { gameId, ply }: { gameId: string; ply: number } = $props();
@@ -119,6 +120,39 @@
   const baseOrientation = $derived(game?.myColour === "b" ? "black" : "white");
   const orientation = $derived(flipped ? (baseOrientation === "white" ? "black" : "white") : baseOrientation);
 
+  // docs/06-GAMES-SPEC.md section B3: the move that produced the current position, analysed games only, ply >= 1.
+  const currentMove = $derived(currentPly >= 1 ? game?.analysis?.moves[currentPly - 1] : undefined);
+  const bestUci = $derived(currentMove?.bestLine?.pv[0]);
+
+  const badge = $derived(
+    currentMove && lastMove ? { square: lastMove.slice(2, 4), cls: currentMove.classification } : undefined,
+  );
+
+  const arrows = $derived.by(() => {
+    if (!currentMove || !bestUci) return [];
+    const shapes: { orig: string; dest: string; brush: "amber" | "green" }[] = [];
+    if (bestUci !== currentMove.uci) shapes.push({ orig: currentMove.uci.slice(0, 2), dest: currentMove.uci.slice(2, 4), brush: "amber" });
+    if (currentMove.classification !== "book") shapes.push({ orig: bestUci.slice(0, 2), dest: bestUci.slice(2, 4), brush: "green" });
+    return shapes;
+  });
+
+  // docs/06-GAMES-SPEC.md section B3: the board's accessible name.
+  const boardLabel = $derived.by(() => {
+    if (currentPly === 0) return "Chess board, start position";
+    if (!currentMove || !game) return `Chess board after ply ${currentPly}`;
+    const moveNumber = Math.ceil(currentPly / 2);
+    const moveText =
+      currentMove.colour === "w" ? `${moveNumber}. ${currentMove.san}` : `${moveNumber}... ${currentMove.san}`;
+    let label = `Chess board after ${moveText}`;
+    if (game.analysis) {
+      label += `, ${CLASS_INFO[currentMove.classification].label}`;
+      if (currentMove.bestSan && currentMove.classification !== "best") {
+        label += `. Best was ${currentMove.bestSan}`;
+      }
+    }
+    return label;
+  });
+
   const whiteTitle = $derived(game ? (game.whiteElo ? `${game.white} (${game.whiteElo})` : game.white) : "");
   const blackTitle = $derived(game ? (game.blackElo ? `${game.black} (${game.blackElo})` : game.black) : "");
 
@@ -170,7 +204,7 @@
     <p class="status-line">Loading game…</p>
   {:else}
     <div class="board-area">
-      <Board fen={fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"} {orientation} {lastMove} />
+      <Board fen={fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"} {orientation} {lastMove} {arrows} {badge} label={boardLabel} />
       <Transport
         {currentPly}
         {plyCount}

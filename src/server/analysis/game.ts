@@ -55,6 +55,8 @@ export interface MoveRecord {
   uci: string;
   fenBefore: string;
   bestLine?: EngineLineWithPv;
+  /** SAN of bestLine's first move, when it can be played from fenBefore (docs/06-GAMES-SPEC.md section B3). */
+  bestSan?: string;
   secondLine?: EngineLineWithPv;
   /** White POV. */
   winPercentBefore: number;
@@ -184,6 +186,7 @@ export function analyseGame(input: AnalyseGameInput): GameAnalysis {
       uci: ply.uci,
       fenBefore: before.fen,
       bestLine: best,
+      bestSan: best?.pv[0] ? sanOf(before.fen, best.pv[0]) : undefined,
       secondLine: second,
       winPercentBefore: whiteWinPercents[i - 1],
       winPercentAfter: whiteWinPercents[i],
