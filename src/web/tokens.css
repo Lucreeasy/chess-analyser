@@ -38,6 +38,13 @@
   --class-mistake: #e68a35;
   --class-miss: #c9529a;
   --class-blunder: #d03f3f;
+
+  /* docs/07-UI-SPEC.md section 3.1: the eval bar and eval graph's own fixed colours. */
+  --eval-white: #f4f1e8;
+  --eval-black: #2d3541;
+  --eval-mid: rgba(128, 128, 128, 0.55);
+  --eval-line: #6f7d8c;
+  --eval-dot-ring: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -65,6 +72,11 @@
     --class-mistake: #ee9743;
     --class-miss: #d25fa5;
     --class-blunder: #e05050;
+
+    --eval-white: #e6e3da;
+    --eval-black: #0e1319;
+    --eval-line: #8a97a5;
+    --eval-dot-ring: #10161d;
   }
 }
 

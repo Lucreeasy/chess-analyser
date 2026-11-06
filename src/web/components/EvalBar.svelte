@@ -54,14 +54,14 @@
     border: 1px solid var(--line);
     border-radius: 6px;
     overflow: hidden;
-    background: #1b2430; /* Black's share: a fixed dark fill, not themed, per the board's own fixed colours */
+    background: var(--eval-black);
   }
   .white-share {
     position: absolute;
     inset-inline: 0;
     bottom: 0;
     height: var(--share);
-    background: #f4f2ec;
+    background: var(--eval-white);
   }
   .mid-line {
     position: absolute;
@@ -69,7 +69,7 @@
     right: 0;
     top: 50%;
     height: 1px;
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--eval-mid);
   }
   .score {
     font-size: 12px;

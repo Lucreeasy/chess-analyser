@@ -5,6 +5,7 @@
   import Board from "../components/Board.svelte";
   import EvalBar from "../components/EvalBar.svelte";
   import Transport from "../components/Transport.svelte";
+  import EvalGraph from "../components/EvalGraph.svelte";
   import GameReviewPanel from "../components/GameReviewPanel.svelte";
   import { scoreTextFromLine, scoreTextFromWinPercent } from "../lib/scoreText.ts";
   import ResultBadge from "../components/ResultBadge.svelte";
@@ -157,11 +158,17 @@
   });
 
   // docs/06-GAMES-SPEC.md section B4: Win% for ply p = the stored "after" Win% of ply p (ply 0 = "before" of the first move).
-  const winPercent = $derived.by(() => {
+  const winPercents = $derived.by(() => {
     const moves = game?.analysis?.moves;
-    if (!moves || moves.length === 0) return undefined;
-    return currentPly === 0 ? moves[0]!.winPercentBefore : moves[currentPly - 1]?.winPercentAfter;
+    if (!moves || moves.length === 0) return [];
+    return [moves[0]!.winPercentBefore, ...moves.map((m) => m.winPercentAfter)];
   });
+  const classifications = $derived.by(() => {
+    const moves = game?.analysis?.moves;
+    if (!moves || moves.length === 0) return [];
+    return [undefined, ...moves.map((m) => m.classification)];
+  });
+  const winPercent = $derived(winPercents[currentPly]);
 
   // The score of the best line of the next move; for the last ply, derived from Win% instead.
   const scoreText = $derived.by(() => {
@@ -237,6 +244,9 @@
         onNext={() => jumpTo(currentPly + 1)}
         onLast={() => jumpTo(plyCount)}
       />
+      {#if winPercents.length > 0}
+        <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
+      {/if}
       <GameReviewPanel
         {game}
         sans={game.positions.sans}
