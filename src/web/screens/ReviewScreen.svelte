@@ -7,10 +7,12 @@
   import Transport from "../components/Transport.svelte";
   import EvalGraph from "../components/EvalGraph.svelte";
   import GameReviewPanel from "../components/GameReviewPanel.svelte";
+  import AnalysePanel from "../components/AnalysePanel.svelte";
   import { scoreTextFromLine, scoreTextFromWinPercent } from "../lib/scoreText.ts";
   import ResultBadge from "../components/ResultBadge.svelte";
   import { apiGet, ApiError } from "../lib/api.ts";
   import { navigate } from "../lib/router.svelte.ts";
+  import { onGameAnalysed, liveEvalAt } from "../lib/live.svelte.ts";
   import { timeClassLabel, formatDate } from "../lib/format.ts";
   import { clampPly } from "../lib/ply.ts";
   import { CLASS_INFO } from "../../server/analysis/texts.ts";
@@ -42,6 +44,14 @@
     if (game?.analysisStatus !== "queued" && game?.analysisStatus !== "running") return;
     const timer = setInterval(load, 4000);
     return () => clearInterval(timer);
+  });
+
+  // docs/06-GAMES-SPEC.md section B8: switch to the analysed view as soon as this game finishes, not just on the next poll.
+  $effect(() => {
+    const id = gameId;
+    return onGameAnalysed((finishedId) => {
+      if (finishedId === id) load();
+    });
   });
 
   function goBack(): void {
@@ -158,10 +168,13 @@
   });
 
   // docs/06-GAMES-SPEC.md section B4: Win% for ply p = the stored "after" Win% of ply p (ply 0 = "before" of the first move).
+  // Section B8: before the stored analysis arrives, the same array is filled from live per-ply values instead, with
+  // gaps where none has arrived yet, so the eval bar and graph fill in as the engine goes.
   const winPercents = $derived.by(() => {
-    const moves = game?.analysis?.moves;
-    if (!moves || moves.length === 0) return [];
-    return [moves[0]!.winPercentBefore, ...moves.map((m) => m.winPercentAfter)];
+    if (!game) return [];
+    const moves = game.analysis?.moves;
+    if (moves && moves.length > 0) return [moves[0]!.winPercentBefore, ...moves.map((m) => m.winPercentAfter)];
+    return Array.from({ length: plyCount + 1 }, (_, ply) => liveEvalAt(gameId, ply));
   });
   const classifications = $derived.by(() => {
     const moves = game?.analysis?.moves;
@@ -244,17 +257,20 @@
         onNext={() => jumpTo(currentPly + 1)}
         onLast={() => jumpTo(plyCount)}
       />
-      {#if winPercents.length > 0}
-        <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
+      <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
+      {#if game.analysis}
+        <GameReviewPanel
+          {game}
+          sans={game.positions.sans}
+          analysisMoves={game.analysis.moves}
+          keyMoments={game.analysis.summary.keyMoments}
+          {currentPly}
+          onJump={jumpTo}
+        />
+      {:else}
+        <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set (docs/06-GAMES-SPEC.md B8). -->
+        <AnalysePanel gameId={game.id} analysisStatus={game.analysisStatus as "none" | "queued" | "running" | "error"} onQueued={load} />
       {/if}
-      <GameReviewPanel
-        {game}
-        sans={game.positions.sans}
-        analysisMoves={game.analysis?.moves}
-        keyMoments={game.analysis?.summary.keyMoments}
-        {currentPly}
-        onJump={jumpTo}
-      />
     </div>
   {/if}
 </div>
