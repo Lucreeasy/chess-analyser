@@ -8,6 +8,7 @@
   import type { Key, Color } from "@lichess-org/chessground/types";
   import type { DrawShape } from "@lichess-org/chessground/draw";
   import type { MoveClass } from "../../server/analysis/classification.ts";
+  import { pieceNames } from "../lib/pieceNames.ts";
   import ClassBadge from "./ClassBadge.svelte";
   import PromotionDialog from "./PromotionDialog.svelte";
 
@@ -144,7 +145,11 @@
 </script>
 
 <div class="board-wrap" role="group" aria-label={label}>
-  <div class="board" bind:this={el}></div>
+  <div class="board" bind:this={el} aria-hidden="true"></div>
+  <!-- docs/06-GAMES-SPEC.md section B3: each piece has a text name; chessground's own piece elements are unlabelled. -->
+  <div class="sr-only">
+    {#each pieceNames(fen) as name (name)}<span role="img" aria-label={name}></span>{/each}
+  </div>
   {#if badge && badgeOffset}
     <div class="badge" style={`left: ${badgeOffset.left}%; top: ${badgeOffset.top}%;`}>
       <ClassBadge cls={badge.cls} size={22} labelled />
