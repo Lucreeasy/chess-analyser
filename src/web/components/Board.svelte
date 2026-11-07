@@ -169,7 +169,7 @@
   </div>
   {#if badge && badgeOffset}
     <div class="badge" style={`left: ${badgeOffset.left}%; top: ${badgeOffset.top}%;`}>
-      <ClassBadge cls={badge.cls} size={22} labelled />
+      <ClassBadge cls={badge.cls} labelled />
     </div>
   {/if}
 </div>
@@ -257,7 +257,14 @@
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    padding: 2px;
     pointer-events: none;
+    z-index: 3; /* above chessground's pieces (z-index 2) */
+  }
+  /* docs/07-UI-SPEC.md section 6.2: 46 % of the square wide, 2 % inset, a tiny drop shadow. */
+  .badge :global(svg) {
+    margin: 2% 2% 0 0; /* percentages of the square-sized .badge box */
+    width: 46%;
+    height: auto;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
   }
 </style>
