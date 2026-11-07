@@ -517,9 +517,12 @@
     margin-top: 16px;
   }
   @media (min-width: 768px) {
+    /* docs/07-UI-SPEC.md section 8.3: a mini-grid of eval bar + board; the transport sits under the board only. */
     .board-row {
-      flex-direction: row;
-      align-items: stretch;
+      display: contents;
+    }
+    .board-column > :global(.transport) {
+      grid-column: 2;
     }
     .board-area {
       max-width: 1200px;
@@ -530,6 +533,9 @@
     .board-column {
       flex: none;
       width: 560px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 8px;
     }
     .info-column {
       flex: 1;

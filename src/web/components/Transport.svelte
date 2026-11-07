@@ -53,17 +53,17 @@
 </div>
 
 <style>
+  /* docs/07-UI-SPEC.md section 8.3: five equal buttons filling the row, 44 px high, 6 px gaps. */
   .transport {
     display: flex;
-    justify-content: center;
-    gap: 8px;
+    gap: 6px;
     margin-top: 12px;
   }
   button {
+    flex: 1 1 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
     height: 44px;
     border: 1px solid var(--line);
     border-radius: 12px;
