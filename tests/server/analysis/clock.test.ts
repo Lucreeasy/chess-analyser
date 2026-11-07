@@ -11,6 +11,8 @@ test("parseClockMs reads every supported format, and rejects the rest", () => {
   assert.equal(parseClockMs("[%clk]"), undefined);
   assert.equal(parseClockMs("[%clk abc]"), undefined);
   assert.equal(parseClockMs("[%emt 0:00:01]"), undefined);
+  // Several clock comments after one move (joined by the tokenizer): the last one wins.
+  assert.equal(parseClockMs("[%clk 0:03:00][%clk 0:02:30]"), 150000);
 });
 
 // 14.2 classification.

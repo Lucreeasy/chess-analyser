@@ -3,11 +3,11 @@
  */
 
 const CLOCK_PATTERN =
-  /\[%clk\s*(\d+):(\d{1,2}):(\d{1,2})(?:\.(\d+))?\s*\]|\[%clk\s*(\d{1,2}):(\d{1,2})(?:\.(\d+))?\s*\]/;
+  /\[%clk\s*(\d+):(\d{1,2}):(\d{1,2})(?:\.(\d+))?\s*\]|\[%clk\s*(\d{1,2}):(\d{1,2})(?:\.(\d+))?\s*\]/g;
 
-/** Reads a "[%clk ...]" comment (section 14.1); undefined if it does not match. */
+/** Reads a "[%clk ...]" comment (section 14.1), the last one if there are several; undefined if none matches. */
 export function parseClockMs(comment: string): number | undefined {
-  const match = CLOCK_PATTERN.exec(comment);
+  const match = [...comment.matchAll(CLOCK_PATTERN)].at(-1);
   if (!match) return undefined;
   const fractionMs = (fraction: string | undefined) => (fraction ? Math.round(Number(`0.${fraction}`) * 1000) : 0);
   if (match[1] !== undefined) {
