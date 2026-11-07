@@ -5,7 +5,6 @@ import {
   insertGames,
   getQueueEntry,
   upsertQueueEntry,
-  removeQueueEntry,
   setQueueEntryRunning,
   clearRunningFlags,
   listQueueOrdered,
@@ -44,7 +43,7 @@ function fakeAnalysis(): GameAnalysis {
   return { moves: [], summary: {} as GameAnalysis["summary"] };
 }
 
-test("queue entries: get, upsert (insert), remove", () => {
+test("queue entries: get, upsert (insert)", () => {
   const db = openDb(":memory:");
   insertGames(db, [game({ id: "a" })]);
   assert.equal(getQueueEntry(db, "a"), undefined);
@@ -57,9 +56,6 @@ test("queue entries: get, upsert (insert), remove", () => {
   assert.equal(entry?.urgent, false);
   assert.equal(entry?.requestedAt, 1000);
   assert.equal(entry?.running, false);
-
-  removeQueueEntry(db, "a");
-  assert.equal(getQueueEntry(db, "a"), undefined);
 });
 
 test("upsertQueueEntry on an already-waiting game updates depth/force/urgent, keeps requestedAt and running", () => {
@@ -175,6 +171,6 @@ test("isQueueEmpty", () => {
   assert.equal(isQueueEmpty(db), true);
   upsertQueueEntry(db, "a", "standard", false, false, 1);
   assert.equal(isQueueEmpty(db), false);
-  removeQueueEntry(db, "a");
+  recordAnalysisError(db, "a", "engine crashed", 2);
   assert.equal(isQueueEmpty(db), true);
 });

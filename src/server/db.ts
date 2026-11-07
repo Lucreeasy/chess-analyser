@@ -210,10 +210,6 @@ export function upsertQueueEntry(db: Database.Database, gameId: string, depth: D
   ).run(gameId, depth, force ? 1 : 0, urgent ? 1 : 0, requestedAt);
 }
 
-export function removeQueueEntry(db: Database.Database, gameId: string): void {
-  db.prepare(`delete from analysis_queue where game_id = ?`).run(gameId);
-}
-
 export function setQueueEntryRunning(db: Database.Database, gameId: string, running: boolean): void {
   db.prepare(`update analysis_queue set running = ? where game_id = ?`).run(running ? 1 : 0, gameId);
 }
