@@ -47,7 +47,7 @@
   {:else if visual.shape === "burst"}
     <polygon points={starPoints(8, 10, 6.8)} fill={`var(${visual.cssVar})`} stroke="#000" stroke-opacity="0.45" stroke-width="1.2" stroke-linejoin="round" />
   {:else if visual.shape === "diamond"}
-    <polygon points={polygonPoints(4, 10, -45)} fill={`var(${visual.cssVar})`} stroke="#000" stroke-opacity="0.45" stroke-width="1.2" stroke-linejoin="round" />
+    <polygon points={polygonPoints(4, 10, 0)} fill={`var(${visual.cssVar})`} stroke="#000" stroke-opacity="0.45" stroke-width="1.2" stroke-linejoin="round" />
   {:else if visual.shape === "triangle"}
     <polygon points={polygonPoints(3, 10, -90)} fill={`var(${visual.cssVar})`} stroke="#000" stroke-opacity="0.45" stroke-width="1.2" stroke-linejoin="round" />
   {:else if visual.shape === "hexagon"}
