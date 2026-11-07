@@ -23,6 +23,24 @@ test("runAnalysis replays a PGN, asks the engine for each position, and caches t
   }
 });
 
+// docs/02-ANALYSIS-SPEC.md section 14: the clock comments of the stored PGN reach the per-move clock data.
+test("runAnalysis reads each move's [%clk] comment into clock, time spent and time trouble", async () => {
+  const db = openDb(":memory:");
+  const engine = new UciEngine("node", [FAKE_ENGINE]);
+  await engine.start({ threads: 1, hashMb: 16 });
+  try {
+    const pgn = '[TimeControl "180"]\n[Result "*"]\n\n1. e4 {[%clk 0:02:58]} e5 {[%clk 0:00:09]} *';
+    const result = await runAnalysis(db, engine, pgn, { depth: 16, engineName: "FakeEngine" });
+    assert.equal(result.moves[0].clockMs, 178000);
+    assert.equal(result.moves[0].timeSpentMs, 2000);
+    assert.equal(result.moves[0].inTimeTrouble, false);
+    assert.equal(result.moves[1].clockMs, 9000);
+    assert.equal(result.moves[1].inTimeTrouble, true); // below max(10 % of 180 s, 10 s)
+  } finally {
+    await engine.quit();
+  }
+});
+
 // docs/03-IMPORT-SPEC.md section 5.6: progress/plyEval events, one per position, ply 0 = start position.
 test("onPosition is called once per position, ply 0 through plyCount", async () => {
   const db = openDb(":memory:");

@@ -4,6 +4,9 @@ import { epdOf } from "./analysis/book.ts";
 import { terminalWhiteWinPercent } from "./analysis/terminal.ts";
 import { analyseGame, type GameAnalysis, type PositionInput } from "./analysis/game.ts";
 import { winPercentOfLine } from "./analysis/winPercent.ts";
+import { parseClockMs } from "./analysis/clock.ts";
+import { movetextOf } from "./import/pgnText.ts";
+import { tokenizeMovetext } from "./import/movetext.ts";
 import type { UciEngine } from "./engine/engine.ts";
 import { getCachedEval, putCachedEval } from "./db.ts";
 
@@ -42,7 +45,14 @@ export async function runAnalysis(
   const history = chess.history({ verbose: true });
 
   const fens = [history[0]?.before ?? chess.fen(), ...history.map((m) => m.after)];
-  const plies = history.map((m) => ({ colour: m.color as "w" | "b", san: m.san, uci: m.lan }));
+  // Each main-line move's comment, in history order, for its "[%clk ...]" (docs/02-ANALYSIS-SPEC.md section 14).
+  const comments = tokenizeMovetext(movetextOf(pgn)).moves.map((t) => t.comment);
+  const plies = history.map((m, i) => ({
+    colour: m.color as "w" | "b",
+    san: m.san,
+    uci: m.lan,
+    clockMs: comments[i] === undefined ? undefined : parseClockMs(comments[i]),
+  }));
 
   const totalPlies = fens.length - 1;
   const positions: PositionInput[] = [];
