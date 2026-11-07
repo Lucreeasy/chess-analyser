@@ -57,7 +57,6 @@
   .transport {
     display: flex;
     gap: 6px;
-    margin-top: 12px;
   }
   button {
     flex: 1 1 0;

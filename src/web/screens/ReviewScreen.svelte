@@ -319,18 +319,16 @@
          side in two columns; phone stacks them, with the graph+tabs in a collapsible bottom sheet. -->
     <div class="board-area">
       <div class="board-column">
-        <div class="board-row">
-          <EvalBar winPercent={evalWinPercent} scoreText={evalScoreText} flipped={orientation === "black"} />
-          <Board
-            fen={boardFen}
-            {orientation}
-            lastMove={boardLastMove}
-            arrows={boardArrows}
-            badge={boardBadge}
-            label={boardLabelText}
-            movable={boardMovable}
-          />
-        </div>
+        <EvalBar winPercent={evalWinPercent} scoreText={evalScoreText} flipped={orientation === "black"} />
+        <Board
+          fen={boardFen}
+          {orientation}
+          lastMove={boardLastMove}
+          arrows={boardArrows}
+          badge={boardBadge}
+          label={boardLabelText}
+          movable={boardMovable}
+        />
         <Transport
           {currentPly}
           {plyCount}
@@ -504,23 +502,16 @@
     max-width: 560px;
     margin: 16px auto 0;
   }
-  .board-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .board-row > :global(.board-wrap) {
-    flex: 1;
-    min-width: 0;
+  .board-column {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
   .info-column {
     margin-top: 16px;
   }
   @media (min-width: 768px) {
     /* docs/07-UI-SPEC.md section 8.3: a mini-grid of eval bar + board; the transport sits under the board only. */
-    .board-row {
-      display: contents;
-    }
     .board-column > :global(.transport) {
       grid-column: 2;
     }
@@ -533,9 +524,8 @@
     .board-column {
       flex: none;
       width: 560px;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      column-gap: 8px;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 12px 8px;
     }
     .info-column {
       flex: 1;
