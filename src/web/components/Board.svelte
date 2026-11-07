@@ -25,13 +25,17 @@
 
   const PROMOTION_ROLE = { q: "queen", r: "rook", b: "bishop", n: "knight" } as const;
 
-  /** docs/06-GAMES-SPEC.md section B3: amber played arrow, green best-move arrow (the rest are chessground's own defaults, unused here but required by its Config type). */
+  /**
+   * docs/07-UI-SPEC.md section 6.2: arrows at 80 % opacity with a shaft about 1/7 of a square (lineWidth is in 64ths
+   * of a square). The colours here are placeholders: the CSS below paints them from the theme tokens, since chessground
+   * writes them as SVG attributes, which cannot hold CSS variables. red/blue/yellow are unused but required by Config.
+   */
   const BRUSHES = {
-    green: { key: "green", color: "#3fa35a", opacity: 0.9, lineWidth: 10 },
+    green: { key: "green", color: "#2f9e57", opacity: 0.8, lineWidth: 9 },
+    amber: { key: "amber", color: "#e8891c", opacity: 0.8, lineWidth: 9 },
     red: { key: "red", color: "#882020", opacity: 1, lineWidth: 10 },
     blue: { key: "blue", color: "#003088", opacity: 1, lineWidth: 10 },
     yellow: { key: "yellow", color: "#e68f00", opacity: 1, lineWidth: 10 },
-    amber: { key: "amber", color: "#c9731c", opacity: 0.9, lineWidth: 10 },
   };
 
   let {
@@ -237,6 +241,21 @@
   }
   .board-wrap :global(coord.coord-dark) {
     color: var(--sq-light);
+  }
+  .board-wrap :global(.cg-wrap .cg-shapes) {
+    opacity: 1; /* chessground dims the layer to 0.6, on top of the brush's own 80 % */
+  }
+  .board-wrap :global(line[marker-end="url(#arrowhead-green)"]) {
+    stroke: var(--arrow-best);
+  }
+  .board-wrap :global(#arrowhead-green path) {
+    fill: var(--arrow-best);
+  }
+  .board-wrap :global(line[marker-end="url(#arrowhead-amber)"]) {
+    stroke: var(--arrow-played);
+  }
+  .board-wrap :global(#arrowhead-amber path) {
+    fill: var(--arrow-played);
   }
   .board-wrap :global(cg-board square.last-move) {
     background-color: var(--last-move);

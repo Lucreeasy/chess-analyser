@@ -39,6 +39,10 @@
   --class-miss: #c9529a;
   --class-blunder: #d03f3f;
 
+  /* docs/07-UI-SPEC.md section 3.1: board arrows. */
+  --arrow-best: #2f9e57;
+  --arrow-played: #e8891c;
+
   /* docs/07-UI-SPEC.md section 3.1: the eval bar and eval graph's own fixed colours. */
   --eval-white: #f4f1e8;
   --eval-black: #2d3541;
@@ -72,6 +76,9 @@
     --class-mistake: #ee9743;
     --class-miss: #d25fa5;
     --class-blunder: #e05050;
+
+    --arrow-best: #43c070;
+    --arrow-played: #f0a04b;
 
     --eval-white: #e6e3da;
     --eval-black: #0e1319;
