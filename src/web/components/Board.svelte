@@ -1,6 +1,5 @@
 <script lang="ts">
   import "@lichess-org/chessground/assets/chessground.base.css";
-  import "@lichess-org/chessground/assets/chessground.brown.css";
   import "@lichess-org/chessground/assets/chessground.cburnett.css";
   import { Chessground } from "@lichess-org/chessground";
   import { untrack } from "svelte";
@@ -11,6 +10,18 @@
   import { pieceNames } from "../lib/pieceNames.ts";
   import ClassBadge from "./ClassBadge.svelte";
   import PromotionDialog from "./PromotionDialog.svelte";
+
+  /**
+   * docs/07-UI-SPEC.md section 6.1: the three board palettes (light square, dark square; then both slightly dimmed
+   * for dark mode). The active one is a single configuration value; there is no chooser yet.
+   */
+  const BOARD_THEMES = {
+    ink: ["#e9e4d4", "#5b8a86", "#d9d4c4", "#4f7b77"],
+    paper: ["#f3ecd9", "#b99c74", "#e3dcc7", "#a58a64"],
+    slate: ["#d7dde4", "#6b7f95", "#c7cdd5", "#5f7287"],
+  } as const;
+  const BOARD_THEME: keyof typeof BOARD_THEMES = "ink";
+  const [light, dark, lightDim, darkDim] = BOARD_THEMES[BOARD_THEME];
 
   const PROMOTION_ROLE = { q: "queen", r: "rook", b: "bishop", n: "knight" } as const;
 
@@ -144,7 +155,12 @@
   const badgeOffset = $derived(badge ? squareOffset(badge.square, orientation) : undefined);
 </script>
 
-<div class="board-wrap" role="group" aria-label={label}>
+<div
+  class="board-wrap"
+  role="group"
+  aria-label={label}
+  style={`--sq-light: ${light}; --sq-dark: ${dark}; --sq-light-dim: ${lightDim}; --sq-dark-dim: ${darkDim};`}
+>
   <div class="board" bind:this={el} aria-hidden="true"></div>
   <!-- docs/06-GAMES-SPEC.md section B3: each piece has a text name; chessground's own piece elements are unlabelled. -->
   <div class="sr-only">
@@ -167,6 +183,32 @@
   .board {
     width: 100%;
     aspect-ratio: 1;
+  }
+  /* docs/07-UI-SPEC.md sections 3.1 and 6.1: the squares (a8 light), and the highlight colours. */
+  .board-wrap {
+    --last-move: rgba(246, 214, 72, 0.5);
+  }
+  @media (prefers-color-scheme: dark) {
+    .board-wrap {
+      --sq-light: var(--sq-light-dim);
+      --sq-dark: var(--sq-dark-dim);
+      --last-move: rgba(246, 214, 72, 0.38);
+    }
+  }
+  .board-wrap :global(cg-board) {
+    background: repeating-conic-gradient(var(--sq-dark) 0 25%, var(--sq-light) 0 50%) 0 0 / 25% 25%;
+  }
+  .board-wrap :global(cg-board square.last-move) {
+    background-color: var(--last-move);
+  }
+  .board-wrap :global(cg-board square.selected) {
+    background-color: rgba(60, 140, 255, 0.45);
+  }
+  .board-wrap :global(cg-board square.move-dest) {
+    background: radial-gradient(circle closest-side, rgba(20, 30, 40, 0.35) 36%, transparent 37%);
+  }
+  .board-wrap :global(cg-board square.oc.move-dest) {
+    background: radial-gradient(transparent 80%, rgba(20, 30, 40, 0.35) 80%);
   }
   .badge {
     position: absolute;
