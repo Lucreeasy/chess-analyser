@@ -164,7 +164,7 @@
   class="board-wrap"
   role="group"
   aria-label={label}
-  style={`--sq-light: ${light}; --sq-dark: ${dark}; --sq-light-dim: ${lightDim}; --sq-dark-dim: ${darkDim};`}
+  style={`--theme-light: ${light}; --theme-dark: ${dark}; --theme-light-dim: ${lightDim}; --theme-dark-dim: ${darkDim};`}
 >
   <div class="board" bind:this={el} aria-hidden="true"></div>
   <!-- docs/06-GAMES-SPEC.md section B3: each piece has a text name; chessground's own piece elements are unlabelled. -->
@@ -190,13 +190,17 @@
     aspect-ratio: 1;
   }
   /* docs/07-UI-SPEC.md sections 3.1 and 6.1: the squares (a8 light), and the highlight colours. */
+  /* The palette arrives as inline --theme-* variables; the square colours are derived here, because an inline
+     --sq-* would win over the dark-mode rule below. */
   .board-wrap {
+    --sq-light: var(--theme-light);
+    --sq-dark: var(--theme-dark);
     --last-move: rgba(246, 214, 72, 0.5);
   }
   @media (prefers-color-scheme: dark) {
     .board-wrap {
-      --sq-light: var(--sq-light-dim);
-      --sq-dark: var(--sq-dark-dim);
+      --sq-light: var(--theme-light-dim);
+      --sq-dark: var(--theme-dark-dim);
       --last-move: rgba(246, 214, 72, 0.38);
     }
   }
