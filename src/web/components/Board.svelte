@@ -118,7 +118,8 @@
         // actually responds to clicks or drags. Interactivity is instead gated by movable.color/
         // dests below, which board.js does read fresh on every pointer event.
         viewOnly: false,
-        coordinates: false,
+        coordinates: true,
+        ranksPosition: "left",
         highlight: { lastMove: true },
         animation: { enabled: true },
         drawable: { enabled: false, autoShapes: cgShapes(arrows), brushes: BRUSHES },
@@ -197,6 +198,45 @@
   }
   .board-wrap :global(cg-board) {
     background: repeating-conic-gradient(var(--sq-dark) 0 25%, var(--sq-light) 0 50%) 0 0 / 25% 25%;
+  }
+  /* docs/07-UI-SPEC.md section 6.2: coordinates inside the edge squares, 600 weight, 2.4 % of the board width
+     clamped to 8-12 px, in the opposite square colour (chessground tags each label with the colour under it). */
+  .board-wrap {
+    container-type: inline-size;
+  }
+  .board-wrap :global(.cg-wrap coords) {
+    font-family: inherit;
+    font-size: clamp(8px, 2.4cqw, 12px);
+    font-weight: 600;
+    line-height: 1;
+    opacity: 1;
+    left: 0;
+  }
+  .board-wrap :global(.cg-wrap coords.ranks) {
+    top: 0;
+    width: 12.5%;
+    align-items: flex-start;
+  }
+  .board-wrap :global(.cg-wrap coords.files) {
+    bottom: 0;
+    height: 12.5%;
+    text-transform: none;
+  }
+  .board-wrap :global(.cg-wrap coords coord) {
+    flex: 1 1 0;
+    display: flex;
+    padding: 3px 4px;
+    transform: none;
+  }
+  .board-wrap :global(.cg-wrap coords.files coord) {
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+  .board-wrap :global(coord.coord-light) {
+    color: var(--sq-dark);
+  }
+  .board-wrap :global(coord.coord-dark) {
+    color: var(--sq-light);
   }
   .board-wrap :global(cg-board square.last-move) {
     background-color: var(--last-move);
