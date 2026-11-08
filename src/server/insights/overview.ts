@@ -23,11 +23,11 @@ export function mean(values: number[]): Stat {
   return { value: values.length ? values.reduce((a, b) => a + b, 0) / values.length : undefined, n: values.length };
 }
 
-function share(count: number, n: number): Stat {
+export function share(count: number, n: number): Stat {
   return { value: n ? count / n : undefined, n, count };
 }
 
-function per100(count: number, n: number): Stat {
+export function per100(count: number, n: number): Stat {
   return { value: n ? (count / n) * 100 : undefined, n, count };
 }
 
@@ -36,7 +36,7 @@ function harmonicAccuracy(accuracies: number[]): Stat {
   return { value: harmonicMeanFloored(accuracies), n: accuracies.length };
 }
 
-function myMoves(used: UsedGame): MoveRecord[] {
+export function myMoves(used: UsedGame): MoveRecord[] {
   return used.analysis.moves.filter((m) => m.colour === used.me);
 }
 
