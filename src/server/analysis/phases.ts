@@ -3,6 +3,8 @@ import { Chess } from "chess.js";
 /** docs/02-ANALYSIS-SPEC.md section 11. */
 export type Phase = "opening" | "middlegame" | "endgame";
 
+export const ALL_PHASES: Phase[] = ["opening", "middlegame", "endgame"];
+
 const PHASE_ORDER: Record<Phase, number> = { opening: 0, middlegame: 1, endgame: 2 };
 
 function countPieces(game: Chess): number {

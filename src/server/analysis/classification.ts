@@ -21,6 +21,14 @@ export const ALL_CLASSES: MoveClass[] = [
   "book", "brilliant", "great", "best", "excellent", "good", "inaccuracy", "mistake", "miss", "blunder",
 ];
 
+/** The four error classes, in display order. */
+export const ERROR_CLASSES = ["inaccuracy", "mistake", "miss", "blunder"] as const satisfies readonly MoveClass[];
+export type ErrorClass = (typeof ERROR_CLASSES)[number];
+
+export function isError(cls: MoveClass): cls is ErrorClass {
+  return (ERROR_CLASSES as readonly MoveClass[]).includes(cls);
+}
+
 export interface ClassificationInput {
   playedUci: string;
   /** First move of the best line of the position before; undefined if the engine move is unknown. */

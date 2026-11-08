@@ -1,12 +1,12 @@
 import { winPercentOfLine, type EngineLine } from "./winPercent.ts";
 import { moverEp, epLoss } from "./expectedPoints.ts";
 import { moveAccuracy } from "./moveAccuracy.ts";
-import { gameAccuracy } from "./gameAccuracy.ts";
+import { gameAccuracy, harmonicMeanFloored } from "./gameAccuracy.ts";
 import { epdOf, isInBook } from "./book.ts";
 import { isSacrifice } from "./sacrifice.ts";
-import { classifyMove, ALL_CLASSES, type MoveClass } from "./classification.ts";
+import { classifyMove, isError, ALL_CLASSES, type MoveClass } from "./classification.ts";
 import { tacticTag, type EngineLineWithPv, type TacticTag } from "./tacticTags.ts";
-import { phasesOf, type Phase } from "./phases.ts";
+import { phasesOf, ALL_PHASES, type Phase } from "./phases.ts";
 import { parseTimeControl, deriveClocks, type PlyClockInput } from "./clock.ts";
 import { selectKeyMoments } from "./keyMoments.ts";
 import { annotatedSan, buildKeyMomentSentence } from "./texts.ts";
@@ -14,8 +14,6 @@ import { sanOf, pieceCapturedBy, sanLineOf } from "./notation.ts";
 
 export type Colour = "w" | "b";
 
-const ERROR_CLASSES: MoveClass[] = ["inaccuracy", "mistake", "miss", "blunder"];
-const ALL_PHASES: Phase[] = ["opening", "middlegame", "endgame"];
 
 export interface PositionInput {
   /** Full FEN (with move counters) of this position. */
@@ -105,12 +103,6 @@ function moverWinPercent(whiteWinPercent: number, mover: Colour): number {
   return mover === "w" ? whiteWinPercent : 100 - whiteWinPercent;
 }
 
-function harmonicMeanFloored(values: number[]): number | undefined {
-  if (values.length === 0) return undefined;
-  const denominator = values.reduce((sum, v) => sum + 1 / Math.max(1, v), 0);
-  return values.length / denominator;
-}
-
 /** Per-move record and per-game summary. docs/02-ANALYSIS-SPEC.md section 12. */
 export function analyseGame(input: AnalyseGameInput): GameAnalysis {
   const { positions, plies, timeControlText, engineName, depth, myColour } = input;
@@ -174,7 +166,7 @@ export function analyseGame(input: AnalyseGameInput): GameAnalysis {
       isSacrifice: sacrifice,
     });
 
-    const tag = ERROR_CLASSES.includes(classification)
+    const tag = isError(classification)
       ? tacticTag({ mover: ply.colour, fenBefore: before.fen, playedUci: ply.uci, fenAfter: after.fen, best, after: after.lines[0] })
       : undefined;
 

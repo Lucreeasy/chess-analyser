@@ -13,6 +13,8 @@ import { type EngineLine, isForcedMateFor } from "./winPercent.ts";
 
 /** docs/02-ANALYSIS-SPEC.md section 10. */
 export type TacticTag = "allowed_mate" | "missed_mate" | "hung_piece" | "allowed_tactic" | "missed_tactic" | "positional";
+/** Every tag, in display (and tie-break) order. */
+export const ALL_TAGS: TacticTag[] = ["allowed_mate", "missed_mate", "hung_piece", "allowed_tactic", "missed_tactic", "positional"];
 
 export interface EngineLineWithPv extends EngineLine {
   pv: string[];

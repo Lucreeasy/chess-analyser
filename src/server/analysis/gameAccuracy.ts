@@ -3,10 +3,17 @@ import { moveAccuracy } from "./moveAccuracy.ts";
 type Colour = "w" | "b";
 
 /** Population standard deviation (divide by the count, not count - 1). */
-function populationSd(values: number[]): number {
+export function populationSd(values: number[]): number {
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
   return Math.sqrt(variance);
+}
+
+/** Harmonic mean with each value floored at 1; undefined for no values. */
+export function harmonicMeanFloored(values: number[]): number | undefined {
+  if (values.length === 0) return undefined;
+  const denominator = values.reduce((sum, v) => sum + 1 / Math.max(1, v), 0);
+  return values.length / denominator;
 }
 
 function toMoverWinPercent(whiteWinPercent: number, mover: Colour): number {
