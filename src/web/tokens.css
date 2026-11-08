@@ -215,6 +215,35 @@ button:disabled {
   border-color: var(--danger);
   margin-top: 16px;
 }
+/* An inset panel inside a card (section 5.8). */
+.inset {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 14px;
+}
+/* A stat tile, and its drill-down cue when it opens the games behind its number (section 5.10). */
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+.tile.drill {
+  border-bottom: 3px solid color-mix(in srgb, var(--brand) 70%, var(--surface));
+}
+.tile.drill:hover {
+  background: var(--surface-2);
+}
+.tile.drill svg {
+  color: var(--brand);
+}
 /* Progress bars (section 5.15): Surface-2 track, Brand fill, 300 ms; each place sets its own height. */
 .progress {
   border-radius: 999px;

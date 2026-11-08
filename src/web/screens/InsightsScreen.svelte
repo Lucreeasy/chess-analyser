@@ -143,7 +143,7 @@
         </div>
       </section>
 
-      <section id="playstyle" class="card section">
+      <section id="playstyle" class="card">
         <h2>Playstyle</h2>
         <p class="muted">Five axes scored 0-100 against typical club players, and the playing style they add up to.</p>
         <Playstyle
@@ -153,7 +153,7 @@
         />
       </section>
 
-      <section id="advice" class="card section">
+      <section id="advice" class="card">
         <h2>Recommendations</h2>
         <p class="muted">What to work on first, based on patterns across your games. Every card points to real positions.</p>
         <Recommendations recommendations={data.recommendations} />

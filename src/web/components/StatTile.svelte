@@ -17,24 +17,6 @@
 </svelte:element>
 
 <style>
-  .tile {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-height: 44px;
-    padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--surface);
-    color: var(--ink);
-    text-decoration: none;
-  }
-  .drill {
-    border-bottom: 3px solid color-mix(in srgb, var(--brand) 70%, var(--surface));
-  }
-  .drill:hover {
-    background: var(--surface-2);
-  }
   .label-row {
     display: flex;
     justify-content: space-between;
@@ -44,7 +26,6 @@
     font-size: 14px;
   }
   .label-row :global(svg) {
-    color: var(--brand);
     flex: none;
   }
   .value {

@@ -80,7 +80,7 @@
     {#each axes as a (a.key)}
       {@const drill = link(a)}
       <li>
-        <svelte:element this={drill ? "a" : "div"} class="axis" class:drill={!!drill} href={drill?.href} title={drill?.hint}>
+        <svelte:element this={drill ? "a" : "div"} class="tile axis" class:drill={!!drill} href={drill?.href} title={drill?.hint}>
           <span class="axis-row">
             <span class="axis-name">{a.label}</span>
             <span class="axis-value">{rounded(a)}{#if drill}<Icon name="chevronRight" size={18} />{/if}</span>
@@ -143,12 +143,6 @@
   .value {
     fill: var(--muted);
   }
-  .inset {
-    padding: 12px;
-    border-radius: 12px;
-    background: var(--surface-2);
-    font-size: 14px;
-  }
   .caps {
     color: var(--muted);
     font-size: 12px;
@@ -178,21 +172,7 @@
     list-style: none;
   }
   .axis {
-    display: flex;
-    flex-direction: column;
     gap: 8px;
-    padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--surface);
-    color: var(--ink);
-    text-decoration: none;
-  }
-  .axis.drill {
-    border-bottom: 3px solid color-mix(in srgb, var(--brand) 70%, var(--surface));
-  }
-  .axis.drill:hover {
-    background: var(--surface-2);
   }
   .axis-row {
     display: flex;
@@ -209,9 +189,6 @@
     gap: 4px;
     font-size: 18px;
     font-weight: 600;
-  }
-  .axis-value :global(svg) {
-    color: var(--brand);
   }
   .bar {
     height: 8px;

@@ -146,12 +146,7 @@
     gap: 8px;
   }
   .tile {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
     padding: 10px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
   }
   .tile.mine {
     border-color: var(--brand);

@@ -158,9 +158,5 @@
   }
   .inset {
     margin-top: 12px;
-    padding: 12px;
-    border-radius: 12px;
-    background: var(--surface-2);
-    font-size: 14px;
   }
 </style>
