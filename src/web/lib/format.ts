@@ -6,6 +6,18 @@ export function formatDate(playedAt: number): string {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+const UK_DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+/** British style in UTC, e.g. "3 Sept 2026". docs/04-INSIGHTS-SPEC.md section 0. */
+export function ukDate(ms: number): string {
+  return UK_DATE.format(ms);
+}
+
+/** "{n} {word}" with an "s" unless n = 1; whole numbers with a comma separator ("1,462 moves"). */
+export function plural(n: number, word: string): string {
+  return `${n.toLocaleString("en-US")} ${word}${n === 1 ? "" : "s"}`;
+}
+
 const TIME_CLASS_LABEL: Record<string, string> = {
   bullet: "Bullet",
   blitz: "Blitz",

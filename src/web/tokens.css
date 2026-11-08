@@ -161,8 +161,8 @@ label {
   font-size: 14px;
   margin: 8px 0 0;
 }
-button.primary,
-button.neutral {
+.primary,
+.neutral {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -172,14 +172,15 @@ button.neutral {
   border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
 }
-button.primary {
+.primary {
   border: none;
   background: var(--brand);
   color: var(--brand-ink);
 }
-button.neutral {
+.neutral {
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
