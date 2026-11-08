@@ -8,6 +8,7 @@
   import { drillLink } from "../lib/insightsLinks.ts";
   import Logo from "../components/Logo.svelte";
   import StatTile from "../components/StatTile.svelte";
+  import Recommendations from "../components/Recommendations.svelte";
 
   type Insights = ReturnType<typeof computeInsights>;
 
@@ -140,6 +141,12 @@
           />
         </div>
       </section>
+
+      <section id="advice" class="card section">
+        <h2>Recommendations</h2>
+        <p class="muted">What to work on first, based on patterns across your games. Every card points to real positions.</p>
+        <Recommendations recommendations={data.recommendations} />
+      </section>
     </div>
   {/if}
 </div>
@@ -178,6 +185,9 @@
     opacity: 0.6;
   }
   #overall {
+    margin-top: 24px;
+  }
+  .section {
     margin-top: 24px;
   }
   .tiles {

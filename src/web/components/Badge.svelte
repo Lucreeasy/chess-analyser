@@ -1,8 +1,19 @@
 <script lang="ts">
-  let { tone, mark, label }: { tone: "ok" | "danger" | "brand" | "muted"; mark: string; label: string } = $props();
+  import type { Snippet } from "svelte";
+
+  /** A badge (docs/07-UI-SPEC.md section 5.9): an optional tone, and a text mark or a glyph snippet before the label. */
+  let {
+    tone,
+    mark,
+    label,
+    children,
+  }: { tone?: "ok" | "danger" | "brand" | "muted"; mark?: string; label: string; children?: Snippet } = $props();
 </script>
 
-<span class="badge tone-{tone}"><span aria-hidden="true">{mark}</span> {label}</span>
+<span class="badge tone-{tone ?? 'ink'}">
+  {#if children}{@render children()}{:else if mark}<span aria-hidden="true">{mark}</span>{/if}
+  {label}
+</span>
 
 <style>
   .badge {
