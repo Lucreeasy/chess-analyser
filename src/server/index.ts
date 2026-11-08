@@ -1,9 +1,11 @@
+import { computeInsights, parseInsightsQuery } from "./insights/insights.ts";
 import { createServer } from "node:http";
 import {
   openDb,
   insertGames,
   listGames,
   getGame,
+  getAnalysis,
   updateGames,
   getSettings,
   putSettings,
@@ -144,6 +146,14 @@ export const server = createServer(async (req, res) => {
     }
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(toGameReviewRow(db, game)));
+    return;
+  }
+
+  if (req.url?.startsWith("/api/insights") && req.method === "GET") {
+    const query = parseInsightsQuery(new URL(req.url, "http://localhost").searchParams);
+    const games = listGames(db).map((game) => ({ game, analysis: getAnalysis(db, game.id)?.analysis }));
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(computeInsights(games, query, Date.now())));
     return;
   }
 
