@@ -4,6 +4,8 @@ import { severity, positiveSeverity, depth, support, chooseEvidence, recommendat
 import { overview } from "../../../src/server/insights/overview.ts";
 import { timeStats } from "../../../src/server/insights/time.ts";
 import { conversion, tilt } from "../../../src/server/insights/conversion.ts";
+import { openings } from "../../../src/server/insights/openings.ts";
+import type { PersonalResult } from "../../../src/server/import/players.ts";
 import type { UsedGame } from "../../../src/server/insights/select.ts";
 import type { MoveRecord } from "../../../src/server/analysis/game.ts";
 import { used } from "./fixtures.ts";
@@ -14,6 +16,7 @@ const inputs = (games: UsedGame[]) => ({
   time: timeStats(games),
   conversion: conversion(games).conversion,
   tilt: tilt(games),
+  openings: openings(games),
 });
 const only = (games: UsedGame[], id: string) => recommendations(inputs(games)).find((r) => r.id === id);
 
@@ -166,4 +169,59 @@ test("13.9 example: 30 games 30 minutes apart alternating a loss at 95 and a win
   );
   assert.equal(r.severity, 60);
   assert.deepEqual(r.evidence.map((e) => e.gameId), ["g01", "g03", "g05", "g07", "g09"]); // the low-accuracy games after a loss
+});
+
+const SICILIAN_LINE = ["e4", "c5", "Nf3", "d6", "d4", "cxd4"];
+const FEN_BEFORE_4 = "rnbqkbnr/pp2pppp/3p4/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq - 0 4";
+
+/** An opening game as White: the Sicilian book line, then my departure `san` at ply 7, 24 plies, White's Win% after ply 20 = `win20`. */
+function openingGame(id: string, family: string, result: PersonalResult, win20: number, san = "Nxd4", loss = 0.12) {
+  const moves = Array.from({ length: 24 }, (_, i) => ({
+    san: i < 6 ? SICILIAN_LINE[i] : i === 6 ? san : "a3",
+    classification: i < 6 ? ("book" as const) : ("good" as const),
+    fenBefore: i === 6 ? FEN_BEFORE_4 : "x",
+    epLoss: i === 6 ? loss : 0,
+    winPercentAfter: i === 19 ? win20 : 50,
+  }));
+  return used(id, { moves, game: { openingFamily: family, myResult: result } });
+}
+
+test("13.6 example: 10 Sicilian games as White, 3 won, 7 lost, 7 leave book with 4.Nxd4", () => {
+  const g = Array.from({ length: 10 }, (_, i) => openingGame(`s${i}`, "Sicilian Defense", i < 3 ? "win" : "loss", 30, i < 7 ? "Nxd4" : `N${i}`));
+  const r = only(g, "problem-opening")!;
+  assert.equal(r.title, "Your Sicilian Defense games as White are struggling");
+  assert.equal(r.finding, "Sicilian Defense as White: you scored 30% over 10 games and stand at only 30% winning chances after 10 moves on average.");
+  assert.equal(
+    r.action,
+    "In 7 of those games you left known theory at the same spot, after 1.e4 c5 2.Nf3 d6 3.d4 cxd4, by playing 4.Nxd4, which costs you 12% winning chances on average. Look up what the main lines play there instead, or switch to a different opening for a while.",
+  );
+  assert.deepEqual(r.practice, { phase: "opening", label: "Opening puzzles from your games" });
+  assert.ok(r.evidence.every((e) => e.ply === 7));
+});
+
+test("13.6 edges: 7 games silent; EP 0.41 silent, 0.39 fires", () => {
+  const rows = (n: number, win20: number) => Array.from({ length: n }, (_, i) => openingGame(`s${i}`, "Fam", i < 2 ? "win" : "loss", win20));
+  assert.equal(only(rows(7, 30), "problem-opening"), undefined);
+  assert.equal(only(rows(10, 41), "problem-opening"), undefined);
+  assert.ok(only(rows(10, 39), "problem-opening"));
+});
+
+test("13.6: a single departure reads 'Your clearest early slip'; long lines are cut to 12 plies", () => {
+  const g = Array.from({ length: 8 }, (_, i) => openingGame(`s${i}`, "Fam", "loss", 30, `N${i}`, i === 3 ? 0.2 : 0.01));
+  const r = only(g, "problem-opening")!;
+  assert.match(r.action, /^Your clearest early slip came after 1\.e4 c5 2\.Nf3 d6 3\.d4 cxd4, where you played 4\.N3, which costs you 20% winning chances/);
+});
+
+test("13.7 example: 10 Scandinavian games, 7 wins and 3 losses", () => {
+  const g = Array.from({ length: 10 }, (_, i) => openingGame(`s${i}`, "Scandinavian Defense", i < 7 ? "win" : "loss", 60));
+  const r = only(g, "strong-opening")!;
+  assert.equal(r.title, "Scandinavian Defense works well for you");
+  assert.equal(r.finding, "Scandinavian Defense as White: you scored 70% over 10 games (7 wins, 0 draws, 3 losses) and stand at 60% winning chances after 10 moves.");
+  assert.ok(r.severity >= 5 && r.severity <= 20);
+  assert.ok(r.evidence.every((e) => e.ply === 20));
+});
+
+test("13.10: on 30 neutral games no rule fires", () => {
+  const neutral = games(30, 10).map((u) => ({ ...u, game: { ...u.game, myResult: "draw" as const } }));
+  assert.deepEqual(recommendations(inputs(neutral)), []);
 });

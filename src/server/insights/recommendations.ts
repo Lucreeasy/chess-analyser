@@ -8,7 +8,9 @@ import type { Phase } from "../analysis/phases.ts";
 import { isPunished, myMoves, opportunities, type Overview } from "./overview.ts";
 import type { TimeStats } from "./time.ts";
 import type { Outcome, Tilt } from "./conversion.ts";
+import { ep20, type OpeningRow, type Openings } from "./openings.ts";
 import { moverEp } from "../analysis/expectedPoints.ts";
+import { epdOf } from "../analysis/book.ts";
 import type { UsedGame } from "./select.ts";
 
 export interface Evidence {
@@ -34,6 +36,7 @@ export interface RuleInputs {
   time: TimeStats;
   conversion: Outcome;
   tilt: Tilt;
+  openings: Openings;
 }
 
 const MAX_EVIDENCE = 5;
@@ -261,7 +264,116 @@ function inconsistency({ used, overview, tilt }: RuleInputs): Recommendation | u
   };
 }
 
-const RULES = [blunderCheck, timeTrouble, weakEndgames, poorConversion, missedChances, inconsistency];
+const colourName = (row: OpeningRow) => (row.colour === "w" ? "White" : "Black");
+
+/** Sections 13.6/13.7: the qualifying row with the highest severity; ties: more games, then family name. */
+function pickRow(rows: OpeningRow[], severityOf: (row: OpeningRow) => number): { row: OpeningRow; severity: number } | undefined {
+  let best: { row: OpeningRow; severity: number } | undefined;
+  for (const row of rows) {
+    const sev = severityOf(row);
+    const better =
+      !best ||
+      sev > best.severity ||
+      (sev === best.severity && (row.games.length > best.row.games.length || (row.games.length === best.row.games.length && row.family < best.row.family)));
+    if (better) best = { row, severity: sev };
+  }
+  return best;
+}
+
+/** Rows carrying the section 7.2 flag that also have 8+ games with a result and an EP @20 (13.6/13.7). */
+function flaggedRows({ white, black }: Openings, flag: OpeningRow["flag"]): OpeningRow[] {
+  return [...white, ...black].filter((r) => r.flag === flag && r.score.n >= 8 && r.ep20.value !== undefined);
+}
+
+/** "N.SAN" for White, "N...SAN" for Black (N = ceil(ply / 2)). */
+const moveText = (m: MoveRecord) => `${Math.ceil(m.ply / 2)}${m.colour === "w" ? "." : "..."}${m.san}`;
+
+/** Section 13.6: the moves before `ply`, at most the last 12 plies. */
+function lineBefore(moves: MoveRecord[], ply: number): string {
+  const before = moves.filter((m) => m.ply < ply);
+  const shown = before.slice(-12);
+  if (shown.length === 0) return "the starting position";
+  const text = shown.map((m, i) => (m.colour === "w" || i === 0 ? moveText(m) : m.san)).join(" ");
+  return shown.length < before.length ? `... ${text}` : text;
+}
+
+/** Section 13.6. */
+function problemOpening({ openings }: RuleInputs): Recommendation | undefined {
+  const rows = flaggedRows(openings, "problem");
+  const picked = pickRow(rows, (r) =>
+    severity(0.9, (depth(0.4 - r.score.value!, 0.2) + depth(0.4 - r.ep20.value!, 0.15)) / 2, support(r.games.length, 30)),
+  );
+  if (!picked) return undefined;
+  const { row } = picked;
+
+  // A game's departure: my first move that is not Book, grouped by (position without the move counters, SAN).
+  const departures = row.games.flatMap((u) => {
+    const move = myMoves(u).find((m) => m.classification !== "book");
+    return move ? [{ u, move, key: `${epdOf(move.fenBefore)}|${move.san}` }] : [];
+  });
+  const groups = [...Map.groupBy(departures, (d) => d.key).entries()]
+    .map(([key, members]) => ({ key, members, loss: members.reduce((sum, d) => sum + d.move.epLoss, 0) }))
+    .sort((a, b) => b.members.length - a.members.length || b.loss - a.loss || (a.key < b.key ? -1 : 1));
+  const top = groups[0];
+
+  let action: string;
+  let evidence: Candidate[];
+  if (!top) {
+    action =
+      "Look at the games linked here to see where you leave known theory, then study the main lines there or switch to a different opening for a while.";
+    evidence = candidates(row.games, (m) => (m.ply <= 20 ? m.epLoss : undefined));
+  } else {
+    const example = top.members.reduce((e, d) => (d.move.epLoss > e.move.epLoss ? d : e));
+    const line = lineBefore(example.u.analysis.moves, example.move.ply);
+    const avgLoss = top.loss / top.members.length;
+    const lossNote = avgLoss >= 0.03 ? `, which costs you ${pct(avgLoss)} winning chances on average` : "";
+    action =
+      top.members.length >= 2
+        ? `In ${top.members.length} of those games you left known theory at the same spot, after ${line}, by playing ${moveText(example.move)}${lossNote}. Look up what the main lines play there instead, or switch to a different opening for a while.`
+        : `Your clearest early slip came after ${line}, where you played ${moveText(example.move)}${lossNote}. Look up what the main lines play there, or switch to a different opening for a while.`;
+    evidence = departures.map((d) => ({
+      gameId: d.u.game.id,
+      ply: d.move.ply,
+      score: (d.key === top.key ? 10 : 0) + d.move.epLoss + (d.u.game.myResult === "loss" ? 0.05 : 0),
+    }));
+  }
+  return {
+    id: "problem-opening",
+    title: `Your ${row.family} games as ${colourName(row)} are struggling`,
+    finding: `${row.family} as ${colourName(row)}: you scored ${pct(row.score.value!)} over ${row.games.length} games and stand at only ${pct(row.ep20.value!)} winning chances after 10 moves on average.`,
+    why: "An opening that leaves you worse by move 10 means you start most of those games on the back foot.",
+    action,
+    evidence: chooseEvidence(evidence),
+    severity: picked.severity,
+    practice: { phase: "opening", label: "Opening puzzles from your games" },
+  };
+}
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : word.endsWith("s") ? "es" : "s"}`;
+
+/** Section 13.7 (positive). */
+function strongOpening({ openings }: RuleInputs): Recommendation | undefined {
+  const rows = flaggedRows(openings, "strong");
+  const picked = pickRow(rows, (r) => positiveSeverity(depth(r.score.value! - 0.6, 0.25), support(r.games.length, 30)));
+  if (!picked) return undefined;
+  const { row } = picked;
+  const bonus = { win: 1, draw: 0.5, loss: 0 } as const;
+  const evidence = row.games.map((u) => {
+    const ply = Math.min(20, u.analysis.moves.length);
+    return { gameId: u.game.id, ply, score: ep20(u.analysis, u.me)! + (u.game.myResult ? bonus[u.game.myResult] : 0) };
+  });
+  return {
+    id: "strong-opening",
+    title: `${row.family} works well for you`,
+    finding: `${row.family} as ${colourName(row)}: you scored ${pct(row.score.value!)} over ${row.games.length} games (${plural(row.wins, "win")}, ${plural(row.draws, "draw")}, ${plural(row.losses, "loss")}) and stand at ${pct(row.ep20.value!)} winning chances after 10 moves.`,
+    why: "Playing what already works for you saves study time and gives you comfortable positions to play for a win.",
+    action: "Keep playing it and choose it more often. The positions linked here show how your games usually look after 10 moves.",
+    evidence: chooseEvidence(evidence),
+    severity: picked.severity,
+  };
+}
+
+const RULES = [blunderCheck, timeTrouble, weakEndgames, poorConversion, problemOpening, strongOpening, missedChances, inconsistency];
 
 /** Section 13.1 "running the rules": evidence de-duplicated and capped, then the top 5 by severity. */
 export function recommendations(inputs: RuleInputs): Recommendation[] {
