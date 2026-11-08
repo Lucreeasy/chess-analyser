@@ -13,9 +13,14 @@ export function ukDate(ms: number): string {
   return UK_DATE.format(ms);
 }
 
-/** "{n} {word}" with an "s" unless n = 1; whole numbers with a comma separator ("1,462 moves"). */
+/** Whole numbers with a comma separator: "1,462". docs/04-INSIGHTS-SPEC.md section 0. */
+export function thousands(n: number): string {
+  return n.toLocaleString("en-US");
+}
+
+/** "{n} {word}" with an "s" unless n = 1: "1 game", "1,462 moves". */
 export function plural(n: number, word: string): string {
-  return `${n.toLocaleString("en-US")} ${word}${n === 1 ? "" : "s"}`;
+  return `${thousands(n)} ${word}${n === 1 ? "" : "s"}`;
 }
 
 const TIME_CLASS_LABEL: Record<string, string> = {

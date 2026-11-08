@@ -4,7 +4,7 @@
   import { route, navigate } from "../lib/router.svelte.ts";
   import { queue } from "../lib/live.svelte.ts";
   import { currentCount, queueVisible } from "../lib/queueStatus.ts";
-  import { plural, ukDate } from "../lib/format.ts";
+  import { plural, thousands, ukDate } from "../lib/format.ts";
   import Logo from "../components/Logo.svelte";
 
   type Insights = ReturnType<typeof computeInsights>;
@@ -25,7 +25,7 @@
     } catch (e) {
       loadError = e instanceof Error ? e.message : String(e);
     } finally {
-      loading = false;
+      if (q === query) loading = false; // an older request finishing must not end a newer one's "updating…"
     }
   }
 
@@ -38,7 +38,7 @@
   // Section 4.1: the count line and, while the default range is in use, the line explaining it.
   const countLine = $derived.by(() => {
     if (!data) return "";
-    const base = `${plural(data.analysed, "analysed game")}${data.analysed !== data.gamesTotal ? ` of ${data.gamesTotal} matching` : ""}`;
+    const base = `${plural(data.analysed, "analysed game")}${data.analysed !== data.gamesTotal ? ` of ${thousands(data.gamesTotal)} matching` : ""}`;
     return loading ? `${base} · updating…` : base;
   });
   const rangeLine = $derived.by(() => {
@@ -89,7 +89,7 @@
         <div class="fill" style={`width: ${progress}%`}></div>
       </div>
       <ul>
-        <li>{data.gamesTotal} {data.gamesTotal === 1 ? "game matches" : "games match"} the current filters.</li>
+        <li>{plural(data.gamesTotal, "game")} {data.gamesTotal === 1 ? "matches" : "match"} the current filters.</li>
         {#if data.excluded.notAnalysed > 0}
           <li>{plural(data.excluded.notAnalysed, "game")} still waiting to be analysed.</li>
         {/if}
