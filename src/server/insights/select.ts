@@ -63,6 +63,35 @@ function myMoveCount(analysis: GameAnalysis, me: Colour): number {
   return Object.values(analysis.summary.counts[me]).reduce((sum, n) => sum + n, 0);
 }
 
+export interface DefaultRange {
+  kind: "days" | "games" | "all";
+  /** Start of a UTC day; absent for kind "all". */
+  from?: number;
+}
+
+const DAY_MS = 86_400_000;
+const DEFAULT_DAYS = 30;
+const DEFAULT_GAMES = 30;
+
+function startOfUtcDay(ms: number): number {
+  return Math.floor(ms / DAY_MS) * DAY_MS;
+}
+
+/**
+ * Section 4: the range used when the user picked no dates and not "All time", over the games that match the
+ * other filters and are usable (a "me" side, an analysis, at least 3 of my moves).
+ */
+export function defaultRange(games: GameWithAnalysis[], filters: InsightFilters, now: number): DefaultRange {
+  const others = { ...filters, from: undefined, to: undefined };
+  const playedAt = games
+    .filter(({ game, analysis }) => matchesFilters(game, others) && game.myColour && analysis && myMoveCount(analysis, game.myColour) >= MINIMUM_MY_MOVES)
+    .map(({ game }) => game.playedAt);
+  const since = startOfUtcDay(now - DEFAULT_DAYS * DAY_MS);
+  if (playedAt.filter((t) => t >= since).length >= MINIMUM_GAMES) return { kind: "days", from: since };
+  if (playedAt.length >= DEFAULT_GAMES) return { kind: "games", from: startOfUtcDay(playedAt.sort((a, b) => b - a)[DEFAULT_GAMES - 1]) };
+  return { kind: "all" };
+}
+
 /** Section 2: games matching, the exclusions, the gate of 20 and the play order. */
 export function selectGames(games: GameWithAnalysis[], filters: InsightFilters): Selection {
   const excluded = { notAnalysed: 0, noMyColor: 0, tooShort: 0 };

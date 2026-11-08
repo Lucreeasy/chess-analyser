@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { selectGames, matchesFilters, type GameWithAnalysis } from "../../../src/server/insights/select.ts";
+import { selectGames, matchesFilters, defaultRange, type GameWithAnalysis } from "../../../src/server/insights/select.ts";
 import { makeGame, makeAnalysis } from "./fixtures.ts";
 
 /** n usable games (3 moves of mine, one move row each), ids g00.., played one minute apart. */
@@ -66,4 +66,32 @@ test("section 3: each filter, inclusive dates, results need a finished game", ()
   assert.equal(matchesFilters(game, { from: 1001 }), false);
   assert.equal(matchesFilters(game, { ids: ["x", "a"] }), true);
   assert.equal(matchesFilters(game, { ids: ["x"] }), false);
+});
+
+/** n usable games played at the given times. */
+function playedAt(times: number[]): GameWithAnalysis[] {
+  return times.map((t, i) => ({ game: makeGame({ id: `t${i}`, playedAt: t }), analysis: makeAnalysis({ myMoves: 3, moves: [{}] }) }));
+}
+
+const DAY_MS = 86_400_000;
+const NOW = Date.UTC(2026, 9, 30, 12); // 30 Oct 2026 12:00 UTC
+const D = Date.UTC(2026, 8, 30); // 30 Sept 2026 00:00 UTC
+
+test("section 4: 20 usable games in the last 30 days -> kind days, from the start of that UTC day", () => {
+  assert.deepEqual(defaultRange(playedAt(Array(20).fill(D)), {}, NOW), { kind: "days", from: D });
+  assert.equal(defaultRange(playedAt([...Array(19).fill(D), D - 1]), {}, NOW).kind, "all");
+});
+
+test("section 4 example: 12 recent of 45, the 30th newest on 3 Sept 2026 18:40 -> kind games from 3 Sept 00:00", () => {
+  const thirtieth = Date.UTC(2026, 8, 3, 18, 40);
+  const times = [...Array(12).fill(D + 1000), ...Array(17).fill(thirtieth + 1000), thirtieth, ...Array(15).fill(thirtieth - DAY_MS * 10)];
+  assert.equal(times.length, 45);
+  assert.deepEqual(defaultRange(playedAt(times), {}, NOW), { kind: "games", from: Date.UTC(2026, 8, 3) });
+});
+
+test("section 4: fewer than 30 usable games -> kind all; it counts only usable games matching the other filters", () => {
+  assert.deepEqual(defaultRange(playedAt(Array(29).fill(0)), {}, NOW), { kind: "all" });
+  const games = [...playedAt(Array(20).fill(D)), { game: makeGame({ id: "x", playedAt: D }) }];
+  assert.equal(defaultRange(games, { colour: "b" }, NOW).kind, "all");
+  assert.equal(defaultRange(games, { from: 0, to: 1 }, NOW).kind, "days"); // its own dates are ignored
 });
