@@ -8,7 +8,7 @@
   const queued = $derived(queuedLine(report.queued));
 </script>
 
-<div class="report-card" role={ok ? "status" : "alert"}>
+<div class="card report-card" role={ok ? "status" : "alert"}>
   <h2><Icon name={ok ? "check" : "alert"} size={20} />{report.title}</h2>
   <p class="summary">{summaryLine(report.added, report.duplicates, report.failedCount)}</p>
   {#if queued}
@@ -46,10 +46,6 @@
 
 <style>
   .report-card {
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 16px;
-    background: var(--surface);
     margin-top: 16px;
   }
   h2 {

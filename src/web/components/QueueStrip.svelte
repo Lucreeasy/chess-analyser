@@ -27,7 +27,7 @@
     <div class="inner">
       <div class="info">
         <p class="label">{queueLabel(queue.status)}</p>
-        <div class="bar">
+        <div class="progress">
           <div
             class="fill"
             class:paused={queue.status.paused}
@@ -72,18 +72,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .bar {
+  .progress {
     margin-top: 2px;
     height: 6px;
-    border-radius: 3px;
-    background: var(--surface-2);
-    overflow: hidden;
   }
-  .fill {
-    height: 100%;
-    background: var(--brand);
-  }
-  .fill.paused {
+  .progress .fill.paused {
     background: var(--muted);
     opacity: 0.4;
   }

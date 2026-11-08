@@ -77,7 +77,7 @@
   </div>
 {/snippet}
 
-<div class="panel">
+<div class="card panel">
   {#if analysisStatus === "none"}
     <p>Not analysed yet. Analyse it for the eval graph, move ratings, accuracy and key moments.</p>
     {@render depthChooser()}
@@ -124,10 +124,6 @@
 <style>
   .panel {
     margin-top: 16px;
-    padding: 16px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--surface);
   }
   .muted {
     color: var(--muted);
@@ -175,13 +171,5 @@
   .progress {
     margin-top: 12px;
     height: 10px;
-    border-radius: 5px;
-    background: var(--surface-2);
-    overflow: hidden;
-  }
-  .fill {
-    height: 100%;
-    background: var(--brand);
-    transition: width 300ms;
   }
 </style>

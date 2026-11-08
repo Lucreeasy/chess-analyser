@@ -188,12 +188,42 @@ button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+/* The screen container and its title (docs/07-UI-SPEC.md sections 2.5 and 3.3). */
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+/* Cards (section 5.8); an error card is a card with a Danger border (5.18). */
+.card,
 .error-card {
-  border: 1px solid var(--danger);
+  border: 1px solid var(--line);
   border-radius: 16px;
   padding: 16px;
   background: var(--surface);
+}
+.error-card {
+  border-color: var(--danger);
   margin-top: 16px;
+}
+/* Progress bars (section 5.15): Surface-2 track, Brand fill, 300 ms; each place sets its own height. */
+.progress {
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.progress .fill {
+  height: 100%;
+  background: var(--brand);
+  transition: width 300ms;
 }
 .error-card h2 {
   font-size: 16px;

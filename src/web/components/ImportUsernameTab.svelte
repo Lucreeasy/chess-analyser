@@ -202,7 +202,7 @@
 
   {#if fetching}
     <p class="muted" aria-live="polite">{fetchProgress}</p>
-    <div class="progress-bar">
+    <div class="progress">
       <div class="fill" style={`width: ${fetchTotal > 0 ? Math.max(4, Math.round((fetchDone / fetchTotal) * 100)) : 4}%`}></div>
     </div>
   {/if}
@@ -290,15 +290,8 @@
     border-radius: 12px;
     font-weight: 400;
   }
-  .progress-bar {
+  .progress {
     margin-top: 6px;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--surface-2);
-    overflow: hidden;
-  }
-  .progress-bar .fill {
-    height: 100%;
-    background: var(--brand);
+    height: 8px; /* docs/07-UI-SPEC.md section 5.15: import 8 px */
   }
 </style>

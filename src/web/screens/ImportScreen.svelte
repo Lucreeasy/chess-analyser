@@ -30,8 +30,8 @@
   }
 </script>
 
-<div class="screen">
-  <h1><Logo />Import games</h1>
+<div class="page">
+  <h1 class="page-title"><Logo />Import games</h1>
   <p class="muted">New games are de-duplicated, and queued for analysis if auto-analyse is on.</p>
 
   <div role="tablist" aria-label="Import source" class="tabs" tabindex="-1" onkeydown={onKeydown}>
@@ -60,17 +60,8 @@
 </div>
 
 <style>
-  .screen {
+  .page {
     max-width: 720px;
-    margin: 0 auto;
-    padding: 16px;
-  }
-  h1 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 24px;
-    margin: 0;
   }
   .muted {
     color: var(--muted);
@@ -109,9 +100,5 @@
   }
   .card {
     margin-top: 12px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--surface);
-    padding: 16px;
   }
 </style>

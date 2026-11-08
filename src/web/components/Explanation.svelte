@@ -56,7 +56,7 @@
   });
 </script>
 
-<div class="explanation" aria-live="polite">
+<div class="card" aria-live="polite">
   {#if noMoves}
     <h2>No moves</h2>
     <p>This game has no moves to review.</p>
@@ -81,12 +81,6 @@
 </div>
 
 <style>
-  .explanation {
-    padding: 16px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--surface);
-  }
   h2 {
     font-size: 15px;
     margin: 0 0 4px;

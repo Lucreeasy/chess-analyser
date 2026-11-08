@@ -201,7 +201,7 @@
 <div class="page" class:with-bulk-bar={selected.size > 0}>
   <div class="heading-row">
     <div>
-      <h1><Logo />Games</h1>
+      <h1 class="page-title"><Logo />Games</h1>
       <p class="count-line" aria-live="polite">{countLine}</p>
     </div>
     <div class="heading-actions">
@@ -229,7 +229,7 @@
       <button type="button" onclick={load}>Try again</button>
     </div>
   {:else if games && games.length === 0}
-    <div class="empty-card">
+    <div class="card">
       <h2>Import your first games</h2>
       <p class="muted">Pick a source. All three end in the same report.</p>
       <ul class="import-sources">
@@ -283,7 +283,7 @@
     </div>
 
     {#if sortedGames && sortedGames.length === 0}
-      <div class="empty-card">
+      <div class="card">
         <p>No games match these filters.</p>
         <button type="button" onclick={() => (filters = defaultFilters())}>Clear all filters</button>
       </div>
@@ -335,9 +335,6 @@
 
 <style>
   .page {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -347,14 +344,6 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
-  }
-  h1 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 24px;
-    line-height: 32px;
-    font-weight: 600;
   }
   .count-line {
     color: var(--muted);
@@ -406,15 +395,8 @@
     color: var(--muted);
     font-size: 14px;
   }
-  .error-card,
-  .empty-card {
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 16px;
-    background: var(--surface);
-  }
   .error-card {
-    border-color: var(--danger);
+    margin-top: 0; /* the page's flex gap spaces it */
   }
   .muted {
     color: var(--muted);

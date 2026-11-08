@@ -40,7 +40,7 @@
   const count = $derived(activeFilterCount(filters));
 </script>
 
-<div class="panel">
+<div class="card panel">
   <div class="field full">
     <span class="label">Time class</span>
     <div class="chips">
@@ -134,10 +134,6 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 16px;
-    background: var(--surface);
   }
   @media (min-width: 768px) {
     .panel {

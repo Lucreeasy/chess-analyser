@@ -265,7 +265,7 @@
   const subLineTooltip = $derived(game ? `${subLine} · ${formatDate(game.playedAt)}` : "");
 </script>
 
-<div class="screen">
+<div class="page">
   <header class="header">
     <button type="button" class="back" onclick={goBack} aria-label="Back to games">
       <Icon name="chevron" size={20} />
@@ -388,11 +388,6 @@
 </div>
 
 <style>
-  .screen {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 16px;
-  }
   .header {
     display: flex;
     align-items: center;
@@ -481,13 +476,6 @@
   .status-line {
     margin-top: 32px;
     color: var(--muted);
-  }
-  .error-card {
-    margin-top: 16px;
-    border: 1px solid var(--danger);
-    border-radius: 16px;
-    padding: 16px;
-    background: var(--surface);
   }
   .error-card h2 {
     font-size: 16px;

@@ -17,7 +17,7 @@
   }
 </script>
 
-<section class="panel" aria-label="Explore mode">
+<section class="card" aria-label="Explore mode">
   <h2>Exploring</h2>
   <div class="actions">
     <button type="button" onclick={() => explore.undo()} disabled={!explore.canUndo}>Undo</button>
@@ -40,12 +40,6 @@
 </section>
 
 <style>
-  .panel {
-    padding: 16px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--surface);
-  }
   h2 {
     font-size: 15px;
     margin: 0 0 12px;
