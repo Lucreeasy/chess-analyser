@@ -31,7 +31,9 @@ function zeroCounts(): Record<MoveClass, number> {
  * An analysis of a game I played as White, whose summary counts are derived from `moves` (both sides);
  * `myMoves` adds that many plain "good" moves of mine to the counts when a test only needs the move total.
  */
-export function makeAnalysis(options: { moves?: Partial<MoveRecord>[]; myMoves?: number; accuracy?: number } = {}): GameAnalysis {
+export function makeAnalysis(
+  options: { moves?: Partial<MoveRecord>[]; myMoves?: number; accuracy?: number; maxEp?: number; minEp?: number } = {},
+): GameAnalysis {
   const moves = (options.moves ?? []).map((m, i) => ({ ply: i + 1, colour: i % 2 === 0 ? "w" : "b", classification: "good", ...m }) as MoveRecord);
   const counts = { w: zeroCounts(), b: zeroCounts() };
   for (const m of moves) counts[m.colour][m.classification]++;
@@ -45,8 +47,8 @@ export function makeAnalysis(options: { moves?: Partial<MoveRecord>[]; myMoves?:
       accuracy: { w: options.accuracy ?? 80, b: 80 },
       counts,
       phaseAccuracy: { w: {}, b: {} },
-      maxEp: { w: 0.5, b: 0.5 },
-      minEp: { w: 0.5, b: 0.5 },
+      maxEp: { w: options.maxEp ?? 0.5, b: 0.5 },
+      minEp: { w: options.minEp ?? 0.5, b: 0.5 },
       keyMoments: [],
     },
   };
