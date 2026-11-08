@@ -9,6 +9,7 @@
   import Logo from "../components/Logo.svelte";
   import StatTile from "../components/StatTile.svelte";
   import Recommendations from "../components/Recommendations.svelte";
+  import Playstyle from "../components/Playstyle.svelte";
 
   type Insights = ReturnType<typeof computeInsights>;
 
@@ -142,6 +143,16 @@
         </div>
       </section>
 
+      <section id="playstyle" class="card section">
+        <h2>Playstyle</h2>
+        <p class="muted">Five axes scored 0-100 against typical club players, and the playing style they add up to.</p>
+        <Playstyle
+          axes={data.playstyle.axes}
+          archetype={data.playstyle.archetype}
+          link={(axis) => link("all", `${axis.label} (all analysed games)`, true)}
+        />
+      </section>
+
       <section id="advice" class="card section">
         <h2>Recommendations</h2>
         <p class="muted">What to work on first, based on patterns across your games. Every card points to real positions.</p>
@@ -184,11 +195,20 @@
   .dimmed {
     opacity: 0.6;
   }
-  #overall {
+  /* docs/04-INSIGHTS-SPEC.md section 16: Playstyle before Recommendations on the phone, after it on a desktop. */
+  .dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
     margin-top: 24px;
   }
-  .section {
-    margin-top: 24px;
+  @media (min-width: 768px) {
+    #overall {
+      order: -2;
+    }
+    #advice {
+      order: -1;
+    }
   }
   .tiles {
     display: grid;
