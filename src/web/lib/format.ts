@@ -1,6 +1,6 @@
-import { one, thousands } from "../../server/insights/numbers.ts";
+import { one } from "../../server/insights/numbers.ts";
 
-export { one, pct, thousands } from "../../server/insights/numbers.ts";
+export { one, pct, thousands, plural } from "../../server/insights/numbers.ts";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -17,10 +17,6 @@ export function ukDate(ms: number): string {
   return UK_DATE.format(ms);
 }
 
-/** "{n} {word}" with an "s" unless n = 1: "1 game", "1,462 moves". */
-export function plural(n: number, word: string): string {
-  return `${thousands(n)} ${word}${n === 1 ? "" : "s"}`;
-}
 
 const TIME_CLASS_LABEL: Record<string, string> = {
   bullet: "Bullet",

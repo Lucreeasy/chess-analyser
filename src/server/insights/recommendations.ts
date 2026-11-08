@@ -6,7 +6,7 @@ import { isError } from "../analysis/classification.ts";
 import type { TacticTag } from "../analysis/tacticTags.ts";
 import type { Phase } from "../analysis/phases.ts";
 import { isPunished, myMoves, opportunities, type Overview } from "./overview.ts";
-import { one, pct } from "./numbers.ts";
+import { one, pct, plural, thousands } from "./numbers.ts";
 import type { TimeStats } from "./time.ts";
 import type { Outcome, Tilt } from "./conversion.ts";
 import { ep20, type OpeningRow, type Openings } from "./openings.ts";
@@ -108,8 +108,8 @@ function blunderCheck({ used, overview }: RuleInputs): Recommendation | undefine
     id: "blunder-check",
     title: "Check for hanging pieces before every move",
     finding: tagTrigger
-      ? `Leaving a piece unprotected is your most common kind of mistake: ${hung.count} of your ${hung.n} tagged errors (${pct(hung.value!)}), and you blunder ${one(rate)} times per 100 moves.`
-      : `You blunder ${one(rate)} times per 100 moves (${overview.errors.blunder.count} blunders in ${overview.moves} moves).`,
+      ? `Leaving a piece unprotected is your most common kind of mistake: ${thousands(hung.count!)} of your ${thousands(hung.n)} tagged errors (${pct(hung.value!)}), and you blunder ${one(rate)} times per 100 moves.`
+      : `You blunder ${one(rate)} times per 100 moves (${thousands(overview.errors.blunder.count!)} blunders in ${thousands(overview.moves)} moves).`,
     why: "At club level one piece left unprotected often decides the game, and this habit is cheaper to fix than any opening or endgame knowledge.",
     action:
       "Before every move, ask what your opponent's last move attacks and whether each of your pieces is protected. Then practise with puzzles made from your own blunders.",
@@ -139,11 +139,11 @@ function timeTrouble({ used, time }: RuleInputs): Recommendation | undefined {
   const timedGames = time.clocked.length;
   let finding: string;
   if (ratioTrigger && (shareTrigger || ratio === undefined)) {
-    finding = `You ran short of time in ${troubleShare} of your ${timedGames} games with clocks, and you blunder ${one(trouble.value!)} times per 100 moves in time trouble against ${one(normal.value!)} otherwise.`;
+    finding = `You ran short of time in ${troubleShare} of your ${thousands(timedGames)} games with clocks, and you blunder ${one(trouble.value!)} times per 100 moves in time trouble against ${one(normal.value!)} otherwise.`;
   } else if (ratioTrigger) {
-    finding = `You blunder ${one(trouble.value!)} times per 100 moves when short of time, ${one(ratio!)} times your normal rate of ${one(normal.value!)} (over ${trouble.n} moves).`;
+    finding = `You blunder ${one(trouble.value!)} times per 100 moves when short of time, ${one(ratio!)} times your normal rate of ${one(normal.value!)} (over ${thousands(trouble.n)} moves).`;
   } else {
-    finding = `You ran short of time in ${troubleShare} of your ${timedGames} games with clocks (${gamesInTrouble.count} games).`;
+    finding = `You ran short of time in ${troubleShare} of your ${thousands(timedGames)} games with clocks (${thousands(gamesInTrouble.count!)} games).`;
   }
   const advice =
     "Play the opening faster, from memory or simple principles, and keep that time for the critical middlegame moves. Where you can, choose time controls with an increment, for example 3+2 or 10+5.";
@@ -168,7 +168,7 @@ function weakEndgames({ used, overview }: RuleInputs): Recommendation | undefine
   return {
     id: "weak-endgames",
     title: "Your endgames lose points",
-    finding: `Your endgame accuracy is ${one(endgame.value)}, ${one(gap)} points below your middlegame accuracy of ${one(middlegame.value)} (from ${endgame.n} endgame moves).`,
+    finding: `Your endgame accuracy is ${one(endgame.value)}, ${one(gap)} points below your middlegame accuracy of ${one(middlegame.value)} (from ${thousands(endgame.n)} endgame moves).`,
     why: "Endgames settle close games. A gap this size means you hand back advantages and miss draws that careful technique would keep.",
     action:
       "Study the endgame positions linked here, then practise the basics (king and pawn endings, rook endings) until the technique is automatic.",
@@ -199,7 +199,7 @@ function poorConversion({ conversion }: RuleInputs): Recommendation | undefined 
   return {
     id: "poor-conversion",
     title: "Turn winning positions into wins",
-    finding: `You reached a clearly winning position in ${reached.count} games but won only ${won.count} of them (${pct(rate.value)}); ${drawn.count} ended in a draw and ${lost.count} in a loss.`,
+    finding: `You reached a clearly winning position in ${thousands(reached.count!)} games but won only ${thousands(won.count!)} of them (${pct(rate.value)}); ${thousands(drawn.count!)} ended in a draw and ${thousands(lost.count!)} in a loss.`,
     why: "A game lost or drawn from a winning position costs a full point or half of one, which makes this the quickest rating you can win back.",
     action:
       "When you are clearly ahead, trade pieces, avoid risky tricks and check your opponent's best reply before each move. The positions linked here show where the advantage slipped.",
@@ -218,7 +218,7 @@ function missedChances({ used, overview }: RuleInputs): Recommendation | undefin
   return {
     id: "missed-chances",
     title: "Punish your opponent's mistakes",
-    finding: `${pct(missed.value)} of your opponent's mistakes and blunders go unpunished (${missed.count} of ${missed.n}).`,
+    finding: `${pct(missed.value)} of your opponent's mistakes and blunders go unpunished (${thousands(missed.count!)} of ${thousands(missed.n)}).`,
     why: "Opponents at club level give you chances all the time, and taking them is the cheapest way to win more games.",
     action:
       "When your opponent plays something odd, ask what it left undefended and look at every check, capture and threat before you reply. Then practise on the chances you missed in your own games.",
@@ -245,7 +245,7 @@ function inconsistency({ used, overview, tilt }: RuleInputs): Recommendation | u
   const percent = (x: number) => `${one(x)}%`;
   let action: string;
   if (tilted) {
-    action = `After a loss your next game averages ${percent(afterLoss.value!)} accuracy against ${percent(afterWin.value!)} after a win (${afterLoss.n} and ${afterWin.n} games). Play fewer games per session and stop after two losses in a row.`;
+    action = `After a loss your next game averages ${percent(afterLoss.value!)} accuracy against ${percent(afterWin.value!)} after a win (${thousands(afterLoss.n)} and ${thousands(afterWin.n)} games). Play fewer games per session and stop after two losses in a row.`;
   } else if (tiltKnown) {
     action = `Your accuracy after a loss (${percent(afterLoss.value!)}) is close to the one after a win (${percent(afterWin.value!)}), so losing streaks are not the cause. Look at your weakest games linked here and play fewer games per session.`;
   } else {
@@ -254,7 +254,7 @@ function inconsistency({ used, overview, tilt }: RuleInputs): Recommendation | u
   return {
     id: "inconsistency",
     title: "Your results swing from game to game",
-    finding: `The accuracy of your games varies by ${one(sd)} points from game to game (a typical range is 5 to 11, over ${overview.consistency.n} games).`,
+    finding: `The accuracy of your games varies by ${one(sd)} points from game to game (a typical range is 5 to 11, over ${thousands(overview.consistency.n)} games).`,
     why: "Big swings usually come from tiredness, tilt or rushed games rather than missing knowledge, so they are among the easiest things to fix.",
     action,
     evidence: chooseEvidence(evidence),
@@ -327,7 +327,7 @@ function problemOpening({ openings }: RuleInputs): Recommendation | undefined {
     const lossNote = avgLoss >= 0.03 ? `, which costs you ${pct(avgLoss)} winning chances on average` : "";
     action =
       top.members.length >= 2
-        ? `In ${top.members.length} of those games you left known theory at the same spot, after ${line}, by playing ${moveText(example.move)}${lossNote}. Look up what the main lines play there instead, or switch to a different opening for a while.`
+        ? `In ${thousands(top.members.length)} of those games you left known theory at the same spot, after ${line}, by playing ${moveText(example.move)}${lossNote}. Look up what the main lines play there instead, or switch to a different opening for a while.`
         : `Your clearest early slip came after ${line}, where you played ${moveText(example.move)}${lossNote}. Look up what the main lines play there, or switch to a different opening for a while.`;
     evidence = departures.map((d) => ({
       gameId: d.u.game.id,
@@ -338,7 +338,7 @@ function problemOpening({ openings }: RuleInputs): Recommendation | undefined {
   return {
     id: "problem-opening",
     title: `Your ${row.family} games as ${colourName(row)} are struggling`,
-    finding: `${row.family} as ${colourName(row)}: you scored ${pct(row.score.value!)} over ${row.games.length} games and stand at only ${pct(row.ep20.value!)} winning chances after 10 moves on average.`,
+    finding: `${row.family} as ${colourName(row)}: you scored ${pct(row.score.value!)} over ${thousands(row.games.length)} games and stand at only ${pct(row.ep20.value!)} winning chances after 10 moves on average.`,
     why: "An opening that leaves you worse by move 10 means you start most of those games on the back foot.",
     action,
     evidence: chooseEvidence(evidence),
@@ -347,7 +347,6 @@ function problemOpening({ openings }: RuleInputs): Recommendation | undefined {
   };
 }
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : word.endsWith("s") ? "es" : "s"}`;
 
 /** Section 13.7 (positive). */
 function strongOpening({ openings }: RuleInputs): Recommendation | undefined {
@@ -363,7 +362,7 @@ function strongOpening({ openings }: RuleInputs): Recommendation | undefined {
   return {
     id: "strong-opening",
     title: `${row.family} works well for you`,
-    finding: `${row.family} as ${colourName(row)}: you scored ${pct(row.score.value!)} over ${row.games.length} games (${plural(row.wins, "win")}, ${plural(row.draws, "draw")}, ${plural(row.losses, "loss")}) and stand at ${pct(row.ep20.value!)} winning chances after 10 moves.`,
+    finding: `${row.family} as ${colourName(row)}: you scored ${pct(row.score.value!)} over ${thousands(row.games.length)} games (${plural(row.wins, "win")}, ${plural(row.draws, "draw")}, ${plural(row.losses, "loss")}) and stand at ${pct(row.ep20.value!)} winning chances after 10 moves.`,
     why: "Playing what already works for you saves study time and gives you comfortable positions to play for a win.",
     action: "Keep playing it and choose it more often. The positions linked here show how your games usually look after 10 moves.",
     evidence: chooseEvidence(evidence),

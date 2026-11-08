@@ -66,9 +66,10 @@ test("13.2 examples: 15 blunders in 600 moves; 9 fires, 8 does not; silent under
   assert.deepEqual(recommendations(inputs(games(14, 20, blunders(14)))), []);
 });
 
-test("13.2 example: 1,200 moves with 24 blunders -> severity 56", () => {
+test("13.2 example: 1,200 moves with 24 blunders -> severity 56; counts carry thousands separators", () => {
   const [r] = recommendations(inputs(games(60, 20, (g, i) => (i === 0 && g < 24 ? { classification: "blunder" } : {}))));
   assert.equal(r.severity, 56);
+  assert.equal(r.finding, "You blunder 2.0 times per 100 moves (24 blunders in 1,200 moves).");
 });
 
 test("13.2: the hung-piece tag trigger and its practice tag", () => {

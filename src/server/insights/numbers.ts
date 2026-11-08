@@ -14,3 +14,8 @@ export function pct(x: number | undefined): string {
 export function thousands(n: number): string {
   return n.toLocaleString("en-US");
 }
+
+/** "{n} {word}", plural unless n = 1: "1 game", "1,462 moves", "3 losses". */
+export function plural(n: number, word: string): string {
+  return `${thousands(n)} ${word}${n === 1 ? "" : word.endsWith("s") ? "es" : "s"}`;
+}
