@@ -62,3 +62,14 @@ Dependency: better-sqlite3 - synchronous embedded SQLite with no separate databa
 chess.js - full chess rules engine (legality, SAN/FEN, replay) reused everywhere instead of writing one per
 feature; chessground - the standard interactive chessboard component (drag/drop, arrows, highlights) instead of
 writing a bespoke one.
+
+## D-002: raise the size budget for the Insights phase
+Date: 2026-11-08 · Phase: P6
+Chosen: raise the product-lines ceiling from 11,300 to 14,500 for the length of P6, and lower it again to a
+little above the real size in the phase's closing cleanup.
+Alternatives: raise it a few hundred lines with every Insights commit (one decision per commit, no added
+control); keep 11,300 and squeeze existing code first (the Insights screen is new behaviour the requirements
+demand, not bloat to cut).
+Why: the ceiling was set at the end of P5 against the code that existed then; Insights is a whole new section
+(selection, ~20 metrics, the radar, 8 recommendation rules, drill-downs and its screen). One raise per phase,
+tightened at the phase's end, keeps the budget meaningful without a decision per commit.
