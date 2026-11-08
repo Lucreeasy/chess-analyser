@@ -6,7 +6,9 @@
   import ConfirmDialog from "../components/ConfirmDialog.svelte";
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
   import { showToast } from "../lib/toasts.svelte.ts";
-  import { defaultFilters, filterGames, activeFilterCount, computeFacets, type GamesFilters } from "../lib/gamesFilter.ts";
+  import { defaultFilters, filterGames, activeFilterCount, computeFacets, filtersFromQuery, type GamesFilters } from "../lib/gamesFilter.ts";
+  import { route } from "../lib/router.svelte.ts";
+  import { plural } from "../lib/format.ts";
   import { sortGames, FIRST_DIRECTION, type SortKey, type SortDirection } from "../lib/gamesSort.ts";
   import { paginate, pageCount, clampPage } from "../lib/paginate.ts";
   import { onGamesChanged } from "../lib/live.svelte.ts";
@@ -27,6 +29,16 @@
   const deeperTooltip = $derived(`Depth ${SEARCH_DEPTH[deeperDepth]} (${deeperDepth})`);
 
   let filters: GamesFilters = $state(defaultFilters());
+  // docs/06-GAMES-SPEC.md section A8: a link from Insights carries filters, ids and a label in the address.
+  $effect(() => {
+    filters = filtersFromQuery(route.path.split("?")[1] ?? "");
+  });
+
+  /** A8 "Clear": with an id list drop it and the label, keeping the other filters; otherwise clear all filters. */
+  function clearInsightsFilter(): void {
+    filters = filters.ids ? { ...filters, ids: undefined, label: undefined, approximate: false } : defaultFilters();
+    history.replaceState(null, "", "#/games"); // the address no longer holds the drill-down, without re-reading it
+  }
   let searchInput = $state("");
   let showFiltersPanel = $state(false);
   let searchDebounce: ReturnType<typeof setTimeout> | undefined;
@@ -278,6 +290,18 @@
       </button>
     </div>
 
+    {#if filters.ids || filters.label}
+      <div class="from-insights" role="status">
+        <p>
+          Showing {filteredGames ? plural(filteredGames.length, "game") : "…"} from Insights{filters.label ? `: ${filters.label}` : ""}
+          {#if filters.approximate}
+            <span class="muted">Filters only: the exact list was too long to link, so this may include a few more games.</span>
+          {/if}
+        </p>
+        <button type="button" class="neutral" aria-label="Remove the Insights filter and show all games" onclick={clearInsightsFilter}>Clear</button>
+      </div>
+    {/if}
+
     <div class="filters-panel" class:hidden-on-phone={!showFiltersPanel}>
       <FilterPanel bind:filters {facets} />
     </div>
@@ -451,6 +475,25 @@
     background: var(--surface);
     color: var(--ink);
     font-size: 16px;
+  }
+  .from-insights {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 4px 4px 16px;
+    border: 1px solid var(--brand);
+    border-radius: 16px;
+    background: var(--surface-2);
+    font-size: 14px;
+  }
+  .from-insights .muted {
+    display: block;
+    margin: 2px 0 0;
+  }
+  .from-insights button {
+    margin-top: 0;
+    flex: none;
   }
   .filters-toggle {
     align-items: center;

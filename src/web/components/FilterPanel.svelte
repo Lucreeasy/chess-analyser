@@ -1,11 +1,11 @@
 <script lang="ts">
+  import { ALL_TIME_CLASSES } from "../../server/import/timeClass.ts";
   import { activeFilterCount, type GamesFilters, type Facets } from "../lib/gamesFilter.ts";
   import { timeClassLabel } from "../lib/format.ts";
   import type { TimeClass } from "../lib/types.ts";
 
   let { filters = $bindable(), facets }: { filters: GamesFilters; facets: Facets } = $props();
 
-  const ALL_TIME_CLASSES: TimeClass[] = ["bullet", "blitz", "rapid", "daily", "classical"];
   const timeClassOptions = $derived(ALL_TIME_CLASSES.filter((tc) => tc !== "classical" || facets.timeClasses.has("classical")));
 
   function toggleTimeClass(tc: TimeClass): void {

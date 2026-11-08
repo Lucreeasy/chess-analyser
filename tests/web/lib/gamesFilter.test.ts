@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { defaultFilters, matchesFilters, filterGames, activeFilterCount, computeFacets } from "../../../src/web/lib/gamesFilter.ts";
+import { defaultFilters, matchesFilters, filterGames, activeFilterCount, computeFacets, filtersFromQuery } from "../../../src/web/lib/gamesFilter.ts";
 import type { GameRow } from "../../../src/web/lib/types.ts";
 
 function game(overrides: Partial<GameRow>): GameRow {
@@ -142,4 +142,22 @@ test("computeFacets: time classes present, opening families sorted by count desc
     { family: "Caro-Kann", count: 1 },
     { family: "French Defense", count: 1 },
   ]);
+});
+
+test("filtersFromQuery: an Insights drill-down with exact ids and a label", () => {
+  const filters = filtersFromQuery("ids=a,c,a&label=Games+with+errors");
+  assert.deepEqual([...filters.ids!], ["a", "c"]); // duplicates dropped
+  assert.equal(filters.label, "Games with errors");
+  assert.equal(filters.approximate, false);
+  assert.deepEqual(filterGames([game({ id: "a" }), game({ id: "b" }), game({ id: "c" })], filters).map((g) => g.id), ["a", "c"]);
+  assert.equal(activeFilterCount(filters), 0); // the id list is shown as a chip, not counted
+});
+
+test("filtersFromQuery: the library's own analysis filter and approximate flag; an empty query is the default view", () => {
+  const filters = filtersFromQuery("timeClass=blitz&colour=b&analysis=analysed&approx=1");
+  assert.deepEqual([...filters.timeClasses], ["blitz"]);
+  assert.equal(filters.colour, "b");
+  assert.equal(filters.analysis, "analysed");
+  assert.equal(filters.approximate, true);
+  assert.deepEqual(filtersFromQuery(""), defaultFilters());
 });

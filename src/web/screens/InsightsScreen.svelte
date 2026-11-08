@@ -102,7 +102,7 @@
       </ul>
       {#if queueLine}<p class="muted">{queueLine}</p>{/if}
       <div class="actions">
-        <a class="primary" href="#/games">Analyse more games</a>
+        <a class="primary" href="#/games?analysis=not_analysed">Analyse more games</a>
         {#if filtersActive}
           <button type="button" class="neutral" onclick={() => navigate("/insights")}>Clear filters</button>
         {/if}

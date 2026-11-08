@@ -7,10 +7,9 @@ import { isPunished, myMoves, opportunities } from "./overview.ts";
 import type { Openings } from "./openings.ts";
 import type { Outcome, Tilt } from "./conversion.ts";
 import type { TimeStats } from "./time.ts";
-import type { UsedGame } from "./select.ts";
+import { MAX_IDS, type UsedGame } from "./select.ts";
 
-/** At most 500 ids per list; the same cap applies to an id list given as a filter (sections 3 and 15). */
-export const MAX_IDS = 500;
+
 
 export interface GameList {
   total: number;

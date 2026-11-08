@@ -1,4 +1,5 @@
 import type { GameRow, TimeClass } from "./types.ts";
+import { parseInsightsQuery } from "../../server/insights/select.ts";
 
 /** Search and filters for the Games list. docs/06-GAMES-SPEC.md sections A5-A7. */
 
@@ -12,6 +13,11 @@ export interface GamesFilters {
   /** UTC day boundaries, inclusive: From = 00:00:00.000 UTC, To = 23:59:59.999 UTC. */
   from: number | undefined;
   to: number | undefined;
+  /** docs/06-GAMES-SPEC.md section A8: an exact list of games from an Insights drill-down (shown as a chip, not counted). */
+  ids: Set<string> | undefined;
+  /** Display only, never matched: the chip's label and the "approximate" notice. */
+  label: string | undefined;
+  approximate: boolean;
 }
 
 export function defaultFilters(): GamesFilters {
@@ -24,6 +30,33 @@ export function defaultFilters(): GamesFilters {
     openingFamily: undefined,
     from: undefined,
     to: undefined,
+    ids: undefined,
+    label: undefined,
+    approximate: false,
+  };
+}
+
+/**
+ * A library address from elsewhere, e.g. `#/games?ids=a,b&label=...` from an Insights number
+ * (docs/04-INSIGHTS-SPEC.md section 15.2, docs/06-GAMES-SPEC.md section A8): the Insights query format plus
+ * the library's own analysis filter, label and "approximate" flag.
+ */
+export function filtersFromQuery(query: string): GamesFilters {
+  const params = new URLSearchParams(query);
+  const { filters } = parseInsightsQuery(params);
+  const analysis = params.get("analysis");
+  return {
+    ...defaultFilters(),
+    timeClasses: new Set(filters.timeClasses),
+    colour: filters.colour ?? "any",
+    results: new Set(filters.results),
+    analysis: analysis === "analysed" || analysis === "not_analysed" ? analysis : "any",
+    openingFamily: filters.family,
+    from: filters.from,
+    to: filters.to,
+    ids: filters.ids?.length ? new Set(filters.ids) : undefined,
+    label: params.get("label") ?? undefined,
+    approximate: params.get("approx") === "1",
   };
 }
 
@@ -49,6 +82,7 @@ export function matchesFilters(game: GameRow, filters: GamesFilters): boolean {
   if (filters.openingFamily !== undefined && game.openingFamily !== filters.openingFamily) return false;
   if (filters.from !== undefined && game.playedAt < filters.from) return false;
   if (filters.to !== undefined && game.playedAt > filters.to) return false;
+  if (filters.ids && !filters.ids.has(game.id)) return false;
   return true;
 }
 

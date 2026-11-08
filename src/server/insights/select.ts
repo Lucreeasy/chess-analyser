@@ -4,10 +4,12 @@
  */
 import type { StoredGame } from "../import/parseGame.ts";
 import type { PersonalResult } from "../import/players.ts";
-import type { TimeClass } from "../import/timeClass.ts";
+import { ALL_TIME_CLASSES, type TimeClass } from "../import/timeClass.ts";
 import type { Colour, GameAnalysis } from "../analysis/game.ts";
 
 export const MINIMUM_GAMES = 20;
+/** At most 500 ids per game list, and per id list given as a filter (sections 3 and 15; the library too). */
+export const MAX_IDS = 500;
 const MINIMUM_MY_MOVES = 3;
 
 export interface InsightFilters {
@@ -121,5 +123,37 @@ export function selectGames(games: GameWithAnalysis[], filters: InsightFilters):
     minimum: MINIMUM_GAMES,
     ready,
     needed: Math.max(0, MINIMUM_GAMES - usable.length),
+  };
+}
+
+/** The query string shared by GET /api/insights and the library's drill-down links (sections 3 and 15). */
+export interface InsightsQuery {
+  filters: InsightFilters;
+  /** "All time" chosen explicitly: no default range. */
+  allTime: boolean;
+}
+
+const RESULTS: PersonalResult[] = ["win", "loss", "draw"];
+
+/** Reads the query string: lists are comma-separated, dates are ms since the epoch; unknown values are dropped. */
+export function parseInsightsQuery(params: URLSearchParams): InsightsQuery {
+  const list = (name: string) => params.get(name)?.split(",").filter(Boolean);
+  const time = (name: string) => {
+    const value = Number(params.get(name) ?? NaN);
+    return Number.isFinite(value) ? value : undefined;
+  };
+  const colour = params.get("colour");
+  const ids = list("ids");
+  return {
+    filters: {
+      timeClasses: list("timeClass")?.filter((c): c is TimeClass => (ALL_TIME_CLASSES as readonly string[]).includes(c)),
+      colour: colour === "w" || colour === "b" ? colour : undefined,
+      results: list("result")?.filter((r): r is PersonalResult => (RESULTS as string[]).includes(r)),
+      family: params.get("family") ?? undefined,
+      from: time("from"),
+      to: time("to"),
+      ids: ids && [...new Set(ids)].slice(0, MAX_IDS),
+    },
+    allTime: params.get("allTime") === "1",
   };
 }

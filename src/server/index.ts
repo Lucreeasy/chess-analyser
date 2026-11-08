@@ -1,4 +1,5 @@
-import { computeInsights, parseInsightsQuery } from "./insights/insights.ts";
+import { computeInsights } from "./insights/insights.ts";
+import { parseInsightsQuery } from "./insights/select.ts";
 import { createServer } from "node:http";
 import {
   openDb,

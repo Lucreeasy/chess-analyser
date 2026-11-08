@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeInsights, parseInsightsQuery } from "../../../src/server/insights/insights.ts";
+import { computeInsights } from "../../../src/server/insights/insights.ts";
+import { parseInsightsQuery } from "../../../src/server/insights/select.ts";
 import type { GameWithAnalysis } from "../../../src/server/insights/select.ts";
 import { makeGame, makeAnalysis } from "./fixtures.ts";
 

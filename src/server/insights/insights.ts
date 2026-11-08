@@ -2,10 +2,8 @@
  * The whole Insights computation for one request: the query, the default range, the selection, every section
  * and the drill-down lists. docs/04-INSIGHTS-SPEC.md.
  */
-import { ALL_TIME_CLASSES, type TimeClass } from "../import/timeClass.ts";
-import type { PersonalResult } from "../import/players.ts";
 import { opponentOf } from "../games/shared.ts";
-import { defaultRange, selectGames, type DefaultRange, type GameWithAnalysis, type InsightFilters } from "./select.ts";
+import { defaultRange, selectGames, type DefaultRange, type GameWithAnalysis, type InsightsQuery } from "./select.ts";
 import { overview } from "./overview.ts";
 import { openings, type OpeningRow } from "./openings.ts";
 import { timeStats } from "./time.ts";
@@ -14,38 +12,7 @@ import { trend } from "./trend.ts";
 import { styleFeatures } from "./style.ts";
 import { playstyle } from "./playstyle.ts";
 import { recommendations } from "./recommendations.ts";
-import { drilldownLists, MAX_IDS } from "./drilldown.ts";
-
-export interface InsightsQuery {
-  filters: InsightFilters;
-  /** "All time" chosen explicitly: no default range. */
-  allTime: boolean;
-}
-
-const RESULTS: PersonalResult[] = ["win", "loss", "draw"];
-
-/** Reads the query string: lists are comma-separated, dates are ms since the epoch; unknown values are dropped. */
-export function parseInsightsQuery(params: URLSearchParams): InsightsQuery {
-  const list = (name: string) => params.get(name)?.split(",").filter(Boolean);
-  const time = (name: string) => {
-    const value = Number(params.get(name) ?? NaN);
-    return Number.isFinite(value) ? value : undefined;
-  };
-  const colour = params.get("colour");
-  const ids = list("ids");
-  return {
-    filters: {
-      timeClasses: list("timeClass")?.filter((c): c is TimeClass => (ALL_TIME_CLASSES as readonly string[]).includes(c)),
-      colour: colour === "w" || colour === "b" ? colour : undefined,
-      results: list("result")?.filter((r): r is PersonalResult => (RESULTS as string[]).includes(r)),
-      family: params.get("family") ?? undefined,
-      from: time("from"),
-      to: time("to"),
-      ids: ids && [...new Set(ids)].slice(0, MAX_IDS),
-    },
-    allTime: params.get("allTime") === "1",
-  };
-}
+import { drilldownLists } from "./drilldown.ts";
 
 const withoutGames = ({ reachedGames, ...rest }: Outcome) => rest;
 const openingRow = ({ games, ...rest }: OpeningRow) => ({ ...rest, games: games.length, list: `opening:${rest.family}:${rest.colour}` });
