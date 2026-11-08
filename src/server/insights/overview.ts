@@ -19,7 +19,7 @@ export interface Stat {
 
 const PUNISHING: MoveClass[] = ["best", "excellent", "great", "brilliant"];
 
-function mean(values: number[]): Stat {
+export function mean(values: number[]): Stat {
   return { value: values.length ? values.reduce((a, b) => a + b, 0) / values.length : undefined, n: values.length };
 }
 
