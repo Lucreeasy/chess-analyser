@@ -4,8 +4,10 @@
   import { route, navigate } from "../lib/router.svelte.ts";
   import { queue } from "../lib/live.svelte.ts";
   import { currentCount, queueVisible } from "../lib/queueStatus.ts";
-  import { plural, thousands, ukDate } from "../lib/format.ts";
+  import { accuracyText, one, pct, plural, thousands, ukDate } from "../lib/format.ts";
+  import { drillLink } from "../lib/insightsLinks.ts";
   import Logo from "../components/Logo.svelte";
+  import StatTile from "../components/StatTile.svelte";
 
   type Insights = ReturnType<typeof computeInsights>;
 
@@ -109,7 +111,36 @@
       </div>
     </section>
   {:else}
-    <p class="muted">The dashboard sections follow.</p>
+    {@const o = data.overview}
+    {@const link = (key: string, label: string, exact = false) => drillLink(data.lists[key], label, data.filters, exact)}
+    <div class="dashboard" class:dimmed={loading} aria-busy={loading}>
+      <!-- docs/04-INSIGHTS-SPEC.md section 5. -->
+      <section id="overall">
+        <h2>Overall</h2>
+        <p class="muted">{thousands(o.games)} analysed games and {thousands(o.moves)} of your moves.</p>
+        <div class="tiles">
+          <StatTile label="Accuracy" value={accuracyText(o.accuracy.value)} sub="mean over your games" link={link("all", "All analysed games", true)} />
+          <StatTile
+            label="Errors per 100 moves"
+            value={one(o.errors.all.value)}
+            sub={`${thousands(o.errors.all.count ?? 0)} errors; ${one(o.errors.blunder.value)} blunders`}
+            link={link("error:all", "Games with errors")}
+          />
+          <StatTile
+            label="Punish rate"
+            value={pct(o.punish.value)}
+            sub={`answered ${o.punish.count} of ${o.punish.n} opponent errors`}
+            link={link("punish:opportunities", "Games with an opponent error to punish")}
+          />
+          <StatTile
+            label="Consistency"
+            value={o.consistency.value === undefined ? "–" : `± ${one(o.consistency.value)}`}
+            sub="spread of game accuracy; lower is steadier"
+            link={link("all", "All analysed games", true)}
+          />
+        </div>
+      </section>
+    </div>
   {/if}
 </div>
 
@@ -142,6 +173,23 @@
   .progress {
     height: 12px; /* docs/07-UI-SPEC.md section 5.15 */
     margin-top: 4px;
+  }
+  .dimmed {
+    opacity: 0.6;
+  }
+  #overall {
+    margin-top: 24px;
+  }
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  @media (min-width: 1024px) {
+    .tiles {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
   .actions {
     display: flex;

@@ -6,6 +6,7 @@ import { isError } from "../analysis/classification.ts";
 import type { TacticTag } from "../analysis/tacticTags.ts";
 import type { Phase } from "../analysis/phases.ts";
 import { isPunished, myMoves, opportunities, type Overview } from "./overview.ts";
+import { one, pct } from "./numbers.ts";
 import type { TimeStats } from "./time.ts";
 import type { Outcome, Tilt } from "./conversion.ts";
 import { ep20, type OpeningRow, type Openings } from "./openings.ts";
@@ -49,9 +50,6 @@ export const support = (n: number, fullAt: number) => clamp01(n / fullAt);
 export const severity = (weight: number, d: number, s: number) => Math.round(25 + 75 * weight * (0.7 * d + 0.3 * s));
 export const positiveSeverity = (d: number, s: number) => Math.round(5 + 15 * (0.7 * d + 0.3 * s));
 
-// Text formats (section 0).
-const pct = (x: number) => `${Math.round(x * 100)}%`;
-const one = (x: number) => x.toFixed(1);
 
 interface Candidate extends Evidence {
   score: number;

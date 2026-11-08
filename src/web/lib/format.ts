@@ -1,3 +1,7 @@
+import { one, thousands } from "../../server/insights/numbers.ts";
+
+export { one, pct, thousands } from "../../server/insights/numbers.ts";
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** `{day} {Mon} {year}` in local time, e.g. "15 Mar 2024". docs/06-GAMES-SPEC.md section A3. */
@@ -11,11 +15,6 @@ const UK_DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short
 /** British style in UTC, e.g. "3 Sept 2026". docs/04-INSIGHTS-SPEC.md section 0. */
 export function ukDate(ms: number): string {
   return UK_DATE.format(ms);
-}
-
-/** Whole numbers with a comma separator: "1,462". docs/04-INSIGHTS-SPEC.md section 0. */
-export function thousands(n: number): string {
-  return n.toLocaleString("en-US");
 }
 
 /** "{n} {word}" with an "s" unless n = 1: "1 game", "1,462 moves". */
@@ -36,7 +35,7 @@ export function timeClassLabel(timeClass: string): string {
 }
 
 export function accuracyText(accuracy: number | undefined): string {
-  return accuracy === undefined ? "–" : `${accuracy.toFixed(1)}%`;
+  return accuracy === undefined ? "–" : `${one(accuracy)}%`;
 }
 
 export function countText(n: number | undefined): string {

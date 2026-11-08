@@ -9,8 +9,6 @@ import type { Outcome, Tilt } from "./conversion.ts";
 import type { TimeStats } from "./time.ts";
 import { MAX_IDS, type UsedGame } from "./select.ts";
 
-
-
 export interface GameList {
   total: number;
   /** At most 500: highest weight first (weighted lists), then newest. */
