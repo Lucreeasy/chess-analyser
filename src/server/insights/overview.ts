@@ -49,6 +49,20 @@ function errorRates(moves: MoveRecord[]): Record<ErrorClass | "all", Stat> {
   return rates;
 }
 
+/** Section 5.4: my replies to an opponent Mistake or Blunder (an opportunity each). */
+export function opportunities(u: UsedGame): MoveRecord[] {
+  const moves = u.analysis.moves;
+  return moves.filter((mine, i) => {
+    const theirs = moves[i - 1];
+    return mine.colour === u.me && theirs?.colour !== u.me && (theirs?.classification === "mistake" || theirs?.classification === "blunder");
+  });
+}
+
+/** Section 5.4: an opportunity is punished by a Best, Excellent, Great or Brilliant reply. */
+export function isPunished(reply: MoveRecord): boolean {
+  return PUNISHING.includes(reply.classification);
+}
+
 export interface Overview {
   games: number;
   moves: number;
@@ -80,20 +94,8 @@ export function overview(used: UsedGame[]): Overview {
   const tagCount = (t: TacticTag) => tagged.filter((m) => m.tag === t).length;
   const topTag = ALL_TAGS.reduce<TacticTag | undefined>((top, t) => (tagCount(t) > (top ? tagCount(top) : 0) ? t : top), undefined);
 
-  // Section 5.4: an opponent Mistake or Blunder immediately followed by my move; punished by a strong reply.
-  let opportunities = 0;
-  let punished = 0;
-  for (const u of used) {
-    const moves = u.analysis.moves;
-    for (let i = 0; i + 1 < moves.length; i++) {
-      const theirs = moves[i];
-      const mine = moves[i + 1];
-      if (theirs.colour === u.me || mine.colour !== u.me) continue;
-      if (theirs.classification !== "mistake" && theirs.classification !== "blunder") continue;
-      opportunities++;
-      if (PUNISHING.includes(mine.classification)) punished++;
-    }
-  }
+  const replies = used.flatMap(opportunities);
+  const punished = replies.filter(isPunished).length;
 
   const accuracies = used.map(accuracyOf);
   return {
@@ -110,8 +112,8 @@ export function overview(used: UsedGame[]): Overview {
     errorsByPhase: Object.fromEntries(ALL_PHASES.map((p) => [p, errorRates(byPhase(p))])) as Record<Phase, Record<ErrorClass | "all", Stat>>,
     tactics: Object.fromEntries(ALL_TAGS.map((t) => [t, share(tagCount(t), tagged.length)])) as Record<TacticTag, Stat>,
     topTag,
-    punish: share(punished, opportunities),
-    missed: share(opportunities - punished, opportunities),
+    punish: share(punished, replies.length),
+    missed: share(replies.length - punished, replies.length),
     consistency: { value: accuracies.length >= 2 ? populationSd(accuracies) : undefined, n: used.length },
   };
 }

@@ -5,8 +5,10 @@ import type { MoveRecord } from "../analysis/game.ts";
 import { isError } from "../analysis/classification.ts";
 import type { TacticTag } from "../analysis/tacticTags.ts";
 import type { Phase } from "../analysis/phases.ts";
-import { myMoves, type Overview } from "./overview.ts";
+import { isPunished, myMoves, opportunities, type Overview } from "./overview.ts";
 import type { TimeStats } from "./time.ts";
+import type { Outcome, Tilt } from "./conversion.ts";
+import { moverEp } from "../analysis/expectedPoints.ts";
 import type { UsedGame } from "./select.ts";
 
 export interface Evidence {
@@ -30,6 +32,8 @@ export interface RuleInputs {
   used: UsedGame[];
   overview: Overview;
   time: TimeStats;
+  conversion: Outcome;
+  tilt: Tilt;
 }
 
 const MAX_EVIDENCE = 5;
@@ -69,7 +73,7 @@ export function chooseEvidence(candidates: Candidate[], onePerGameFirst = true):
   return chosen.map(({ gameId, ply }) => ({ gameId, ply }));
 }
 
-/** My moves of the used games that pass `keep`, scored. */
+/** My moves of the used games, scored; a move scored undefined is no candidate. */
 function candidates(used: UsedGame[], score: (m: MoveRecord) => number | undefined): Candidate[] {
   return used.flatMap((u) =>
     myMoves(u).flatMap((m) => {
@@ -77,6 +81,11 @@ function candidates(used: UsedGame[], score: (m: MoveRecord) => number | undefin
       return s === undefined ? [] : [{ gameId: u.game.id, ply: m.ply, score: s }];
     }),
   );
+}
+
+/** The move with the largest EP loss, the first one on ties. */
+function worstMove(moves: MoveRecord[]): MoveRecord {
+  return moves.reduce((w, m) => (m.epLoss > w.epLoss ? m : w));
 }
 
 /** Section 13.2. */
@@ -149,7 +158,110 @@ function timeTrouble({ used, time }: RuleInputs): Recommendation | undefined {
   };
 }
 
-const RULES = [blunderCheck, timeTrouble];
+/** Section 13.4. */
+function weakEndgames({ used, overview }: RuleInputs): Recommendation | undefined {
+  const { endgame, middlegame } = overview.accuracyByPhase;
+  if (endgame.value === undefined || middlegame.value === undefined || endgame.n < 60 || middlegame.n < 60) return undefined;
+  const gap = middlegame.value - endgame.value;
+  if (gap < 8) return undefined;
+  return {
+    id: "weak-endgames",
+    title: "Your endgames lose points",
+    finding: `Your endgame accuracy is ${one(endgame.value)}, ${one(gap)} points below your middlegame accuracy of ${one(middlegame.value)} (from ${endgame.n} endgame moves).`,
+    why: "Endgames settle close games. A gap this size means you hand back advantages and miss draws that careful technique would keep.",
+    action:
+      "Study the endgame positions linked here, then practise the basics (king and pawn endings, rook endings) until the technique is automatic.",
+    evidence: chooseEvidence(candidates(used, (m) => (m.phase === "endgame" ? m.epLoss : undefined)), false),
+    severity: severity(0.95, depth(gap - 8, 12), support(endgame.n, 400)),
+    practice: { phase: "endgame", label: "Endgame puzzles from your games" },
+  };
+}
+
+/** Section 13.5 evidence: in a won-position game I did not win, my worst move after I first stood at 80% or more. */
+function slipCandidate(u: UsedGame): Candidate {
+  const moves = u.analysis.moves;
+  const myEp = (m: MoveRecord) => moverEp(m.winPercentAfter, u.me);
+  let point = moves.findIndex((m) => myEp(m) >= 0.8);
+  if (point === -1) point = moves.reduce((best, m, i) => (myEp(m) > myEp(moves[best]) ? i : best), 0);
+  const after = moves.slice(point + 1).filter((m) => m.colour === u.me);
+  const lost = u.game.myResult === "loss" ? 1 : 0;
+  if (after.length === 0) return { gameId: u.game.id, ply: moves[point].ply, score: 0 };
+  const worst = worstMove(after);
+  return { gameId: u.game.id, ply: worst.ply, score: worst.epLoss + lost };
+}
+
+/** Section 13.5. */
+function poorConversion({ conversion }: RuleInputs): Recommendation | undefined {
+  const { rate, reached, won, drawn, lost } = conversion;
+  if (rate.value === undefined || reached.count! < 10 || rate.value >= 0.7) return undefined;
+  const slipped = conversion.reachedGames.filter((u) => u.game.myResult !== "win");
+  return {
+    id: "poor-conversion",
+    title: "Turn winning positions into wins",
+    finding: `You reached a clearly winning position in ${reached.count} games but won only ${won.count} of them (${pct(rate.value)}); ${drawn.count} ended in a draw and ${lost.count} in a loss.`,
+    why: "A game lost or drawn from a winning position costs a full point or half of one, which makes this the quickest rating you can win back.",
+    action:
+      "When you are clearly ahead, trade pieces, avoid risky tricks and check your opponent's best reply before each move. The positions linked here show where the advantage slipped.",
+    evidence: chooseEvidence(slipped.map(slipCandidate)),
+    severity: severity(1, depth(0.7 - rate.value, 0.3), support(reached.count!, 40)),
+  };
+}
+
+/** Section 13.8. */
+function missedChances({ used, overview }: RuleInputs): Recommendation | undefined {
+  const { missed } = overview;
+  if (missed.value === undefined || missed.n < 20 || missed.value < 0.3) return undefined;
+  // A Miss scores 1 + its loss, which is always above the loss alone it would score as an unpunished reply.
+  const unpunished = new Set(used.flatMap(opportunities).filter((m) => !isPunished(m)));
+  const evidence = candidates(used, (m) => (m.classification === "miss" ? 1 + m.epLoss : unpunished.has(m) ? m.epLoss : undefined));
+  return {
+    id: "missed-chances",
+    title: "Punish your opponent's mistakes",
+    finding: `${pct(missed.value)} of your opponent's mistakes and blunders go unpunished (${missed.count} of ${missed.n}).`,
+    why: "Opponents at club level give you chances all the time, and taking them is the cheapest way to win more games.",
+    action:
+      "When your opponent plays something odd, ask what it left undefended and look at every check, capture and threat before you reply. Then practise on the chances you missed in your own games.",
+    evidence: chooseEvidence(evidence),
+    severity: severity(0.9, depth(missed.value - 0.3, 0.3), support(missed.n, 150)),
+    practice: { tag: "missed_tactic", label: "Tactics from your missed chances" },
+  };
+}
+
+/** Section 13.9. */
+function inconsistency({ used, overview, tilt }: RuleInputs): Recommendation | undefined {
+  const sd = overview.consistency.value;
+  if (sd === undefined || overview.consistency.n < 25 || sd <= 11) return undefined;
+  const { afterLoss, afterWin } = tilt;
+  const tiltKnown = afterLoss.value !== undefined && afterWin.value !== undefined && afterLoss.n >= 8 && afterWin.n >= 8;
+  const tilted = tiltKnown && afterWin.value! - afterLoss.value! >= 3;
+  const meanAccuracy = overview.accuracy.value!;
+  const rightAfterLoss = new Set(tilt.afterLossGames);
+  const evidence = used.map((u) => {
+    const accuracy = u.analysis.summary.accuracy[u.me];
+    const score = 100 - accuracy + (tilted && rightAfterLoss.has(u) && accuracy < meanAccuracy ? 1000 : 0);
+    return { gameId: u.game.id, ply: worstMove(myMoves(u)).ply, score };
+  });
+  const percent = (x: number) => `${one(x)}%`;
+  let action: string;
+  if (tilted) {
+    action = `After a loss your next game averages ${percent(afterLoss.value!)} accuracy against ${percent(afterWin.value!)} after a win (${afterLoss.n} and ${afterWin.n} games). Play fewer games per session and stop after two losses in a row.`;
+  } else if (tiltKnown) {
+    action = `Your accuracy after a loss (${percent(afterLoss.value!)}) is close to the one after a win (${percent(afterWin.value!)}), so losing streaks are not the cause. Look at your weakest games linked here and play fewer games per session.`;
+  } else {
+    action = "Look at your weakest games linked here to see what went wrong, play fewer games per session and stop after two losses in a row.";
+  }
+  return {
+    id: "inconsistency",
+    title: "Your results swing from game to game",
+    finding: `The accuracy of your games varies by ${one(sd)} points from game to game (a typical range is 5 to 11, over ${overview.consistency.n} games).`,
+    why: "Big swings usually come from tiredness, tilt or rushed games rather than missing knowledge, so they are among the easiest things to fix.",
+    action,
+    evidence: chooseEvidence(evidence),
+    severity: severity(0.7, depth(sd - 11, 8), support(overview.consistency.n, 100)),
+  };
+}
+
+const RULES = [blunderCheck, timeTrouble, weakEndgames, poorConversion, missedChances, inconsistency];
 
 /** Section 13.1 "running the rules": evidence de-duplicated and capped, then the top 5 by severity. */
 export function recommendations(inputs: RuleInputs): Recommendation[] {

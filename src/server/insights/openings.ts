@@ -3,6 +3,7 @@
  * docs/04-INSIGHTS-SPEC.md section 7.
  */
 import type { Colour, GameAnalysis } from "../analysis/game.ts";
+import { moverEp } from "../analysis/expectedPoints.ts";
 import { harmonicMeanFloored } from "../analysis/gameAccuracy.ts";
 import { mean, type Stat } from "./overview.ts";
 import type { UsedGame } from "./select.ts";
@@ -31,11 +32,10 @@ export interface Openings {
   unnamed: number;
 }
 
-/** My EP (0..1) after ply 20, or after the last ply of a shorter game. */
+/** My EP after ply 20, or after the last ply of a shorter game. */
 export function ep20(analysis: GameAnalysis, me: Colour): number | undefined {
   const move = analysis.moves[Math.min(EARLY_PLIES, analysis.moves.length) - 1];
-  if (!move) return undefined;
-  return me === "w" ? move.winPercentAfter / 100 : 1 - move.winPercentAfter / 100;
+  return move && moverEp(move.winPercentAfter, me);
 }
 
 function row(family: string, colour: Colour, games: UsedGame[]): OpeningRow {
