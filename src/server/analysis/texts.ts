@@ -15,14 +15,14 @@ export const CLASS_INFO: Record<MoveClass, { label: string; glyph: string; descr
   blunder: { label: "Blunder", glyph: "??", description: "A serious error." },
 };
 
-/** docs/02-ANALYSIS-SPEC.md 15.2. */
-export const TAG_INFO: Record<TacticTag, { sentence: string; label: string }> = {
-  allowed_mate: { sentence: "It allowed a forced mate.", label: "Allowed mate" },
-  missed_mate: { sentence: "It missed a forced mate.", label: "Missed mate" },
-  hung_piece: { sentence: "It left a piece hanging.", label: "Hung piece" },
-  allowed_tactic: { sentence: "It allowed a tactic that wins material.", label: "Allowed tactic" },
-  missed_tactic: { sentence: "It missed a tactic that wins material.", label: "Missed tactic" },
-  positional: { sentence: "No tactic involved: the position simply got worse.", label: "Positional" },
+/** docs/02-ANALYSIS-SPEC.md 15.2; the hint is the Insights one (docs/04-INSIGHTS-SPEC.md section 0). */
+export const TAG_INFO: Record<TacticTag, { sentence: string; label: string; hint: string }> = {
+  allowed_mate: { sentence: "It allowed a forced mate.", label: "Allowed mate", hint: "A move that let the opponent mate you" },
+  missed_mate: { sentence: "It missed a forced mate.", label: "Missed mate", hint: "A mate you could have played" },
+  hung_piece: { sentence: "It left a piece hanging.", label: "Hung piece", hint: "Left a piece to be captured for nothing" },
+  allowed_tactic: { sentence: "It allowed a tactic that wins material.", label: "Allowed tactic", hint: "A move that allowed a winning tactic" },
+  missed_tactic: { sentence: "It missed a tactic that wins material.", label: "Missed tactic", hint: "A winning tactic you did not play" },
+  positional: { sentence: "No tactic involved: the position simply got worse.", label: "Positional", hint: "No tactical pattern behind the error" },
 };
 
 /** SAN immediately followed by the class's glyph: "Nxe5??", "Qh5!", "e4". */

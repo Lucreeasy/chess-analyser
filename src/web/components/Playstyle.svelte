@@ -3,7 +3,7 @@
   import { ordinal } from "../../server/insights/playstyle.ts";
   import { one, pct } from "../lib/format.ts";
   import type { DrillLink } from "../lib/insightsLinks.ts";
-  import Icon from "./Icon.svelte";
+  import BarRow from "./BarRow.svelte";
 
   /** docs/04-INSIGHTS-SPEC.md section 12.7; docs/07-UI-SPEC.md section 7 (radar). */
   let { axes, archetype, link }: { axes: Axis[]; archetype?: Archetype; link: (axis: Axis) => DrillLink | undefined } = $props();
@@ -78,16 +78,8 @@
 
   <ul class="axes">
     {#each axes as a (a.key)}
-      {@const drill = link(a)}
       <li>
-        <svelte:element this={drill ? "a" : "div"} class="tile axis" class:drill={!!drill} href={drill?.href} title={drill?.hint}>
-          <span class="axis-row">
-            <span class="axis-name">{a.label}</span>
-            <span class="axis-value">{rounded(a)}{#if drill}<Icon name="chevronRight" size={18} />{/if}</span>
-          </span>
-          <span class="bar" aria-hidden="true"><span style={`width: ${a.value ?? 0}%`}></span></span>
-          {#if drill}<span class="sr-only">{drill.hint}</span>{/if}
-        </svelte:element>
+        <BarRow label={a.label} value={rounded(a)} bar={a.value ?? 0} link={link(a)} />
         {#each a.inputs as input (input.label)}
           <p class="input">
             <span>{input.label}</span>
@@ -170,36 +162,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-  }
-  .axis {
-    gap: 8px;
-  }
-  .axis-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .axis-name {
-    font-size: 16px;
-    font-weight: 500;
-  }
-  .axis-value {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 18px;
-    font-weight: 600;
-  }
-  .bar {
-    height: 8px;
-    border-radius: 999px;
-    background: var(--surface-2);
-    overflow: hidden;
-  }
-  .bar > span {
-    display: block;
-    height: 100%;
-    background: var(--brand);
   }
   .input {
     display: flex;

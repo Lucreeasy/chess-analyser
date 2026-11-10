@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { computeInsights } from "../../server/insights/insights.ts";
   import { ALL_PHASES } from "../../server/analysis/phases.ts";
+  import { ALL_TAGS } from "../../server/analysis/tacticTags.ts";
+  import { TAG_INFO } from "../../server/analysis/texts.ts";
   import { apiGet } from "../lib/api.ts";
   import { route, navigate } from "../lib/router.svelte.ts";
   import { queue } from "../lib/live.svelte.ts";
@@ -11,6 +13,8 @@
   import StatTile from "../components/StatTile.svelte";
   import Recommendations from "../components/Recommendations.svelte";
   import Playstyle from "../components/Playstyle.svelte";
+  import BarRow from "../components/BarRow.svelte";
+  import Icon from "../components/Icon.svelte";
 
   type Insights = ReturnType<typeof computeInsights>;
 
@@ -195,6 +199,36 @@
           {/each}
         </div>
       </section>
+
+      <section id="tactics" class="card">
+        <h2>Tactics</h2>
+        <p class="muted">What kind of mistake your errors are: a piece left hanging, a missed shot, or just a poor plan.</p>
+        {#if o.tactics.positional.n === 0}
+          <p class="inset rows">No errors in this selection.</p>
+        {:else}
+          <!-- Section 14: by count, ties in tag order (the sort is stable); bars scaled to the largest share. -->
+          {@const tags = [...ALL_TAGS].sort((a, b) => (o.tactics[b].count ?? 0) - (o.tactics[a].count ?? 0))}
+          {@const largest = Math.max(0.01, ...tags.map((t) => o.tactics[t].value ?? 0))}
+          <ul class="rows">
+            {#each tags as t (t)}
+              {@const s = o.tactics[t]}
+              {@const drill = link(`tactic:${t}`, `${TAG_INFO[t].label} errors`)}
+              <li class:dimmed={!drill}>
+                <BarRow
+                  label={TAG_INFO[t].label}
+                  hint={TAG_INFO[t].hint}
+                  value={pct(s.value)}
+                  sub={plural(s.count ?? 0, "error")}
+                  bar={((s.value ?? 0) / largest) * 100}
+                  tone={t === "positional" ? "muted" : "accent"}
+                  link={drill}
+                />
+              </li>
+            {/each}
+          </ul>
+        {/if}
+        <a class="neutral small" href="#/puzzles">Practise your own mistakes <Icon name="chevronRight" size={18} /></a>
+      </section>
     </div>
   {/if}
 </div>
@@ -275,6 +309,13 @@
     .phases {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+  }
+  .rows {
+    display: grid;
+    gap: 12px;
+    margin: 12px 0 16px;
+    padding: 0;
+    list-style: none;
   }
   .actions {
     display: flex;
