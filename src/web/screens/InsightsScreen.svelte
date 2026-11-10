@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { computeInsights } from "../../server/insights/insights.ts";
+  import type { Stat } from "../../server/insights/overview.ts";
   import { ALL_PHASES } from "../../server/analysis/phases.ts";
   import { ALL_TAGS } from "../../server/analysis/tacticTags.ts";
   import { TAG_INFO } from "../../server/analysis/texts.ts";
@@ -14,9 +15,16 @@
   import Recommendations from "../components/Recommendations.svelte";
   import Playstyle from "../components/Playstyle.svelte";
   import BarRow from "../components/BarRow.svelte";
+  import AreaChart from "../components/AreaChart.svelte";
   import Icon from "../components/Icon.svelte";
 
   type Insights = ReturnType<typeof computeInsights>;
+
+  /** docs/04-INSIGHTS-SPEC.md section 8.2: one decimal below 10, whole from 10 ("4.3 s", "12 s"). */
+  const secs = (s: number | undefined) => (s === undefined ? "–" : `${s < 10 ? one(s) : Math.round(s)} s`);
+
+  /** "{count} of {n} {noun}s", the sub-line of a share. */
+  const ofN = (s: Stat, noun: string) => `${thousands(s.count ?? 0)} of ${plural(s.n, noun)}`;
 
   /** docs/04-INSIGHTS-SPEC.md section 9.2: the texts of the two gauges. */
   const GAUGES = [
@@ -25,7 +33,7 @@
       title: "Converting winning positions",
       rate: "Winning positions won",
       rateList: "conversion:won",
-      sub: (count: number, n: number) => `won ${thousands(count)} of ${plural(n, "winning position")}`,
+      sub: (rate: Stat) => `won ${ofN(rate, "winning position")}`,
       empty: "No game in this selection reached a winning position (80% win chance or more). Nothing to measure yet.",
       reachedLabel: "Games that reached a winning position",
     },
@@ -34,7 +42,7 @@
       title: "Saving losing positions",
       rate: "Losing positions saved",
       rateList: "resilience:saved",
-      sub: (count: number, n: number) => `saved ${thousands(count)} of ${plural(n, "losing position")} (won or drawn)`,
+      sub: (rate: Stat) => `saved ${ofN(rate, "losing position")} (won or drawn)`,
       empty: "No game in this selection fell into a losing position (20% win chance or less). Nothing to measure yet.",
       reachedLabel: "Games that reached a losing position",
     },
@@ -141,6 +149,7 @@
     </section>
   {:else}
     {@const o = data.overview}
+    {@const time = data.time}
     <!-- Section 6: the error bars of the three phases share one scale. -->
     {@const errorScale = Math.max(10, ...ALL_PHASES.map((p) => o.errorsByPhase[p].all.value ?? 0))}
     {@const link = (key: string, label: string, exact = false) => drillLink(data.lists[key], label, data.filters, exact)}
@@ -222,6 +231,71 @@
         </div>
       </section>
 
+      <section id="time" class="card">
+        <h2>Time management</h2>
+        <p class="muted">Where your clock goes, and what happens to your moves when you run short.</p>
+        <!-- Section 8.2. -->
+        {#if time.clocked === 0}
+          <p class="inset cols">
+            None of the games in this selection have clock times (daily games and PGNs without clock comments), so the time statistics are hidden.
+          </p>
+        {/if}
+        {#if time.clocked > 0 || time.lostOnTime.n > 0}
+          <div class="tiles">
+            {#if time.clocked > 0}
+              <StatTile
+                label="Seconds per move"
+                value={secs(time.secondsPerMove.value)}
+                sub={`${secs(time.secondsPerMoveEarly.value)} in plies 1-20`}
+                link={link("time:clocks", "Games with clock times")}
+              />
+              <StatTile label="Moves under 5 s" value={pct(time.under5s.value)} sub={ofN(time.under5s, "move")} link={link("time:clocks", "Games with clock times")} />
+              <StatTile
+                label="Games in time trouble"
+                value={pct(time.gamesInTrouble.value)}
+                sub={ofN(time.gamesInTrouble, "game")}
+                link={link("time:trouble", "Games where you entered time trouble")}
+              />
+            {/if}
+            <StatTile label="Lost on time" value={pct(time.lostOnTime.value)} sub={ofN(time.lostOnTime, "loss")} link={link("time:loss", "Games lost on time")} />
+          </div>
+        {/if}
+        {#if time.clocked > 0}
+          {@const trouble = time.troubleBlunders}
+          {@const normal = time.normalBlunders}
+          {@const scale = Math.max(trouble.value ?? 0, normal.value ?? 0, 1)}
+          {@const warn = (time.ratio ?? 0) >= 2}
+          {#if time.byMoveNumber.length > 0}
+            <h3>Average seconds per move, by move number</h3>
+            <AreaChart label="Average seconds per move, by move number" points={time.byMoveNumber.map((p) => ({ move: p.move, s: p.seconds.value ?? 0 }))} />
+          {/if}
+          <h3>Blunders per 100 moves: time trouble vs not</h3>
+          <div class="across">
+            <StatTile
+              label="In time trouble"
+              value={one(trouble.value)}
+              sub={`${plural(trouble.count ?? 0, "blunder")} in ${plural(trouble.n, "move")}`}
+              bar={((trouble.value ?? 0) / scale) * 100}
+              tone={warn ? "danger" : "brand"}
+              {warn}
+              link={link("time:troubleBlunders", "Games with a blunder in time trouble")}
+            />
+            <StatTile
+              label="With enough time"
+              value={one(normal.value)}
+              sub={`${plural(normal.count ?? 0, "blunder")} in ${plural(normal.n, "move")}`}
+              bar={((normal.value ?? 0) / scale) * 100}
+              link={link("time:normalBlunders", "Games with a blunder outside time trouble")}
+            />
+          </div>
+          {#if time.ratio !== undefined}
+            <p class="note">
+              You blunder <strong>{one(time.ratio)}×</strong> as often when your clock is low (under 10% of the base time or under 10 s).
+            </p>
+          {/if}
+        {/if}
+      </section>
+
       <section id="conversion" class="card">
         <h2>Conversion & resilience</h2>
         <p class="muted">Do you finish off winning positions, and do you save the ones that went wrong?</p>
@@ -234,7 +308,7 @@
               {#if s.reached.count === 0}
                 <p class="inset">{g.empty}</p>
               {:else}
-                <StatTile label={g.rate} value={pct(s.rate.value)} sub={g.sub(s.rate.count ?? 0, s.rate.n)} link={link(g.rateList, g.rate)}>
+                <StatTile label={g.rate} value={pct(s.rate.value)} sub={g.sub(s.rate)} link={link(g.rateList, g.rate)}>
                   <span
                     class="wdl"
                     role="img"
@@ -397,6 +471,7 @@
   .wdl .lost {
     background: repeating-linear-gradient(135deg, var(--danger) 0 5px, color-mix(in srgb, var(--danger) 55%, var(--surface)) 5px 10px);
   }
+  #time h3,
   #conversion > h3 {
     margin: 16px 0 8px;
   }
