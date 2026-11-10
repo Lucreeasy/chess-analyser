@@ -212,17 +212,6 @@
     opacity: 0;
     pointer-events: none;
   }
-  select,
-  input[type="date"] {
-    width: 100%;
-    min-height: 44px;
-    padding: 0 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--surface);
-    color: var(--ink);
-    font-size: 16px;
-  }
   .clear {
     min-height: 44px;
     border: 1px solid var(--line);

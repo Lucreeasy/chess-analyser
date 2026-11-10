@@ -127,6 +127,19 @@ a {
   color: var(--brand);
 }
 
+/* Form fields: selects and date inputs (section 5.2). */
+select,
+input[type="date"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+}
+
 /* Text for screen readers only. */
 .sr-only {
   position: absolute;
