@@ -21,12 +21,12 @@
   <span class="top">
     <span>
       <span class="name">{label}</span>
-      {#if hint}<span class="small">{hint}</span>{/if}
+      {#if hint}<span class="fine">{hint}</span>{/if}
     </span>
     <span class="end">
       <span>
         <span class="value">{value}</span>
-        {#if sub}<span class="small">{sub}</span>{/if}
+        {#if sub}<span class="fine">{sub}</span>{/if}
       </span>
       {#if link}<Icon name="chevronRight" size={18} />{/if}
     </span>
@@ -63,10 +63,6 @@
   .value {
     font-size: 18px;
     font-weight: 600;
-  }
-  .small {
-    color: var(--muted);
-    font-size: 12px;
   }
   .progress {
     height: 8px;

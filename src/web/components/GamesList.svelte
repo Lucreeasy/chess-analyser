@@ -255,23 +255,6 @@
       color: var(--muted);
       padding: 0;
     }
-    .games-table th button {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      height: 44px;
-      padding: 0 12px;
-      border: none;
-      background: none;
-      color: inherit;
-      font: inherit;
-      text-transform: inherit;
-      letter-spacing: inherit;
-      cursor: pointer;
-    }
-    .games-table th[aria-sort]:not([aria-sort="none"]) button {
-      color: var(--ink);
-    }
     .games-table td {
       padding: 10px 12px;
       border-top: 1px solid var(--line);

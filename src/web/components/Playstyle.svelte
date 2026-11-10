@@ -67,7 +67,7 @@
           Weakest axis: <strong>{label(archetype.weakest).label}</strong> ({rounded(label(archetype.weakest))}) — the one to work on.
         </p>
         {#if archetype.pair}
-          <p class="small">From your two highest axes: {label(archetype.pair[0]).short} + {label(archetype.pair[1]).short}.</p>
+          <p class="fine">From your two highest axes: {label(archetype.pair[0]).short} + {label(archetype.pair[1]).short}.</p>
         {/if}
       {:else}
         <p class="name">No archetype yet</p>
@@ -151,10 +151,6 @@
   }
   .muted-line strong {
     color: var(--ink);
-  }
-  .small {
-    color: var(--muted);
-    font-size: 12px;
   }
   .axes {
     display: grid;

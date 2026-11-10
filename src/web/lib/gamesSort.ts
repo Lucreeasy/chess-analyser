@@ -44,19 +44,18 @@ function sortValue(game: GameRow, key: SortKey): string | number | undefined {
   }
 }
 
+/** Two column values in a direction; a missing value sorts last in both directions; 0 leaves it to a tie-break. */
+export function compareValues(av: string | number | undefined, bv: string | number | undefined, direction: SortDirection): number {
+  if ((av === undefined) !== (bv === undefined)) return av === undefined ? 1 : -1;
+  if (av === undefined || bv === undefined) return 0;
+  const cmp = typeof av === "number" ? av - (bv as number) : String(av).localeCompare(String(bv));
+  return direction === "desc" ? -cmp : cmp;
+}
+
 /** Missing values sort last in both directions; tie-break newest played-at first, then id (id only when sorting by date itself). */
 export function compareGames(a: GameRow, b: GameRow, key: SortKey, direction: SortDirection): number {
-  const av = sortValue(a, key);
-  const bv = sortValue(b, key);
-  const aMissing = av === undefined;
-  const bMissing = bv === undefined;
-  if (aMissing !== bMissing) return aMissing ? 1 : -1;
-
-  if (!aMissing && !bMissing) {
-    const cmp = typeof av === "number" ? av - (bv as number) : String(av).localeCompare(String(bv));
-    const directed = direction === "desc" ? -cmp : cmp;
-    if (directed !== 0) return directed;
-  }
+  const directed = compareValues(sortValue(a, key), sortValue(b, key), direction);
+  if (directed !== 0) return directed;
 
   if (key !== "date") {
     const dateCmp = b.playedAt - a.playedAt;

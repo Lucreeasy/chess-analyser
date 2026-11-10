@@ -198,6 +198,35 @@ label {
   background: var(--surface);
   color: var(--ink);
 }
+/* A small button (section 5.1): less padding and text, still 44 px high. */
+.small {
+  padding: 0 12px;
+  font-size: 14px;
+}
+/* Fine print: 12 px muted text. */
+.fine {
+  color: var(--muted);
+  font-size: 12px;
+}
+/* A sortable table header (section 5.11): the column name is a button; the active column is in ink. */
+th[aria-sort] > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+th[aria-sort="ascending"] > button,
+th[aria-sort="descending"] > button {
+  color: var(--ink);
+}
 button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
