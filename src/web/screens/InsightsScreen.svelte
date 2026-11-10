@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { computeInsights } from "../../server/insights/insights.ts";
+  import { ALL_PHASES } from "../../server/analysis/phases.ts";
   import { apiGet } from "../lib/api.ts";
   import { route, navigate } from "../lib/router.svelte.ts";
   import { queue } from "../lib/live.svelte.ts";
@@ -114,6 +115,8 @@
     </section>
   {:else}
     {@const o = data.overview}
+    <!-- Section 6: the error bars of the three phases share one scale. -->
+    {@const errorScale = Math.max(10, ...ALL_PHASES.map((p) => o.errorsByPhase[p].all.value ?? 0))}
     {@const link = (key: string, label: string, exact = false) => drillLink(data.lists[key], label, data.filters, exact)}
     <div class="dashboard" class:dimmed={loading} aria-busy={loading}>
       <!-- docs/04-INSIGHTS-SPEC.md section 5. -->
@@ -157,6 +160,40 @@
         <h2>Recommendations</h2>
         <p class="muted">What to work on first, based on patterns across your games. Every card points to real positions.</p>
         <Recommendations recommendations={data.recommendations} />
+      </section>
+
+      <section id="phases" class="card">
+        <h2>Phases</h2>
+        <p class="muted">How accurately you play, and how often you err, in the opening, middlegame and endgame.</p>
+        <div class="phases">
+          {#each ALL_PHASES as p (p)}
+            {@const errors = o.errorsByPhase[p]}
+            <div class="phase">
+              <h3>{p[0].toUpperCase() + p.slice(1)} <span class="muted">{thousands(o.accuracyByPhase[p].n)} moves</span></h3>
+              <StatTile
+                label="Accuracy"
+                value={accuracyText(o.accuracyByPhase[p].value)}
+                bar={o.accuracyByPhase[p].value ?? 0}
+                link={link(`phase:${p}`, `Games that reached the ${p}`)}
+              />
+              <StatTile
+                label="Errors per 100 moves"
+                value={one(errors.all.value)}
+                sub={plural(errors.all.count ?? 0, "error")}
+                bar={((errors.all.value ?? 0) / errorScale) * 100}
+                tone="accent"
+                warn={(errors.all.value ?? 0) >= 12}
+                link={link(`error:all:${p}`, `Games with errors in the ${p}`)}
+              />
+              <StatTile
+                label="Blunders per 100 moves"
+                value={one(errors.blunder.value)}
+                sub={plural(errors.blunder.count ?? 0, "blunder")}
+                link={link(`error:blunder:${p}`, `Games with blunders in the ${p}`)}
+              />
+            </div>
+          {/each}
+        </div>
       </section>
     </div>
   {/if}
@@ -219,6 +256,24 @@
   @media (min-width: 1024px) {
     .tiles {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .phases {
+    display: grid;
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .phase {
+    display: grid;
+    gap: 8px;
+  }
+  @media (min-width: 768px) {
+    .phases {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
   .actions {
