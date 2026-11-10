@@ -1,10 +1,11 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import Icon from "./Icon.svelte";
   import type { DrillLink } from "../lib/insightsLinks.ts";
 
   /**
    * A stat tile; with a link it opens the games behind the number. docs/07-UI-SPEC.md section 5.10. `bar` (0-100)
-   * adds an 8 px decorative bar in the `tone` colour; `warn` prints the value in Danger.
+   * adds an 8 px decorative bar in the `tone` colour; `warn` prints the value in Danger; `children` go last.
    */
   let {
     label,
@@ -14,7 +15,17 @@
     bar,
     tone = "brand",
     warn = false,
-  }: { label: string; value: string; sub?: string; link?: DrillLink; bar?: number; tone?: "brand" | "accent" | "danger"; warn?: boolean } = $props();
+    children,
+  }: {
+    label: string;
+    value: string;
+    sub?: string;
+    link?: DrillLink;
+    bar?: number;
+    tone?: "brand" | "accent" | "danger";
+    warn?: boolean;
+    children?: Snippet;
+  } = $props();
 </script>
 
 <svelte:element this={link ? "a" : "div"} class="tile" class:drill={!!link} href={link?.href} title={link?.hint}>
@@ -27,6 +38,7 @@
   {#if bar !== undefined}
     <span class="progress" aria-hidden="true"><span class="fill" style={`width: ${bar}%; background: var(--${tone})`}></span></span>
   {/if}
+  {@render children?.()}
   {#if link}<span class="sr-only">{link.hint}</span>{/if}
 </svelte:element>
 

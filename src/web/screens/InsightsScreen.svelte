@@ -18,6 +18,28 @@
 
   type Insights = ReturnType<typeof computeInsights>;
 
+  /** docs/04-INSIGHTS-SPEC.md section 9.2: the texts of the two gauges. */
+  const GAUGES = [
+    {
+      key: "conversion",
+      title: "Converting winning positions",
+      rate: "Winning positions won",
+      rateList: "conversion:won",
+      sub: (count: number, n: number) => `won ${thousands(count)} of ${plural(n, "winning position")}`,
+      empty: "No game in this selection reached a winning position (80% win chance or more). Nothing to measure yet.",
+      reachedLabel: "Games that reached a winning position",
+    },
+    {
+      key: "resilience",
+      title: "Saving losing positions",
+      rate: "Losing positions saved",
+      rateList: "resilience:saved",
+      sub: (count: number, n: number) => `saved ${thousands(count)} of ${plural(n, "losing position")} (won or drawn)`,
+      empty: "No game in this selection fell into a losing position (20% win chance or less). Nothing to measure yet.",
+      reachedLabel: "Games that reached a losing position",
+    },
+  ] as const;
+
   /** docs/04-INSIGHTS-SPEC.md section 3.1: the filters live in the address; its query string is the API's. */
   const query = $derived(route.path.includes("?") ? route.path.slice(route.path.indexOf("?") + 1) : "");
 
@@ -169,10 +191,10 @@
       <section id="phases" class="card">
         <h2>Phases</h2>
         <p class="muted">How accurately you play, and how often you err, in the opening, middlegame and endgame.</p>
-        <div class="phases">
+        <div class="cols">
           {#each ALL_PHASES as p (p)}
             {@const errors = o.errorsByPhase[p]}
-            <div class="phase">
+            <div class="col">
               <h3>{p[0].toUpperCase() + p.slice(1)} <span class="muted">{thousands(o.accuracyByPhase[p].n)} moves</span></h3>
               <StatTile
                 label="Accuracy"
@@ -198,6 +220,67 @@
             </div>
           {/each}
         </div>
+      </section>
+
+      <section id="conversion" class="card">
+        <h2>Conversion & resilience</h2>
+        <p class="muted">Do you finish off winning positions, and do you save the ones that went wrong?</p>
+        <!-- Section 9.2: two gauges with the same layout. -->
+        <div class="cols">
+          {#each GAUGES as g (g.key)}
+            {@const s = data[g.key]}
+            <div class="col">
+              <h3>{g.title}</h3>
+              {#if s.reached.count === 0}
+                <p class="inset">{g.empty}</p>
+              {:else}
+                <StatTile label={g.rate} value={pct(s.rate.value)} sub={g.sub(s.rate.count ?? 0, s.rate.n)} link={link(g.rateList, g.rate)}>
+                  <span
+                    class="wdl"
+                    role="img"
+                    aria-label={`Won ${pct(s.won.value)}, drawn ${pct(s.drawn.value)}, lost ${pct(s.lost.value)}`}
+                  >
+                    {#each ["won", "drawn", "lost"] as const as part (part)}
+                      <span class={part} style={`width: ${(s[part].value ?? 0) * 100}%`}></span>
+                    {/each}
+                  </span>
+                </StatTile>
+                <div class="across">
+                  {#each ["won", "drawn", "lost"] as const as part (part)}
+                    <StatTile
+                      label={part[0].toUpperCase() + part.slice(1)}
+                      value={thousands(s[part].count ?? 0)}
+                      sub={pct(s[part].value)}
+                      link={link(`${g.key}:${part}`, `${g.title}: ${part}`)}
+                    />
+                  {/each}
+                </div>
+                <StatTile
+                  label={g.reachedLabel}
+                  value={`${thousands(s.reached.count ?? 0)} of ${thousands(s.reached.n)}`}
+                  sub={`${pct(s.reached.value)} of your games`}
+                  link={link(`${g.key}:reached`, g.reachedLabel)}
+                />
+              {/if}
+            </div>
+          {/each}
+        </div>
+        <!-- Section 9.3: tilt, only when both sides have a value. -->
+        {#if data.tilt.afterLoss.value !== undefined && data.tilt.afterWin.value !== undefined}
+          {@const t = data.tilt}
+          {@const delta = t.afterLoss.value - t.afterWin.value}
+          <h3>After a loss</h3>
+          <div class="across">
+            <StatTile label="Accuracy after a loss" value={accuracyText(t.afterLoss.value)} sub={plural(t.afterLoss.n, "game")} link={link("tilt:afterLoss", "Games right after a loss")} />
+            <StatTile label="Accuracy after a win" value={accuracyText(t.afterWin.value)} sub={plural(t.afterWin.n, "game")} link={link("tilt:afterWin", "Games right after a win")} />
+          </div>
+          <p class="note">
+            {Math.abs(delta) < 0.5
+              ? "You play about equally well after a loss and after a win."
+              : `You play ${one(Math.abs(delta))} accuracy points ${delta < 0 ? "worse" : "better"} right after a loss.`}
+            Only games started within 2 hours of the previous one count.
+          </p>
+        {/if}
       </section>
 
       <section id="tactics" class="card">
@@ -296,19 +379,55 @@
     font-size: 16px;
     font-weight: 500;
   }
-  .phases {
+  /* docs/07-UI-SPEC.md section 7: the win/draw/loss bar; patterns, not only colour, tell the parts apart. */
+  .wdl {
+    display: flex;
+    height: 12px;
+    margin-top: 6px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+  .wdl .won {
+    background: var(--ok);
+  }
+  .wdl .drawn {
+    background: repeating-linear-gradient(90deg, var(--muted) 0 4px, color-mix(in srgb, var(--muted) 55%, var(--surface)) 4px 8px);
+  }
+  .wdl .lost {
+    background: repeating-linear-gradient(135deg, var(--danger) 0 5px, color-mix(in srgb, var(--danger) 55%, var(--surface)) 5px 10px);
+  }
+  #conversion > h3 {
+    margin: 16px 0 8px;
+  }
+  /* Side-by-side blocks: stacked on a phone, one equal column per child from 768 px (.cols) or always (.across). */
+  .cols {
     display: grid;
-    gap: 16px;
+    gap: 12px;
     margin-top: 12px;
   }
-  .phase {
+  .col {
     display: grid;
     gap: 8px;
+    align-content: start;
+  }
+  .across {
+    display: grid;
+    gap: 8px;
+    grid-auto-flow: column;
+  }
+  .across,
+  .cols {
+    grid-auto-columns: minmax(0, 1fr);
   }
   @media (min-width: 768px) {
-    .phases {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+    .cols {
+      grid-auto-flow: column;
     }
+  }
+  .note {
+    margin-top: 8px;
+    font-size: 14px;
   }
   .rows {
     display: grid;
