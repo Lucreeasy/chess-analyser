@@ -16,6 +16,7 @@
   import Playstyle from "../components/Playstyle.svelte";
   import BarRow from "../components/BarRow.svelte";
   import AreaChart from "../components/AreaChart.svelte";
+  import OpeningsTable from "../components/OpeningsTable.svelte";
   import Icon from "../components/Icon.svelte";
 
   type Insights = ReturnType<typeof computeInsights>;
@@ -229,6 +230,19 @@
             </div>
           {/each}
         </div>
+      </section>
+
+      <section id="openings" class="card">
+        <h2>Openings</h2>
+        <p class="muted">Your results by opening family: score, accuracy in the first 20 plies and your average win chance (EP) at ply 20.</p>
+        {#each [["White", data.openings.white], ["Black", data.openings.black]] as const as [side, rows] (side)}
+          <OpeningsTable {side} {rows} link={(r) => link(r.list, `${r.family} as ${side}`, true)} />
+        {/each}
+        <p class="fine legend">
+          ▼ Problem: 8+ games, score under 40% and under 40% win chance at ply 20. ▲ Strong: 8+ games and score over 60%.{data.openings.unnamed > 0
+            ? ` ${plural(data.openings.unnamed, "game")} ${data.openings.unnamed === 1 ? "has" : "have"} no named opening.`
+            : ""}
+        </p>
       </section>
 
       <section id="time" class="card">
@@ -499,6 +513,9 @@
     .cols {
       grid-auto-flow: column;
     }
+  }
+  .legend {
+    margin-top: 12px;
   }
   .note {
     margin-top: 8px;
