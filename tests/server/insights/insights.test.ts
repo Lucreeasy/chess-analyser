@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { computeInsights } from "../../../src/server/insights/insights.ts";
 import { parseInsightsQuery } from "../../../src/server/insights/select.ts";
 import type { GameWithAnalysis } from "../../../src/server/insights/select.ts";
-import { makeGame, makeAnalysis } from "./fixtures.ts";
+import { makeGame, makeAnalysis, seededGames } from "./fixtures.ts";
 
 const DAY = 86_400_000;
 const NOW = Date.UTC(2026, 9, 30, 12);
@@ -60,4 +60,19 @@ test("section 4: the default range applies unless dates or All time are set; exp
   assert.equal(explicit.defaultRange, undefined);
   assert.equal(explicit.gamesTotal, 3);
   assert.equal(computeInsights(library(25), { filters: {}, allTime: true }, NOW).defaultRange, undefined);
+});
+
+test("1,000 seeded analysed games: every section in under 500 ms, all numbers finite (NFR-3)", () => {
+  // 50 seeded games repeated 20 times, each round 60 days later, keep the suite fast.
+  const seeded = seededGames(50);
+  const games = Array.from({ length: 20 }, (_, r) =>
+    seeded.map(({ game, analysis }) => ({ game: { ...game, id: `${game.id}-${r}`, playedAt: game.playedAt + r * 60 * DAY }, analysis })),
+  ).flat();
+  const start = performance.now();
+  const r = computeInsights(games, { filters: {}, allTime: true }, NOW);
+  const elapsed = performance.now() - start;
+  assert.ok(r.ready && r.analysed === 1000);
+  assert.ok(r.recommendations.length > 0 && r.trend.length > 0);
+  JSON.stringify(r, (_, v) => (typeof v === "number" && assert.ok(Number.isFinite(v)), v));
+  assert.ok(elapsed < 500, `took ${Math.round(elapsed)} ms`);
 });
