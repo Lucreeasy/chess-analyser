@@ -1,11 +1,12 @@
 <script lang="ts">
-  let { colour }: { colour: "w" | "b" | undefined } = $props();
+  /** A colour disc with its name, or with `text` instead; `size` is the disc's size in px. */
+  let { colour, text, size = 14 }: { colour: "w" | "b" | undefined; text?: string; size?: number } = $props();
 
-  const label = $derived(colour === "w" ? "White" : colour === "b" ? "Black" : "Unknown");
+  const label = $derived(text ?? (colour === "w" ? "White" : colour === "b" ? "Black" : "Unknown"));
 </script>
 
 <span class="colour">
-  <span class="disc disc-{colour ?? 'unknown'}" aria-hidden="true"></span>
+  <span class="disc disc-{colour ?? 'unknown'}" style={`width: ${size}px; height: ${size}px`} aria-hidden="true"></span>
   {label}
 </span>
 
@@ -16,8 +17,6 @@
     gap: 6px;
   }
   .disc {
-    width: 14px;
-    height: 14px;
     border-radius: 999px;
     border: 1px solid var(--line);
     flex: none;

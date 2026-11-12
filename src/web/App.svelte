@@ -8,6 +8,7 @@
   import ReviewScreen from "./screens/ReviewScreen.svelte";
   import ComingSoonScreen from "./screens/ComingSoonScreen.svelte";
   import InsightsScreen from "./screens/InsightsScreen.svelte";
+  import PuzzlesScreen from "./screens/PuzzlesScreen.svelte";
 
   // The game id (URL-encoded) plus an optional ply, out-of-range clamped by the screen itself.
   const reviewMatch = $derived(route.path.match(/^\/games\/([^/]+)(?:\/(\d+))?$/));
@@ -26,8 +27,8 @@
     <GamesScreen />
   {:else if route.path.startsWith("/insights")}
     <InsightsScreen />
-  {:else if route.path === "/puzzles"}
-    <ComingSoonScreen title="Puzzles" />
+  {:else if route.path.startsWith("/puzzles")}
+    <PuzzlesScreen />
   {:else if route.path === "/settings"}
     <ComingSoonScreen title="Settings" />
   {:else if route.path.startsWith("/import")}
