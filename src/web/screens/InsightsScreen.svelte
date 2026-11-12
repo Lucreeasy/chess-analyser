@@ -25,6 +25,22 @@
 
   type Insights = ReturnType<typeof computeInsights>;
 
+  const JUMPS = [
+    ["playstyle", "Playstyle"],
+    ["advice", "Advice"],
+    ["trend", "Trend"],
+    ["phases", "Phases"],
+    ["openings", "Openings"],
+    ["time", "Time"],
+    ["conversion", "Conversion"],
+    ["tactics", "Tactics"],
+  ];
+  function jump(id: string): void {
+    const heading = document.querySelector<HTMLElement>(`#${id} h2`)!;
+    heading.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    heading.focus({ preventScroll: true });
+  }
+
   /** docs/04-INSIGHTS-SPEC.md section 8.2: one decimal below 10, whole from 10 ("4.3 s", "12 s"). */
   const secs = (s: number | undefined) => (s === undefined ? "–" : `${s < 10 ? one(s) : Math.round(s)} s`);
 
@@ -191,6 +207,14 @@
     <!-- Section 6: the error bars of the three phases share one scale. -->
     {@const errorScale = Math.max(10, ...ALL_PHASES.map((p) => o.errorsByPhase[p].all.value ?? 0))}
     {@const link = (key: string, label: string, exact = false) => drillLink(data.lists[key], label, data.filters, exact)}
+    <!-- Section 16: jump buttons that scroll a section's heading to the top and focus it. -->
+    <nav class="jumps" aria-label="Insights sections">
+      {#each JUMPS as [id, text] (id)}
+        {#if id !== "trend" || data.trend.length > 0}
+          <button type="button" class="chip" onclick={() => jump(id)}>{text}</button>
+        {/if}
+      {/each}
+    </nav>
     <div class="dashboard" class:dimmed={loading} aria-busy={loading}>
       <!-- docs/04-INSIGHTS-SPEC.md section 5. -->
       <section id="overall">
@@ -220,7 +244,7 @@
       </section>
 
       <section id="playstyle" class="card">
-        <h2>Playstyle</h2>
+        <h2 tabindex="-1">Playstyle</h2>
         <p class="muted">Five axes scored 0-100 against typical club players, and the playing style they add up to.</p>
         <Playstyle
           axes={data.playstyle.axes}
@@ -230,21 +254,21 @@
       </section>
 
       <section id="advice" class="card">
-        <h2>Recommendations</h2>
+        <h2 tabindex="-1">Recommendations</h2>
         <p class="muted">What to work on first, based on patterns across your games. Every card points to real positions.</p>
         <Recommendations recommendations={data.recommendations} />
       </section>
 
       {#if data.trend.length > 0}
         <section id="trend" class="card">
-          <h2>Accuracy trend</h2>
+          <h2 tabindex="-1">Accuracy trend</h2>
           <p class="muted">Your average accuracy over a rolling window of 20 games. Are you improving?</p>
           <Trend points={data.trend} filters={data.filters} />
         </section>
       {/if}
 
       <section id="phases" class="card">
-        <h2>Phases</h2>
+        <h2 tabindex="-1">Phases</h2>
         <p class="muted">How accurately you play, and how often you err, in the opening, middlegame and endgame.</p>
         <div class="cols">
           {#each ALL_PHASES as p (p)}
@@ -278,7 +302,7 @@
       </section>
 
       <section id="openings" class="card">
-        <h2>Openings</h2>
+        <h2 tabindex="-1">Openings</h2>
         <p class="muted">Your results by opening family: score, accuracy in the first 20 plies and your average win chance (EP) at ply 20.</p>
         {#each [["White", data.openings.white], ["Black", data.openings.black]] as const as [side, rows] (side)}
           <OpeningsTable {side} {rows} link={(r) => link(r.list, `${r.family} as ${side}`, true)} />
@@ -291,7 +315,7 @@
       </section>
 
       <section id="time" class="card">
-        <h2>Time management</h2>
+        <h2 tabindex="-1">Time management</h2>
         <p class="muted">Where your clock goes, and what happens to your moves when you run short.</p>
         <!-- Section 8.2. -->
         {#if time.clocked === 0}
@@ -374,7 +398,7 @@
       </section>
 
       <section id="conversion" class="card">
-        <h2>Conversion & resilience</h2>
+        <h2 tabindex="-1">Conversion & resilience</h2>
         <p class="muted">Do you finish off winning positions, and do you save the ones that went wrong?</p>
         <!-- Section 9.2: two gauges with the same layout. -->
         <div class="cols">
@@ -435,7 +459,7 @@
       </section>
 
       <section id="tactics" class="card">
-        <h2>Tactics</h2>
+        <h2 tabindex="-1">Tactics</h2>
         <p class="muted">What kind of mistake your errors are: a piece left hanging, a missed shot, or just a poor plan.</p>
         {#if o.tactics.positional.n === 0}
           <p class="inset rows">No errors in this selection.</p>
@@ -496,6 +520,25 @@
   .progress {
     height: 12px; /* docs/07-UI-SPEC.md section 5.15 */
     margin-top: 4px;
+  }
+  .jumps {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 8px;
+    margin: 16px -16px 0;
+    padding: 8px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--background);
+  }
+  .jumps .chip {
+    flex: none;
+  }
+  .dashboard h2 {
+    scroll-margin-top: 96px;
+    outline: none;
   }
   .filters-button {
     width: 100%;

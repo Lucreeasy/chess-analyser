@@ -191,29 +191,6 @@
     color: var(--muted);
     margin-bottom: 4px;
   }
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 44px;
-    padding: 0 16px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    font-size: 15px;
-    cursor: pointer;
-  }
-  .chip.pressed,
-  .chip[aria-pressed="true"] {
-    border-color: var(--brand);
-    background: color-mix(in srgb, var(--brand) 16%, var(--surface));
-    font-weight: 600;
-  }
   .chip input {
     position: absolute;
     opacity: 0;
