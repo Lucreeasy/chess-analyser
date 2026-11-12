@@ -22,7 +22,30 @@ Configuration is by environment variables (all optional, with working defaults):
 (default `2`), `ENGINE_HASH_MB` (default `128`). The chess.com auto-sync interval is chosen in Settings.
 
 Image size: about 375 MB (most of it Stockfish's neural network file). Tested on `linux/amd64`;
-`linux/arm64` is built by CI (see the workflow once it exists).
+`linux/arm64` is built by CI (`.github/workflows/ci.yml`), not tested on a machine.
+
+**Published image:** pushing a version tag such as `v1.0.0` makes CI publish the image for both
+platforms to the GitHub Container Registry as `ghcr.io/OWNER/chess-analyser` (`OWNER` is the GitHub
+account or organisation, in lower case). Run it with Docker:
+
+```
+docker run -d --name chess-analyser -p 3000:3000 -v chess-data:/data ghcr.io/OWNER/chess-analyser:latest
+```
+
+or with Docker Compose, in a `compose.yaml` of its own:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/OWNER/chess-analyser:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - data:/data
+    restart: unless-stopped
+volumes:
+  data:
+```
 
 **Podman note:** if `docker compose build` prints a warning that `HEALTHCHECK is not supported for OCI
 image format`, Podman is building in OCI format by default. Either set
