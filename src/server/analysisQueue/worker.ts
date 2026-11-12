@@ -1,6 +1,7 @@
 import type Database from "better-sqlite3";
 import { listQueueOrdered, setQueueEntryRunning, finishAnalysis, recordAnalysisError, getQueueState, setPaused, getGame } from "../db.ts";
 import { runAnalysis, AnalysisAbortedError } from "../runAnalysis.ts";
+import { syncGamePuzzles } from "../puzzles/store.ts";
 import { SEARCH_DEPTH } from "./depthPresets.ts";
 import type { UciEngine } from "../engine/engine.ts";
 import type { DepthPreset } from "../settings.ts";
@@ -135,6 +136,11 @@ export class AnalysisWorker {
         },
       });
       finishAnalysis(this.#db, gameId, depth, analysis, this.#now());
+      try {
+        syncGamePuzzles(this.#db, gameId, this.#now());
+      } catch (error) {
+        console.error(`puzzles for ${gameId}:`, error); // never fails or undoes the analysis
+      }
       this.#onEvent({ type: "gameAnalysed", gameId });
     } catch (error) {
       if (error instanceof AnalysisAbortedError) {

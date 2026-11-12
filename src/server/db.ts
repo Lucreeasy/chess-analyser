@@ -61,6 +61,18 @@ export function openDb(path: string): Database.Database {
       done integer not null default 0
     );
     insert or ignore into queue_state (id, paused, done) values (1, 0, 0);
+    create table if not exists puzzles (
+      id text primary key,
+      game_id text not null,
+      data_json text not null,
+      due_at integer,
+      interval_days integer not null,
+      attempts integer not null,
+      last_result text,
+      created_at integer not null,
+      played_at integer not null
+    );
+    create index if not exists puzzles_game on puzzles (game_id);
   `);
   return db;
 }
@@ -302,7 +314,7 @@ export function resetDoneCount(db: Database.Database): void {
 }
 
 /**
- * Deletes games (and their analyses/queue entries/errors) atomically.
+ * Deletes games (and their analyses/queue entries/errors/puzzles) atomically.
  * Returns how many were actually stored. Does not touch the running flag; the caller aborts the running
  * game first if it is among `gameIds`.
  */
@@ -314,13 +326,14 @@ export function deleteGames(db: Database.Database, gameIds: string[]): number {
     db.prepare(`delete from analysis_queue where game_id in (${placeholders})`).run(...ids);
     db.prepare(`delete from analyses where game_id in (${placeholders})`).run(...ids);
     db.prepare(`delete from analysis_errors where game_id in (${placeholders})`).run(...ids);
+    db.prepare(`delete from puzzles where game_id in (${placeholders})`).run(...ids);
     return result.changes;
   });
   return tx(gameIds);
 }
 
 /**
- * "Delete all data": every game, analysis, queue entry, error, cached
+ * "Delete all data": every game, analysis, queue entry, error, puzzle, cached
  * evaluation and stored ETag; settings are kept.
  */
 export function deleteAllData(db: Database.Database): void {
@@ -329,6 +342,7 @@ export function deleteAllData(db: Database.Database): void {
     db.prepare(`delete from analysis_queue`).run();
     db.prepare(`delete from analyses`).run();
     db.prepare(`delete from analysis_errors`).run();
+    db.prepare(`delete from puzzles`).run();
     db.prepare(`delete from eval_cache`).run();
     db.prepare(`delete from chesscom_etags`).run();
     db.prepare(`update queue_state set done = 0 where id = 1`).run();

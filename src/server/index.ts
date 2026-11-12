@@ -30,6 +30,7 @@ import { monthsInRange, autoSyncMonths } from "./chesscom/monthRange.ts";
 import { syncMonths, type SyncResult } from "./chesscom/sync.ts";
 import { AutoSyncScheduler, parseIntervalHours } from "./chesscom/autoSyncScheduler.ts";
 import { validateSettingsUpdate } from "./settings.ts";
+import { syncAllPuzzles } from "./puzzles/store.ts";
 import { rederiveMe } from "./rederiveMe.ts";
 import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
 import type { DepthPreset } from "./settings.ts";
@@ -192,6 +193,7 @@ export const server = createServer(async (req, res) => {
     const { settings } = validated;
     if (JSON.stringify(settings.usernames) !== JSON.stringify(current.usernames)) {
       updateGames(db, rederiveMe(listGames(db), settings.usernames));
+      syncAllPuzzles(db, Date.now()); // "which side is me" changed
       eventHub.broadcast({ type: "gamesChanged" });
     }
     putSettings(db, settings);
