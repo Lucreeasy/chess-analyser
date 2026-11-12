@@ -21,7 +21,6 @@ import {
 import { splitIntoGames } from "./import/pgnText.ts";
 import { importGames } from "./import/report.ts";
 import { serveStatic } from "./static.ts";
-import { runAnalysis } from "./runAnalysis.ts";
 import { getEngine, shutdownEngine } from "./engineClient.ts";
 import { fetchArchiveMonths, type FetchLike } from "./chesscom/client.ts";
 import { chessComPacer } from "./chesscom/sharedPacer.ts";
@@ -36,8 +35,7 @@ import { checkAnswer, puzzleEvaluator } from "./puzzles/check.ts";
 import { listView, parseListQuery } from "./puzzles/list.ts";
 import { rederiveMe } from "./rederiveMe.ts";
 import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
-import type { DepthPreset } from "./settings.ts";
-import { SEARCH_DEPTH, oneStepDeeper } from "./analysisQueue/depthPresets.ts";
+import { oneStepDeeper } from "./analysisQueue/depthPresets.ts";
 import { toGameListRow } from "./games/listRows.ts";
 import { opponentOf } from "./games/shared.ts";
 import { toGameReviewRow } from "./games/reviewRow.ts";
@@ -333,23 +331,6 @@ export const server = createServer(async (req, res) => {
     }
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(result.status));
-    return;
-  }
-
-  if (req.url === "/api/analyse" && req.method === "POST") {
-    const body = JSON.parse(await readBody(req)) as { pgn: string; depth?: DepthPreset };
-    try {
-      const engine = await getEngine();
-      const result = await runAnalysis(db, engine, body.pgn, {
-        depth: SEARCH_DEPTH[body.depth ?? "standard"],
-        engineName: "Stockfish",
-      });
-      res.writeHead(200, { "content-type": "application/json" });
-      res.end(JSON.stringify(result));
-    } catch (error) {
-      res.writeHead(503, { "content-type": "application/json" });
-      res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
-    }
     return;
   }
 
