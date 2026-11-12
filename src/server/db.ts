@@ -260,6 +260,10 @@ export function getAnalysis(db: Database.Database, gameId: string): StoredAnalys
   return { depth: row.depth, analysis: JSON.parse(row.data_json), finishedAt: row.finished_at };
 }
 
+export function countAnalyses(db: Database.Database): number {
+  return (db.prepare(`select count(*) as n from analyses`).get() as { n: number }).n;
+}
+
 export function getAnalysisError(db: Database.Database, gameId: string): string | undefined {
   const row = db.prepare(`select message from analysis_errors where game_id = ?`).get(gameId) as { message: string } | undefined;
   return row?.message;

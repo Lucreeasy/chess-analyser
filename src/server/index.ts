@@ -16,6 +16,7 @@ import {
   clearRunningFlags,
   deleteGames,
   deleteAllData,
+  countAnalyses,
 } from "./db.ts";
 import { splitIntoGames } from "./import/pgnText.ts";
 import { importGames } from "./import/report.ts";
@@ -30,12 +31,14 @@ import { monthsInRange, autoSyncMonths } from "./chesscom/monthRange.ts";
 import { syncMonths, type SyncResult } from "./chesscom/sync.ts";
 import { AutoSyncScheduler, parseIntervalHours } from "./chesscom/autoSyncScheduler.ts";
 import { validateSettingsUpdate } from "./settings.ts";
-import { syncAllPuzzles } from "./puzzles/store.ts";
+import { syncAllPuzzles, listPuzzles } from "./puzzles/store.ts";
+import { listView, parseListQuery } from "./puzzles/list.ts";
 import { rederiveMe } from "./rederiveMe.ts";
 import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
 import type { DepthPreset } from "./settings.ts";
 import { SEARCH_DEPTH, oneStepDeeper } from "./analysisQueue/depthPresets.ts";
 import { toGameListRow } from "./games/listRows.ts";
+import { opponentOf } from "./games/shared.ts";
 import { toGameReviewRow } from "./games/reviewRow.ts";
 import { AnalysisWorker } from "./analysisQueue/worker.ts";
 import { validateQueueRequest, unknownIdsMessage, validateDeleteRequest } from "./analysisQueue/requestValidation.ts";
@@ -156,6 +159,27 @@ export const server = createServer(async (req, res) => {
     const games = listGames(db).map((game) => ({ game, analysis: getAnalysis(db, game.id)?.analysis }));
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(computeInsights(games, query, Date.now())));
+    return;
+  }
+
+  if (req.url?.startsWith("/api/puzzles?") || req.url === "/api/puzzles") {
+    const query = parseListQuery(new URL(req.url, "http://localhost").searchParams);
+    if (typeof query === "string") {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: query }));
+      return;
+    }
+    const opponents = new Map(listGames(db).map((g) => [g.id, opponentOf(g)]));
+    const view = listView(listPuzzles(db), query, Date.now());
+    const items = view.items.map((item) => ({ ...item, opponent: opponents.get(item.gameId) }));
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ ...view, items, analysedGames: countAnalyses(db) }));
+    return;
+  }
+
+  if (req.url === "/api/puzzles/refresh" && req.method === "POST") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(syncAllPuzzles(db, Date.now())));
     return;
   }
 
