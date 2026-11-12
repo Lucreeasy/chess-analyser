@@ -407,14 +407,6 @@
     font-size: 15px;
     font-weight: 500;
   }
-  .phone-only {
-    display: inline-flex;
-  }
-  @media (min-width: 768px) {
-    .phone-only {
-      display: none;
-    }
-  }
   .status-line {
     color: var(--muted);
     font-size: 14px;
@@ -505,14 +497,6 @@
     background: var(--surface);
     font-size: 15px;
     cursor: pointer;
-  }
-  .filters-panel.hidden-on-phone {
-    display: none;
-  }
-  @media (min-width: 768px) {
-    .filters-panel.hidden-on-phone {
-      display: block;
-    }
   }
 
   .pagination {

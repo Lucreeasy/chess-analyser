@@ -1,10 +1,25 @@
 <script lang="ts">
   import { ALL_TIME_CLASSES } from "../../server/import/timeClass.ts";
-  import { activeFilterCount, type GamesFilters, type Facets } from "../lib/gamesFilter.ts";
+  import { activeFilterCount, defaultFilters, type GamesFilters, type Facets } from "../lib/gamesFilter.ts";
   import { timeClassLabel } from "../lib/format.ts";
   import type { TimeClass } from "../lib/types.ts";
 
-  let { filters = $bindable(), facets }: { filters: GamesFilters; facets: Facets } = $props();
+  /**
+   * The filter panel of the Games library, or with `insights` of the Insights screen (docs/04-INSIGHTS-SPEC.md
+   * section 3.1): no result or analysis filter, and a date range group with presets; `defaultFrom` is the default
+   * range's start, shown while no dates are set and "All time" is not chosen.
+   */
+  let {
+    filters = $bindable(),
+    facets,
+    insights = false,
+    defaultFrom,
+  }: { filters: GamesFilters; facets: Facets; insights?: boolean; defaultFrom?: number } = $props();
+
+  const DAY = 86_400_000;
+  const from = $derived(filters.from ?? (filters.allTime ? undefined : defaultFrom));
+  /** A preset's from: the start of the UTC day that many days ago. */
+  const presetFrom = (days: number) => Math.floor((Date.now() - days * DAY) / DAY) * DAY;
 
   const timeClassOptions = $derived(ALL_TIME_CLASSES.filter((tc) => tc !== "classical" || facets.timeClasses.has("classical")));
 
@@ -34,7 +49,7 @@
   }
 
   function clearAll(): void {
-    filters = { search: filters.search, timeClasses: new Set(), colour: "any", results: new Set(), analysis: "any", openingFamily: undefined, from: undefined, to: undefined };
+    filters = { ...defaultFilters(), search: filters.search };
   }
 
   const count = $derived(activeFilterCount(filters));
@@ -65,6 +80,7 @@
     </div>
   </div>
 
+  {#if !insights}
   <div class="field">
     <span class="label">Result</span>
     <div class="chips">
@@ -89,6 +105,8 @@
     </div>
   </div>
 
+  {/if}
+
   <div class="field">
     <label for="opening-family" class="label">Opening family</label>
     <select
@@ -103,13 +121,14 @@
     </select>
   </div>
 
+  {#snippet dates()}
   <div class="field">
     <label for="date-from" class="label">From</label>
     <input
       id="date-from"
       type="date"
       max={msToDateInput(filters.to)}
-      value={msToDateInput(filters.from)}
+      value={msToDateInput(from)}
       onchange={(e) => (filters = { ...filters, from: dateToMs(e.currentTarget.value, false) })}
     />
   </div>
@@ -118,11 +137,27 @@
     <input
       id="date-to"
       type="date"
-      min={msToDateInput(filters.from)}
+      min={msToDateInput(from)}
       value={msToDateInput(filters.to)}
       onchange={(e) => (filters = { ...filters, to: dateToMs(e.currentTarget.value, true) })}
     />
   </div>
+
+  {/snippet}
+  {#if insights}
+    <div class="field full">
+      <span class="label">Date range</span>
+      <div class="chips">
+        {#each [["Last 30 days", 30], ["Last 90 days", 90], ["Last 1 year", 365]] as const as [text, days] (days)}
+          <button type="button" class="chip" aria-pressed={filters.to === undefined && from === presetFrom(days)} onclick={() => (filters = { ...filters, from: presetFrom(days), to: undefined, allTime: false })}>{text}</button>
+        {/each}
+        <button type="button" class="chip" aria-pressed={from === undefined && filters.to === undefined} onclick={() => (filters = { ...filters, from: undefined, to: undefined, allTime: true })}>All time</button>
+      </div>
+      <div class="dates">{@render dates()}</div>
+    </div>
+  {:else}
+    {@render dates()}
+  {/if}
 
   {#if count > 0}
     <button type="button" class="clear full" onclick={clearAll}>Clear all filters</button>
@@ -173,7 +208,8 @@
     font-size: 15px;
     cursor: pointer;
   }
-  .chip.pressed {
+  .chip.pressed,
+  .chip[aria-pressed="true"] {
     border-color: var(--brand);
     background: color-mix(in srgb, var(--brand) 16%, var(--surface));
     font-weight: 600;
@@ -182,6 +218,13 @@
     position: absolute;
     opacity: 0;
     pointer-events: none;
+  }
+  .dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 448px;
+    margin-top: 12px;
   }
   .segmented {
     display: flex;

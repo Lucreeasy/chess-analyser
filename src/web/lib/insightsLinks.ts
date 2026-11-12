@@ -20,23 +20,27 @@ const KEYS: Record<string, (f: InsightFilters) => string | undefined> = {
   to: (f) => f.to?.toString(),
 };
 
+/** The address form of a set of Insights filters (the API's query string). */
+export function insightsParams(filters: InsightFilters): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, read] of Object.entries(KEYS)) {
+    const value = read(filters);
+    if (value) params.set(key, value);
+  }
+  return params;
+}
+
 /**
  * Section 15.2: the link behind a number, or undefined when no games are behind it. `exact` says the filters
  * describe the list exactly (e.g. "all"); otherwise a filter-only link is marked approximate.
  */
 export function drillLink(list: GameList | undefined, label: string, filters: InsightFilters, exact = false): DrillLink | undefined {
   if (!list || list.total === 0) return undefined;
-  const params = new URLSearchParams();
   const exactHint = `Show the ${plural(list.total, "game")} behind this number`;
   if (list.ids.length === list.total && list.ids.length <= MAX_LINKED_IDS) {
-    params.set("ids", list.ids.join(","));
-    params.set("label", label);
-    return { href: `#/games?${params}`, hint: exactHint };
+    return { href: `#/games?${new URLSearchParams({ ids: list.ids.join(","), label })}`, hint: exactHint };
   }
-  for (const [key, read] of Object.entries(KEYS)) {
-    const value = read(filters);
-    if (value) params.set(key, value);
-  }
+  const params = insightsParams(filters);
   params.set("analysis", "analysed");
   params.set("label", label);
   if (!exact) params.set("approx", "1");

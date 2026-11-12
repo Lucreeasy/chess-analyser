@@ -161,3 +161,14 @@ test("filtersFromQuery: the library's own analysis filter and approximate flag; 
   assert.equal(filters.approximate, true);
   assert.deepEqual(filtersFromQuery(""), defaultFilters());
 });
+
+test("activeFilterCount: an explicit All time counts only when nothing else is active (Insights)", () => {
+  assert.equal(activeFilterCount({ ...defaultFilters(), allTime: true }), 1);
+  assert.equal(activeFilterCount({ ...defaultFilters(), allTime: true, colour: "w" }), 1);
+  assert.equal(activeFilterCount({ ...defaultFilters(), allTime: true, colour: "w", openingFamily: "French Defense" }), 2);
+});
+
+test("filtersFromQuery reads the Insights allTime flag", () => {
+  assert.equal(filtersFromQuery("allTime=1").allTime, true);
+  assert.equal(filtersFromQuery("colour=w").allTime, false);
+});

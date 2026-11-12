@@ -203,6 +203,17 @@ label {
   padding: 0 12px;
   font-size: 14px;
 }
+/* Phone-only controls, and panels a phone shows only when opened (the desktop always shows them). */
+@media (min-width: 768px) {
+  .phone-only {
+    display: none !important;
+  }
+}
+@media (max-width: 767px) {
+  .hidden-on-phone {
+    display: none;
+  }
+}
 /* Fine print: 12 px muted text. */
 .fine {
   color: var(--muted);

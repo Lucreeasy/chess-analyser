@@ -13,6 +13,8 @@ export interface GamesFilters {
   /** UTC day boundaries, inclusive: From = 00:00:00.000 UTC, To = 23:59:59.999 UTC. */
   from: number | undefined;
   to: number | undefined;
+  /** Insights only: "All time" was chosen, so no default date range applies (docs/04-INSIGHTS-SPEC.md section 4). */
+  allTime: boolean;
   /** docs/06-GAMES-SPEC.md section A8: an exact list of games from an Insights drill-down (shown as a chip, not counted). */
   ids: Set<string> | undefined;
   /** Display only, never matched: the chip's label and the "approximate" notice. */
@@ -30,6 +32,7 @@ export function defaultFilters(): GamesFilters {
     openingFamily: undefined,
     from: undefined,
     to: undefined,
+    allTime: false,
     ids: undefined,
     label: undefined,
     approximate: false,
@@ -43,7 +46,7 @@ export function defaultFilters(): GamesFilters {
  */
 export function filtersFromQuery(query: string): GamesFilters {
   const params = new URLSearchParams(query);
-  const { filters } = parseInsightsQuery(params);
+  const { filters, allTime } = parseInsightsQuery(params);
   const analysis = params.get("analysis");
   return {
     ...defaultFilters(),
@@ -54,6 +57,7 @@ export function filtersFromQuery(query: string): GamesFilters {
     openingFamily: filters.family,
     from: filters.from,
     to: filters.to,
+    allTime,
     ids: filters.ids?.length ? new Set(filters.ids) : undefined,
     label: params.get("label") ?? undefined,
     approximate: params.get("approx") === "1",
@@ -100,7 +104,8 @@ export function activeFilterCount(filters: GamesFilters): number {
   if (filters.openingFamily !== undefined) count++;
   if (filters.search !== "") count++;
   if (filters.from !== undefined || filters.to !== undefined) count++;
-  return count;
+  // Insights: an explicit "All time" counts only when nothing else is active.
+  return count === 0 && filters.allTime ? 1 : count;
 }
 
 export interface Facets {

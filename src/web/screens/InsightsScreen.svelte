@@ -9,7 +9,10 @@
   import { queue } from "../lib/live.svelte.ts";
   import { currentCount, queueVisible } from "../lib/queueStatus.ts";
   import { accuracyText, one, pct, plural, thousands, ukDate } from "../lib/format.ts";
-  import { drillLink } from "../lib/insightsLinks.ts";
+  import { drillLink, insightsParams } from "../lib/insightsLinks.ts";
+  import { activeFilterCount, filtersFromQuery, type GamesFilters } from "../lib/gamesFilter.ts";
+  import FilterPanel from "../components/FilterPanel.svelte";
+  import Badge from "../components/Badge.svelte";
   import Logo from "../components/Logo.svelte";
   import StatTile from "../components/StatTile.svelte";
   import Recommendations from "../components/Recommendations.svelte";
@@ -76,6 +79,17 @@
 
   const filtersActive = $derived(query !== "");
 
+  // Section 3.1: the filter panel edits the address, which drives the request.
+  const filters = $derived(filtersFromQuery(query));
+  const filterCount = $derived(activeFilterCount(filters));
+  let showFilters = $state(false);
+  function applyFilters(f: GamesFilters): void {
+    const colour = f.colour === "any" ? undefined : f.colour;
+    const params = insightsParams({ timeClasses: [...f.timeClasses], colour, family: f.openingFamily, from: f.from, to: f.to });
+    if (f.allTime) params.set("allTime", "1");
+    navigate(`/insights${params.size ? `?${params}` : ""}`);
+  }
+
   // Section 4.1: the count line and, while the default range is in use, the line explaining it.
   const countLine = $derived.by(() => {
     if (!data) return "";
@@ -108,6 +122,28 @@
   {#if data}
     <p class="muted" aria-live="polite">{countLine}</p>
     {#if rangeLine}<p class="muted">{rangeLine}</p>{/if}
+    <button
+      type="button"
+      class="neutral phone-only filters-button"
+      aria-expanded={showFilters}
+      aria-controls="insights-filters"
+      onclick={() => (showFilters = !showFilters)}
+    >
+      <Icon name="filter" size={18} />Filters
+      {#if filterCount > 0}<Badge tone="brand" label={String(filterCount)} />{/if}
+      <span class="toggle">{showFilters ? "Hide" : "Show"}</span>
+    </button>
+    <div id="insights-filters" class="filters" class:hidden-on-phone={!showFilters}>
+      <FilterPanel
+        bind:filters={() => filters, applyFilters}
+        facets={{
+          timeClasses: new Set(data.library.hasClassical ? ["classical"] : []),
+          openingFamilies: data.library.families.map((f) => ({ family: f.name, count: f.count })),
+        }}
+        insights
+        defaultFrom={data.defaultRange?.from}
+      />
+    </div>
   {/if}
 
   {#if !data && loadError}
@@ -460,6 +496,18 @@
   .progress {
     height: 12px; /* docs/07-UI-SPEC.md section 5.15 */
     margin-top: 4px;
+  }
+  .filters-button {
+    width: 100%;
+  }
+  .filters-button .toggle {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 400;
+  }
+  .filters {
+    margin-top: 16px;
   }
   .dimmed {
     opacity: 0.6;
