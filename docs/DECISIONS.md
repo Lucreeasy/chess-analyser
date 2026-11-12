@@ -31,8 +31,8 @@ Chosen: one language, TypeScript, on Node.js, for both server and browser.
   shapes, exact colours, exact tooltips) and few in number; a charting library would need as much override code
   as drawing them directly, for one more dependency.
 - Tests: Node's built-in test runner (`node:test` + `assert`) for all unit/logic tests (Win%, classification,
-  insights, puzzle rules, import parsing) — no test framework dependency. Playwright (dev dependency only, not
-  shipped in the image) for the few end-to-end/screenshot checks against the reference screenshots.
+  insights, puzzle rules, import parsing) — no test framework dependency. Screens are compared with a
+  browser by hand (any browser automation run from outside the project); no end-to-end test dependency is kept.
 - Process shape: one Node.js process serves the API, the built static frontend, SSE live events and the
   single-worker analysis queue; Stockfish runs as a child process of it. One data volume holds the SQLite file.
 
