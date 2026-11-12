@@ -11,7 +11,6 @@ import {
 import { exchangeValue, walkLine } from "./see.ts";
 import { type EngineLine, isForcedMateFor } from "./winPercent.ts";
 
-/** docs/02-ANALYSIS-SPEC.md section 10. */
 export type TacticTag = "allowed_mate" | "missed_mate" | "hung_piece" | "allowed_tactic" | "missed_tactic" | "positional";
 /** Every tag, in display (and tie-break) order. */
 export const ALL_TAGS: TacticTag[] = ["allowed_mate", "missed_mate", "hung_piece", "allowed_tactic", "missed_tactic", "positional"];
@@ -31,7 +30,7 @@ export interface TacticTagInput {
   after?: EngineLineWithPv;
 }
 
-/** "settled(L)" of section 10.3: an odd look-ahead drops its last ply, except settled(1) = 1. */
+/** settled(L): an odd look-ahead drops its last ply, except settled(1) = 1. */
 const SETTLED: Record<number, number> = { 0: 0, 1: 1, 2: 2, 3: 2, 4: 4, 5: 4, 6: 6 };
 
 export function tacticTag(input: TacticTagInput): TacticTag {

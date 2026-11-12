@@ -1,7 +1,6 @@
 import type { MoveClass } from "./classification.ts";
 import type { TacticTag } from "./tacticTags.ts";
 
-/** docs/02-ANALYSIS-SPEC.md 15.1. */
 export const CLASS_INFO: Record<MoveClass, { label: string; glyph: string; description: string }> = {
   book: { label: "Book", glyph: "", description: "A known opening move." },
   brilliant: { label: "Brilliant", glyph: "!!", description: "A sound sacrifice." },
@@ -15,7 +14,7 @@ export const CLASS_INFO: Record<MoveClass, { label: string; glyph: string; descr
   blunder: { label: "Blunder", glyph: "??", description: "A serious error." },
 };
 
-/** docs/02-ANALYSIS-SPEC.md 15.2; the hint is the Insights one (docs/04-INSIGHTS-SPEC.md section 0). */
+/** Per tactic tag: the sentence of the move explanation, the label, and the hint shown on Insights. */
 export const TAG_INFO: Record<TacticTag, { sentence: string; label: string; hint: string }> = {
   allowed_mate: { sentence: "It allowed a forced mate.", label: "Allowed mate", hint: "A move that let the opponent mate you" },
   missed_mate: { sentence: "It missed a forced mate.", label: "Missed mate", hint: "A mate you could have played" },
@@ -50,7 +49,7 @@ export interface MoveExplanationInput {
   bestSan?: string;
 }
 
-/** The move explanation shown under the board. docs/02-ANALYSIS-SPEC.md section 15.3. */
+/** The move explanation shown under the board. */
 export function buildMoveExplanation(input: MoveExplanationInput): string {
   const info = CLASS_INFO[input.cls];
   const symbol = info.glyph ? ` (${info.glyph})` : "";
@@ -86,7 +85,7 @@ export interface KeyMomentSentenceInput {
   swing: number;
 }
 
-/** The key-moment sentence. docs/02-ANALYSIS-SPEC.md section 13.2. */
+/** The key-moment sentence. */
 export function buildKeyMomentSentence(input: KeyMomentSentenceInput): string {
   const subject = whomFor(input.mover, input.myColour, true);
   const swing = Math.round(input.swing);

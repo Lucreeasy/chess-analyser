@@ -1,6 +1,5 @@
 import { Chess } from "chess.js";
 
-/** docs/02-ANALYSIS-SPEC.md section 11. */
 export type Phase = "opening" | "middlegame" | "endgame";
 
 export const ALL_PHASES: Phase[] = ["opening", "middlegame", "endgame"];
@@ -27,7 +26,7 @@ function backRankCount(game: Chess, colour: "w" | "b"): number {
   return count;
 }
 
-/** The raw phase of the position after ply `ply`, with its book flag. Section 11.1. */
+/** The raw phase of the position after ply `ply`, with its book flag. */
 export function rawPhase(fen: string, ply: number, inBook: boolean): Phase {
   const game = new Chess(fen, { skipValidation: true });
   const pieces = countPieces(game);
@@ -38,7 +37,7 @@ export function rawPhase(fen: string, ply: number, inBook: boolean): Phase {
   return "opening";
 }
 
-/** The phase of every ply of a game: it never goes back. Section 11.2. */
+/** The phase of every ply of a game: it never goes back. */
 export function phasesOf(fensAfterEachPly: string[], bookFlags: boolean[]): Phase[] {
   let current: Phase = "opening";
   return fensAfterEachPly.map((fen, i) => {

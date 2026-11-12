@@ -14,14 +14,13 @@ import {
 } from "./material.ts";
 
 /**
- * Static exchange evaluation (SEE) on the simplified board of material.ts,
- * docs/02-ANALYSIS-SPEC.md section 9.3.
+ * Static exchange evaluation (SEE) on the simplified board of material.ts.
  */
 
 /**
  * Walks up to `maxPlies` of a UCI move line, stopping quietly at the first
  * move that cannot be played. Returns the balance (for `perspective`)
- * before the line and after each ply actually played (section 9.1).
+ * before the line and after each ply actually played.
  */
 export function walkLine(
   board: Board,
@@ -42,7 +41,7 @@ export function walkLine(
 }
 
 /**
- * The exchange value on `square` for `side` (section 9.3). Recursive: the
+ * The exchange value on `square` for `side`. Recursive: the
  * first legal attacker, cheapest first (king last), captures; the result
  * nets the best the other side can still get by continuing the exchange.
  */

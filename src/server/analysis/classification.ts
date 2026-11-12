@@ -1,7 +1,6 @@
 /**
- * Move classification. docs/02-ANALYSIS-SPEC.md section 8. The ten classes,
- * decided by the first matching rule in precedence order (8.2). All
- * comparisons use the 1e-9 tolerance of section 1.7.
+ * Move classification: the ten classes, decided by the first matching rule in precedence order. All
+ * comparisons use a 1e-9 tolerance.
  */
 
 export type MoveClass =
@@ -16,7 +15,7 @@ export type MoveClass =
   | "miss"
   | "blunder";
 
-/** Table order everywhere (docs/06-GAMES-SPEC.md section B6). */
+/** Table order everywhere. */
 export const ALL_CLASSES: MoveClass[] = [
   "book", "brilliant", "great", "best", "excellent", "good", "inaccuracy", "mistake", "miss", "blunder",
 ];
@@ -35,17 +34,16 @@ export interface ClassificationInput {
   engineUci?: string;
   epBefore: number;
   epAfter: number;
-  /** Section 4, raw (not tolerance-adjusted). */
+  /** Raw (not tolerance-adjusted). */
   epLoss: number;
   /** Mover-POV EP of line 2 of the position before; absent when there is no second line. */
   epOfLine2?: number;
-  /** Section 7, rule 3. */
   isBook: boolean;
   /** The class of the previous ply, only when it exists and was played by the other colour. */
   previousOpponentClass?: MoveClass;
   isRecapture: boolean;
   isPromotion: boolean;
-  /** Section 8.4; only evaluated by the caller when it can affect the result. */
+  /** Only evaluated by the caller when it can affect the result. */
   isSacrifice: boolean;
 }
 

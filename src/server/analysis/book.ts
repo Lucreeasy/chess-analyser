@@ -18,9 +18,9 @@ for (const [epd, [eco, name]] of Object.entries(raw)) {
 }
 
 /**
- * How many plies of position-chain matching (03-IMPORT-SPEC.md 2.14) are
+ * How many plies of position-chain matching (the import's opening lookup) are
  * needed to reach every named position: this dataset's deepest entry is at
- * ply 36 (docs/02-ANALYSIS-SPEC.md section 7).
+ * ply 36.
  */
 export const BOOK_DEPTH = 36;
 
@@ -29,7 +29,7 @@ export function epdOf(fen: string): string {
   return fen.split(" ").slice(0, 4).join(" ");
 }
 
-/** docs/02-ANALYSIS-SPEC.md section 7, rule 2: is this EPD a known opening position? */
+/** Is this EPD a known opening position? */
 export function isInBook(epd: string): boolean {
   return book.has(epd);
 }

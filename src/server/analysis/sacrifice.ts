@@ -3,7 +3,7 @@ import { type Colour, type PieceType, PIECE_VALUE, balanceOf, parseSimplifiedBoa
 import { staticExchangeLoss, walkLine } from "./see.ts";
 
 /**
- * Is `uci`, played by `mover` from `fenBefore`, a sacrifice? docs/02-ANALYSIS-SPEC.md section 8.4.
+ * Is `uci`, played by `mover` from `fenBefore`, a sacrifice?
  * `pvAfter` is the PV (UCI moves) of the best line of the position AFTER the move (empty if none).
  */
 export function isSacrifice(fenBefore: string, uci: string, mover: Colour, pvAfter: string[]): boolean {

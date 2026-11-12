@@ -1,11 +1,11 @@
 /**
- * Clock-derived values. docs/02-ANALYSIS-SPEC.md section 14.
+ * Clock-derived values.
  */
 
 const CLOCK_PATTERN =
   /\[%clk\s*(\d+):(\d{1,2}):(\d{1,2})(?:\.(\d+))?\s*\]|\[%clk\s*(\d{1,2}):(\d{1,2})(?:\.(\d+))?\s*\]/g;
 
-/** Reads a "[%clk ...]" comment (section 14.1), the last one if there are several; undefined if none matches. */
+/** Reads a "[%clk ...]" comment, the last one if there are several; undefined if none matches. */
 export function parseClockMs(comment: string): number | undefined {
   const match = [...comment.matchAll(CLOCK_PATTERN)].at(-1);
   if (!match) return undefined;
@@ -24,7 +24,7 @@ export interface TimeControl {
   incrementMs: number;
 }
 
-/** Parses the (trimmed) TimeControl header. Section 14.2. */
+/** Parses the (trimmed) TimeControl header. */
 export function parseTimeControl(text: string): TimeControl {
   const trimmed = text.trim();
   if (trimmed.includes("/")) return { kind: "daily", baseMs: 0, incrementMs: 0 };
@@ -49,7 +49,7 @@ export interface PlyClockResult {
   inTimeTrouble?: boolean;
 }
 
-/** Per-ply clock, time spent and time-trouble flag, over a game's plies in order. Section 14.3. */
+/** Per-ply clock, time spent and time-trouble flag, over a game's plies in order. */
 export function deriveClocks(control: TimeControl, plies: PlyClockInput[]): PlyClockResult[] {
   if (control.kind === "daily") return plies.map(() => ({}));
 

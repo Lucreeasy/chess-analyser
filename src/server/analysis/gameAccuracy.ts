@@ -20,7 +20,7 @@ function toMoverWinPercent(whiteWinPercent: number, mover: Colour): number {
   return mover === "w" ? whiteWinPercent : 100 - whiteWinPercent;
 }
 
-/** docs/02-ANALYSIS-SPEC.md section 6.1: the window list for a game of N plies. */
+/** The window list for a game of N plies. */
 function buildWindows(whiteWinPercents: number[], windowSize: number): number[][] {
   const firstLen = Math.min(windowSize, whiteWinPercents.length);
   const firstWindow = whiteWinPercents.slice(0, firstLen);
@@ -49,7 +49,7 @@ function colourAccuracy(moves: Array<{ accuracy: number; weight: number }>): num
 }
 
 /**
- * Game accuracy per colour. docs/02-ANALYSIS-SPEC.md section 6.
+ * Game accuracy per colour.
  * `whiteWinPercents` is White's Win% at every position, start (index 0)
  * through the final position (index N), N = number of plies.
  */

@@ -1,11 +1,10 @@
 import { Chess } from "chess.js";
 
 /**
- * The "simplified board" of docs/02-ANALYSIS-SPEC.md section 9.1-9.2: a
- * deliberately looser model than real chess rules (castling rights, the
+ * The "simplified board": a deliberately looser model than real chess rules (castling rights, the
  * en-passant field and move counters are ignored). Used only to answer
- * "is this piece lost/won by force" for the Brilliant check (8.4) and the
- * tactic tags (section 10) - see.ts builds the exchange evaluation on top
+ * "is this piece lost/won by force" for the Brilliant check and the
+ * tactic tags - see.ts builds the exchange evaluation on top
  * of it.
  *
  * Built on chess.js (loaded with `skipValidation` so a toy position - one
@@ -83,7 +82,7 @@ export function capturedValue(board: Board, uci: string): number {
   return 0;
 }
 
-/** Pseudo-legal attackers of `square` by `colour` (section 9.2), in board order. */
+/** Pseudo-legal attackers of `square` by `colour`, in board order. */
 export function attackersOf(board: Board, square: string, colour: Colour): string[] {
   return (engineOf(board).attackers(square as never, colour) as string[])
     .slice()
@@ -91,7 +90,7 @@ export function attackersOf(board: Board, square: string, colour: Colour): strin
 }
 
 /**
- * Castling per section 9.1: a rook physically in the corner and an empty
+ * Castling on the simplified board: a rook physically in the corner and an empty
  * path is enough (rights are not checked), and the squares the king passes
  * through are not checked for attack (only the final position is, via the
  * general post-move rule).
@@ -137,7 +136,7 @@ export function playSimplifiedMove(board: Board, uci: string): Board | null {
     return looseCastle(board, from, to);
   }
 
-  // En-passant-like diagonal move onto an empty square beside an enemy pawn: section 9.1 does not check
+  // En-passant-like diagonal move onto an empty square beside an enemy pawn: the simplified board does not check
   // whether a double step was just played, only the current geometry - so the ep field is set ourselves.
   let working = board;
   if (piece.type === "p" && fileOf(to) !== fileOf(from) && !game.get(to as never)) {

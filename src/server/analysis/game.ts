@@ -20,7 +20,7 @@ export interface PositionInput {
   fen: string;
   /** Engine lines, best first; empty when the position is terminal and was not searched. */
   lines: EngineLineWithPv[];
-  /** Only used when `lines` is empty (section 2.5). */
+  /** Only used when `lines` is empty. */
   terminalWhiteWinPercent?: number;
 }
 
@@ -39,7 +39,7 @@ export interface AnalyseGameInput {
   timeControlText: string;
   engineName: string;
   depth: 12 | 16 | 20;
-  /** The side the analysed game belongs to, if known; freezes key-moment wording (section 13.2, 17.7). */
+  /** The side the analysed game belongs to, if known; freezes key-moment wording. */
   myColour?: Colour;
 }
 
@@ -50,16 +50,16 @@ export interface MoveRecord {
   uci: string;
   fenBefore: string;
   bestLine?: EngineLineWithPv;
-  /** SAN of bestLine's first move, when it can be played from fenBefore (docs/06-GAMES-SPEC.md section B3). */
+  /** SAN of bestLine's first move, when it can be played from fenBefore. */
   bestSan?: string;
-  /** bestLine's first 6 plies as move text, from fenBefore (docs/06-GAMES-SPEC.md section B7's Explanation). */
+  /** bestLine's first 6 plies as move text, from fenBefore, for the move explanation under the board. */
   engineLineText?: string;
   secondLine?: EngineLineWithPv;
   /** White POV. */
   winPercentBefore: number;
   /** White POV. */
   winPercentAfter: number;
-  /** Mover POV, raw (section 4.3: no tolerance). */
+  /** Mover POV, raw (no tolerance). */
   epLoss: number;
   accuracy: number;
   classification: MoveClass;
@@ -98,12 +98,12 @@ function whitePovWinPercent(position: PositionInput): number {
   return position.terminalWhiteWinPercent ?? 50;
 }
 
-/** docs/02-ANALYSIS-SPEC.md section 5: mover-POV Win% for moveAccuracy's inputs. */
+/** Mover-POV Win% for moveAccuracy's inputs. */
 function moverWinPercent(whiteWinPercent: number, mover: Colour): number {
   return mover === "w" ? whiteWinPercent : 100 - whiteWinPercent;
 }
 
-/** Per-move record and per-game summary. docs/02-ANALYSIS-SPEC.md section 12. */
+/** Per-move record and per-game summary. */
 export function analyseGame(input: AnalyseGameInput): GameAnalysis {
   const { positions, plies, timeControlText, engineName, depth, myColour } = input;
   const plyCount = plies.length;

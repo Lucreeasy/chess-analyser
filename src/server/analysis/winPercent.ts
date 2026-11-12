@@ -1,13 +1,13 @@
 /**
  * Win% (0-100) from a centipawn score, from the point of view of the side the
- * score belongs to. docs/02-ANALYSIS-SPEC.md section 3.
+ * score belongs to.
  */
 export function winPercentFromCp(cp: number): number {
   const c = Math.max(-1000, Math.min(1000, cp));
   return 50 + 50 * ((2 / (1 + Math.exp(-0.00368208 * c))) - 1);
 }
 
-/** Inverts winPercentFromCp: recovers a centipawn score from a Win% (docs/06-GAMES-SPEC.md section B4). */
+/** Inverts winPercentFromCp: recovers a centipawn score from a Win%. */
 export function cpFromWinPercent(winPercent: number): number {
   const w = Math.max(0.01, Math.min(99.99, winPercent));
   return Math.log(w / (100 - w)) / 0.00368208;
@@ -20,7 +20,7 @@ export interface EngineLine {
 
 /**
  * Win% of an engine line (White's point of view, since engine scores are
- * stored from White's point of view). section 3.
+ * stored from White's point of view).
  */
 export function winPercentOfLine(line: EngineLine): number {
   if (line.mate !== undefined) {

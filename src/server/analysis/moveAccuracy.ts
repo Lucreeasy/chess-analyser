@@ -1,7 +1,6 @@
 /**
- * Move accuracy. docs/02-ANALYSIS-SPEC.md section 5. Inputs are mover
- * Win% before/after (0-100). The "uncertainty bonus" is always on (the
- * spec keeps the off switch only to document the old numbers).
+ * Move accuracy. Inputs are mover Win% before/after (0-100). The "uncertainty bonus" of 1 point is
+ * always on.
  */
 export function moveAccuracy(before: number, after: number): number {
   if (after >= before) return 100;

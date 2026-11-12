@@ -1,5 +1,5 @@
 /**
- * Expected points (EP) and EP loss. docs/02-ANALYSIS-SPEC.md section 4.
+ * Expected points (EP) and EP loss.
  * EP is always from the mover's point of view; Win% is stored White POV.
  */
 

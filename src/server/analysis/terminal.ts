@@ -1,7 +1,7 @@
 import { Chess } from "chess.js";
 
 /**
- * White's Win% of a terminal position (section 2.5), or undefined when the
+ * White's Win% of a terminal position, or undefined when the
  * position is not terminal (and must be searched).
  */
 export function terminalWhiteWinPercent(fen: string): number | undefined {

@@ -1,4 +1,4 @@
-/** docs/02-ANALYSIS-SPEC.md section 13.1: selecting a game's key moments. */
+/** Selecting a game's key moments. */
 
 export interface SwingEntry {
   ply: number;
