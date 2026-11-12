@@ -3,6 +3,7 @@
   import Icon from "../components/Icon.svelte";
   import GamesList from "../components/GamesList.svelte";
   import FilterPanel from "../components/FilterPanel.svelte";
+  import FirstRunCard from "../components/FirstRunCard.svelte";
   import ConfirmDialog from "../components/ConfirmDialog.svelte";
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
   import { showToast } from "../lib/toasts.svelte.ts";
@@ -21,8 +22,12 @@
   let syncing = $state(false);
   let defaultDepth: DepthPreset = $state("standard");
 
-  apiGet<{ depthPreset: DepthPreset }>("settings")
-    .then((s) => (defaultDepth = s.depthPreset))
+  let hasUsername = $state(true);
+  apiGet<{ depthPreset: DepthPreset; usernames: string[] }>("settings")
+    .then((s) => {
+      defaultDepth = s.depthPreset;
+      hasUsername = s.usernames.length > 0;
+    })
     .catch(() => {});
 
   const deeperDepth = $derived(oneStepDeeper(defaultDepth));
@@ -231,6 +236,8 @@
       <a href="#/import" class="import-button phone-only"><Icon name="import" size={18} />Import</a>
     </div>
   </div>
+
+  {#if !hasUsername}<FirstRunCard />{/if}
 
   {#if games === undefined && loadError === undefined}
     <p class="status-line">Loading games…</p>

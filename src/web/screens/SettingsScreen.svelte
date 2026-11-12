@@ -7,6 +7,7 @@
   import { showToast } from "../lib/toasts.svelte.ts";
   import Logo from "../components/Logo.svelte";
   import Icon from "../components/Icon.svelte";
+  import FirstRunCard from "../components/FirstRunCard.svelte";
 
   const DEPTH_TEXT: Record<DepthPreset, string> = {
     quick: "Fast scan for bulk analysis. May miss subtle mistakes.",
@@ -61,6 +62,7 @@
   {:else if !settings}
     <p class="muted" role="status">Loading settings…</p>
   {:else}
+    {#if settings.usernames.length === 0}<FirstRunCard onSettings />{/if}
     <section class="card">
       <h2>Your chess.com usernames</h2>
       <p class="muted">Decides which side is "you" in every game. Names are stored in lower case.</p>
