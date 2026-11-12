@@ -46,6 +46,9 @@ the API with relative URLs, so it works under any URL path prefix.
 - `puzzles/` — selection from an analysis, the 1/3/7-day schedule, storage and sync after each analysis, the
   listing and the answer check (solution list first, then a cached or quick engine evaluation).
 - `events/` — server-sent events to every open browser, with per-type smoothing.
+- Small top-level files: `settings.ts` (the settings and their validation), `rederiveMe.ts` (which side is
+  "you" when the usernames change), `static.ts` (serving the built frontend), `version.ts` (the app version
+  for the live channel's greeting).
 
 The analysis, insights and puzzle rules are pure functions over plain data, so tests run them without a
 database or an engine; the engine-dependent parts take the engine (or a scripted fake) as a parameter.
