@@ -1,9 +1,10 @@
 /**
  * Builders for Insights tests: a stored game and an analysis with only the fields a test sets, and a seeded
  * library of realistic analysed games. As a command it writes that library into a database, for looking at
- * the Insights screen without analysing anything:  node tests/server/insights/fixtures.ts data/games.db [count]
+ * the Insights and Puzzles screens without analysing anything:  node tests/server/insights/fixtures.ts data/games.db [count]
  */
 import { Chess } from "chess.js";
+import { cpFromWinPercent } from "../../../src/server/analysis/winPercent.ts";
 import type { StoredGame } from "../../../src/server/import/parseGame.ts";
 import type { GameAnalysis, MoveRecord } from "../../../src/server/analysis/game.ts";
 import type { GameWithAnalysis, UsedGame } from "../../../src/server/insights/select.ts";
@@ -119,6 +120,8 @@ export function seededGames(count = 60, seed = 7): GameWithAnalysis[] {
       clock[colour] = Math.max(1000, clock[colour] - spent);
       const classification = ply <= 8 ? "book" : classify(loss, rand());
       const isError = ["inaccuracy", "mistake", "miss", "blunder"].includes(classification);
+      // An error's best move: another legal move, worth the position before it (puzzles need one).
+      const alternative = isError ? new Chess(fenBefore).moves({ verbose: true }).find((m) => m.lan !== move.lan) : undefined;
       moves.push({
         colour,
         san: move.san,
@@ -130,6 +133,7 @@ export function seededGames(count = 60, seed = 7): GameWithAnalysis[] {
         accuracy: Math.max(0, 100 - loss * 250),
         classification,
         tag: isError ? TAGS[Math.floor(rand() * TAGS.length)] : undefined,
+        bestLine: alternative && { cp: cpFromWinPercent(before), pv: [alternative.lan] },
         phase: ply <= 20 ? "opening" : ply > plies - 16 ? "endgame" : "middlegame",
         clockMs: clock[colour],
         timeSpentMs: spent,

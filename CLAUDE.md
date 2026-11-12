@@ -14,7 +14,7 @@ Run from the repository root:
 - Build the frontend on its own: `npm run build:web`
 - Run all tests: `npm test`
 - Type-check: `npm run typecheck`
-- Fill a database with 60 seeded analysed games, to look at Insights without the engine:
+- Fill a database with 60 seeded analysed games, to look at Insights and Puzzles without the engine:
   `node tests/server/insights/fixtures.ts data/games.db`
 - Build the image on its own: `docker build -t chess-analyser .`
 - Smoke test of the image (start, health, import a sample game, list games): not written yet.
