@@ -150,9 +150,6 @@
 </ul>
 
 <style>
-  .muted {
-    color: var(--muted);
-  }
   .truncate {
     overflow: hidden;
     text-overflow: ellipsis;

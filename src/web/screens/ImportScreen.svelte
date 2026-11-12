@@ -64,8 +64,6 @@
     max-width: 720px;
   }
   .muted {
-    color: var(--muted);
-    font-size: 14px;
     margin: 4px 0 0;
   }
   .tabs {

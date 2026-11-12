@@ -60,8 +60,6 @@
     margin: 8px 0 0;
   }
   .muted {
-    color: var(--muted);
-    font-size: 14px;
     margin: 4px 0 0;
   }
   .months {

@@ -57,8 +57,6 @@
     background: rgba(0, 0, 0, 0.5);
   }
   h2 {
-    font-size: 18px;
-    font-weight: 600;
     margin: 0 0 12px;
   }
   .pieces {

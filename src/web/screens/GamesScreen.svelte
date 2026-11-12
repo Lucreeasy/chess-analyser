@@ -422,9 +422,6 @@
   .error-card {
     margin-top: 0; /* the page's flex gap spaces it */
   }
-  .muted {
-    color: var(--muted);
-  }
 
   .import-sources {
     list-style: none;

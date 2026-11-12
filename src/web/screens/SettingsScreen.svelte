@@ -155,10 +155,6 @@
     gap: 12px;
     margin-top: 16px;
   }
-  h2 {
-    font-size: 18px;
-    font-weight: 600;
-  }
   .card > .muted {
     margin: 0;
   }

@@ -6,7 +6,6 @@
   import GamesScreen from "./screens/GamesScreen.svelte";
   import ImportScreen from "./screens/ImportScreen.svelte";
   import ReviewScreen from "./screens/ReviewScreen.svelte";
-  import ComingSoonScreen from "./screens/ComingSoonScreen.svelte";
   import InsightsScreen from "./screens/InsightsScreen.svelte";
   import PuzzlesScreen from "./screens/PuzzlesScreen.svelte";
   import SettingsScreen from "./screens/SettingsScreen.svelte";
@@ -24,8 +23,6 @@
 <main class:review={!!reviewMatch}>
   {#if reviewMatch}
     <ReviewScreen gameId={decodeURIComponent(reviewMatch[1]!)} ply={reviewMatch[2] ? Number(reviewMatch[2]) : 0} />
-  {:else if route.path === "/" || route.path.startsWith("/games")}
-    <GamesScreen />
   {:else if route.path.startsWith("/insights")}
     <InsightsScreen />
   {:else if route.path.startsWith("/puzzles")}
@@ -35,7 +32,7 @@
   {:else if route.path.startsWith("/import")}
     <ImportScreen />
   {:else}
-    <ComingSoonScreen title="Not found" />
+    <GamesScreen /><!-- "/", "/games" and any unknown address -->
   {/if}
 </main>
 

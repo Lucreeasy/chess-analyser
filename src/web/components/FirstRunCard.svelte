@@ -32,10 +32,6 @@
   .first-run {
     margin-top: 16px;
   }
-  h2 {
-    font-size: 18px;
-    font-weight: 600;
-  }
   ol {
     display: grid;
     gap: 16px;

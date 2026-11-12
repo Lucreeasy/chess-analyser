@@ -436,8 +436,6 @@
   }
   h2 {
     margin-top: 16px;
-    font-size: 18px;
-    font-weight: 600;
     outline: none;
   }
   .checking,
