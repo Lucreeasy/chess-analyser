@@ -18,8 +18,8 @@ Chosen: one language, TypeScript, on Node.js, for both server and browser.
 - Server: Node.js built-in `http`/`https` for routing and server-sent events (no web framework); `better-sqlite3`
   for storage (synchronous, embedded, no separate database process); the Stockfish binary driven over UCI via
   `child_process`, a small hand-written client (few dozen lines, the protocol is simple text lines).
-- Browser: Svelte (compiled away at build time, tiny runtime, no virtual DOM) with Vite as the bundler; per-screen
-  code-split routes loaded on demand (matches the lazy-loading and performance budget of `07-UI-SPEC.md` §12).
+- Browser: Svelte (compiled away at build time, tiny runtime, no virtual DOM) with Vite as the bundler; one bundle
+  for all screens (about 80 kB of JavaScript gzipped), small enough that per-screen code splitting is not needed.
   Client-side routing is a small hand-written router (the app needs relative URLs and a handful of routes; a router
   library is not needed for that).
 - Chess rules: `chess.js` for move generation/legality, SAN/FEN, replay and PGN tokenising, reused everywhere a

@@ -21,29 +21,28 @@ Run from the repository root:
 
 ## Structure
 
-- `src/server/` — the Node.js server: HTTP routing (`index.ts`), SQLite storage (`db.ts`), static-file
-  serving for the built frontend (`static.ts`), the engine client/lifecycle (`engineClient.ts`), running
-  one game through the engine (`runAnalysis.ts`), settings validation/storage (`settings.ts`), and
-  re-deriving colour/result when the saved usernames change (`rederiveMe.ts`).
-  - `analysis/` — the move-evaluation pipeline (docs/02-ANALYSIS-SPEC.md): Win%/accuracy, classification,
-    tactic tags, phases, the opening book, the evaluation cache, text/sentence building, and the
-    per-move/per-game orchestrator (`game.ts`).
-  - `engine/` — the UCI protocol: parsing/reducing engine output (`uci.ts`) and driving the engine
-    process (`engine.ts`).
-  - `import/` — the PGN import pipeline (docs/03-IMPORT-SPEC.md): splitting text into games and reading
-    tags (`pgnText.ts`), the lenient movetext tokenizer (`movetext.ts`), start-position/legality replay
-    (`replay.ts`), header interpretation (`dateTime.ts`, `players.ts`, `timeClass.ts`, `termination.ts`),
-    identity/opening classification (`identity.ts`, `opening.ts`), and the per-game/report assembly
-    (`parseGame.ts`, `report.ts`).
-  - `chesscom/` — the chess.com client and sync (docs/03-IMPORT-SPEC.md sections 3-4): retry/backoff
-    (`httpRetry.ts`), the shared request pacer (`pacer.ts`, `sharedPacer.ts`), validation/parsing
-    (`parsing.ts`, `requestValidation.ts`), the month/archive-list HTTP client (`client.ts`), month-range
-    selection (`monthRange.ts`), the per-month fetch/import orchestrator (`sync.ts`), and auto-sync's
-    scheduler and status summarising (`autoSyncScheduler.ts`, `autoSyncResult.ts`).
-- `src/web/` — the Svelte + Vite frontend (`App.svelte`, `main.ts`, `index.html`). Built into `dist/web`,
-  which the server serves as a single-page app (unknown paths fall back to `index.html`).
-- `tests/server/` — tests for the server, run with Node's own test runner.
-- `Dockerfile`, `compose.yaml` — the packaging (see `docs/ARCHITECTURE.md` once it exists for more).
+- `src/server/` — the Node.js server: HTTP routing (`index.ts`), SQLite storage (`db.ts`), static files
+  (`static.ts`), the engine instance (`engineClient.ts`), one game through the engine (`runAnalysis.ts`),
+  settings (`settings.ts`), and re-deriving colour/result when the usernames change (`rederiveMe.ts`).
+  - `analysis/` — move evaluation: Win%/accuracy, classification, tactic tags, phases, the opening book
+    (`src/server/data/openings.json`), sentences, and the per-game orchestrator (`game.ts`).
+  - `engine/` — the UCI protocol: parsing engine output (`uci.ts`), driving the process (`engine.ts`).
+  - `import/` — PGN import: splitting and tags (`pgnText.ts`), lenient movetext (`movetext.ts`), replay
+    (`replay.ts`), header reading, identity and opening, and the per-game/report assembly.
+  - `chesscom/` — the chess.com client, retry/backoff, the shared request pacer, month selection, the
+    per-month sync and auto-sync's scheduler.
+  - `analysisQueue/` — the persistent analysis queue and its single background worker.
+  - `events/` — the live event channel (server-sent events) and its per-type smoothing.
+  - `explore/` — explore mode: legal moves server-side and the one shared interactive engine search.
+  - `games/` — the rows the Games list and the Review screen need.
+  - `insights/` — the Insights computation: selection and filters, overview, openings, time,
+    conversion, trend, style and playstyle, recommendations, drill-down lists (`insights.ts` runs it all).
+- `src/web/` — the Svelte + Vite frontend: `screens/` (one per route), `components/`, `lib/` (plain
+  TypeScript: formatting, filters, sorting, routing, live updates) and `tokens.css` (design tokens and
+  shared styles). Built into `dist/web`, which the server serves as a single-page app.
+- `tests/server/`, `tests/web/` — tests, mirroring `src/`; `tests/fixtures/` holds the fake engines and
+  the sample PGN files (kept byte-identical by `.gitattributes`).
+- `Dockerfile`, `compose.yaml` — the packaging.
 
 ## Conventions
 
