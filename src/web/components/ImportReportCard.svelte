@@ -90,13 +90,6 @@
   details {
     margin-top: 12px;
   }
-  summary {
-    cursor: pointer;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    color: var(--brand);
-  }
   .failures {
     list-style: none;
     margin: 8px 0 0;

@@ -178,6 +178,9 @@
     font-size: 12px;
     color: var(--muted);
   }
+  summary {
+    color: inherit; /* "What this means" is plain text (docs/07-UI-SPEC.md section 5.17) */
+  }
   details p {
     margin-top: 4px;
     font-size: 14px;

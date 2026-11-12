@@ -80,7 +80,7 @@
       {/each}
     </div>
 
-    <table class="quality">
+    <table class="compact quality">
       <caption class="sr-only">Moves by quality, per side</caption>
       <thead>
         <tr>
@@ -101,7 +101,7 @@
     </table>
 
     {#if phaseRows.length > 0}
-      <table class="phases">
+      <table class="compact phases">
         <caption>Accuracy by phase</caption>
         <thead>
           <tr>
@@ -164,34 +164,16 @@
     color: var(--muted);
     font-size: 13px;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
   caption {
     text-align: left;
     font-size: 13px;
     font-weight: 600;
     margin-bottom: 6px;
   }
-  th {
-    text-align: left;
-    color: var(--muted);
-    font-size: 12px;
-    padding: 4px;
-  }
-  td {
-    padding: 4px;
-    border-top: 1px solid var(--line);
-  }
   .cls-cell {
     display: flex;
     align-items: center;
     gap: 6px;
-  }
-  .num {
-    text-align: right;
   }
   .details {
     display: flex;

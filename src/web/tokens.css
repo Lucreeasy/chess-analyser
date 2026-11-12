@@ -208,6 +208,34 @@ label {
   color: var(--muted);
   font-size: 12px;
 }
+/* Disclosure lines (section 5.17): at least 44 px high, Brand text unless a place says otherwise. */
+summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--brand);
+  cursor: pointer;
+}
+/* Small embedded tables (section 5.11): 14 px, no wrapper, 1 px row dividers, 64 px number columns. */
+.compact {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.compact th {
+  padding: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: left;
+}
+.compact td {
+  padding: 4px;
+  border-top: 1px solid var(--line);
+}
+.compact .num {
+  width: 64px;
+  text-align: right;
+}
 /* A sortable table header (section 5.11): the column name is a button; the active column is in ink. */
 th[aria-sort] > button {
   display: inline-flex;
