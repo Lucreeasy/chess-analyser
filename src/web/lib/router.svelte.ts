@@ -11,6 +11,12 @@ function currentRoute(): string {
 
 export const route = $state({ path: currentRoute() });
 
+/** The current route's query string ("mode=all&tag=hung_piece"), "" when it has none. */
+export function routeQuery(): string {
+  const i = route.path.indexOf("?");
+  return i < 0 ? "" : route.path.slice(i + 1);
+}
+
 window.addEventListener("hashchange", () => {
   route.path = currentRoute();
 });

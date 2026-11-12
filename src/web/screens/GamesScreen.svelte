@@ -7,7 +7,7 @@
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
   import { showToast } from "../lib/toasts.svelte.ts";
   import { defaultFilters, filterGames, activeFilterCount, computeFacets, filtersFromQuery, type GamesFilters } from "../lib/gamesFilter.ts";
-  import { route } from "../lib/router.svelte.ts";
+  import { routeQuery } from "../lib/router.svelte.ts";
   import { plural } from "../lib/format.ts";
   import { sortGames, FIRST_DIRECTION, type SortKey, type SortDirection } from "../lib/gamesSort.ts";
   import { paginate, pageCount, clampPage } from "../lib/paginate.ts";
@@ -31,7 +31,7 @@
   let filters: GamesFilters = $state(defaultFilters());
   // A link from Insights carries filters, ids and a label in the address.
   $effect(() => {
-    filters = filtersFromQuery(route.path.split("?")[1] ?? "");
+    filters = filtersFromQuery(routeQuery());
   });
 
   /** A8 "Clear": with an id list drop it and the label, keeping the other filters; otherwise clear all filters. */

@@ -5,7 +5,7 @@
   import { ALL_TAGS } from "../../server/analysis/tacticTags.ts";
   import { TAG_INFO } from "../../server/analysis/texts.ts";
   import { apiGet } from "../lib/api.ts";
-  import { route, navigate } from "../lib/router.svelte.ts";
+  import { navigate, routeQuery } from "../lib/router.svelte.ts";
   import { queue } from "../lib/live.svelte.ts";
   import { currentCount, queueVisible } from "../lib/queueStatus.ts";
   import { accuracyText, one, pct, plural, thousands, ukDate } from "../lib/format.ts";
@@ -70,7 +70,7 @@
   ] as const;
 
   /** The filters live in the address; its query string is the API's. */
-  const query = $derived(route.path.includes("?") ? route.path.slice(route.path.indexOf("?") + 1) : "");
+  const query = $derived(routeQuery());
 
   let data: Insights | undefined = $state();
   let loading = $state(false);
