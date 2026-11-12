@@ -73,3 +73,12 @@ demand, not bloat to cut).
 Why: the ceiling was set at the end of P5 against the code that existed then; Insights is a whole new section
 (selection, ~20 metrics, the radar, 8 recommendation rules, drill-downs and its screen). One raise per phase,
 tightened at the phase's end, keeps the budget meaningful without a decision per commit.
+
+## D-003: raise the size budget for the Puzzles phase
+Date: 2026-11-12 · Phase: P7
+Chosen: raise the product-lines ceiling from 14,400 to 15,900 for the length of P7, and lower it again to a
+little above the real size in the phase's closing cleanup, as D-002 did for Insights.
+Alternatives: one raise per commit (a decision per commit, no added control); keep 14,400 and cut elsewhere
+first (the trainer is new behaviour the requirements demand: selection, the schedule, the answer check with
+its engine fallback, listing and its screen).
+Why: one raise per phase, tightened at the phase's end, keeps the budget meaningful.
