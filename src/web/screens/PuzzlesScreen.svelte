@@ -6,7 +6,7 @@
   import { apiGet, apiPost } from "../lib/api.ts";
   import { navigate, routeQuery } from "../lib/router.svelte.ts";
   import { provenance, relativeTime, scheduleNote } from "../lib/puzzleText.ts";
-  import { capitalise, plural } from "../lib/format.ts";
+  import { capitalise, plural, thousands } from "../lib/format.ts";
   import { showToast } from "../lib/toasts.svelte.ts";
   import { queue, onGameAnalysed } from "../lib/live.svelte.ts";
   import { queueVisible } from "../lib/queueStatus.ts";
@@ -215,7 +215,7 @@
       </button>
     </div>
     <p class="muted stats" aria-live="polite">
-      {#if view}<strong>{view.counts.due}</strong> due · {view.counts.total} total · {view.counts.solved} solved{:else}Loading…{/if}
+      {#if view}<strong>{thousands(view.counts.due)}</strong> due · {thousands(view.counts.total)} total · {thousands(view.counts.solved)} solved{:else}Loading…{/if}
     </p>
 
     {#if showFilters && view}
