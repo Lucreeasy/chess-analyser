@@ -5,38 +5,51 @@
   import type { MoveResult } from "../../server/explore/position.ts";
   import { apiGet, apiPost } from "../lib/api.ts";
   import { navigate, routeQuery } from "../lib/router.svelte.ts";
-  import { provenance, scheduleNote } from "../lib/puzzleText.ts";
+  import { provenance, relativeTime, scheduleNote } from "../lib/puzzleText.ts";
+  import { plural } from "../lib/format.ts";
+  import { showToast } from "../lib/toasts.svelte.ts";
+  import { queue, onGameAnalysed } from "../lib/live.svelte.ts";
+  import { queueVisible } from "../lib/queueStatus.ts";
+  import { ALL_TAGS } from "../../server/analysis/tacticTags.ts";
+  import { ALL_PHASES } from "../../server/analysis/phases.ts";
+  import { TAG_INFO } from "../../server/analysis/texts.ts";
   import Board from "../components/Board.svelte";
   import Logo from "../components/Logo.svelte";
   import Icon from "../components/Icon.svelte";
   import ColourMarker from "../components/ColourMarker.svelte";
 
-  type View = ReturnType<typeof listView>;
+  type View = ReturnType<typeof listView> & { analysedGames: number };
   /** The GET /api/puzzles route adds each item's opponent from its game (listView itself has no games). */
   type Item = View["items"][number] & { opponent?: string };
   type Answer = NonNullable<Awaited<ReturnType<typeof checkAnswer>>["result"]>;
 
-  // The view lives in the address: "?mode=all", "&tag=…", "&phase=…" (unknown values are ignored by the server).
+  // The view lives in the address: "?mode=all", "&tag=…", "&phase=…"; unknown values are ignored.
   const query = $derived(routeQuery());
   const params = $derived(new URLSearchParams(query));
   const mode = $derived(params.get("mode") === "all" ? "all" : "due");
-  function setMode(next: "due" | "all"): void {
-    const p = new URLSearchParams(query);
-    if (next === "all") p.set("mode", "all");
-    else p.delete("mode");
+  const tag = $derived([...ALL_TAGS, "none"].find((t) => t === params.get("tag")));
+  const phase = $derived(ALL_PHASES.find((p) => p === params.get("phase")));
+  const filterCount = $derived((tag ? 1 : 0) + (phase ? 1 : 0));
+  function show(next: { mode?: string; tag?: string; phase?: string }): void {
+    const p = new URLSearchParams(Object.entries(next).filter(([k, v]) => v && !(k === "mode" && v === "due")));
     navigate(`/puzzles${p.size ? `?${p}` : ""}`);
   }
+  const setMode = (m: "due" | "all") => show({ mode: m, tag, phase });
+  let showFilters = $state(false);
+  const TAG_LABEL: Record<string, string> = { ...Object.fromEntries(ALL_TAGS.map((t) => [t, TAG_INFO[t].label])), none: "Other" };
 
   // A run: one pass through a fetched list; puzzles shown or skipped are not offered again in it.
   let view: View | undefined = $state();
   let list: Item[] = $state([]);
   let seen = $state(new Set<string>());
+  let skipped = $state(0);
   let loading = $state(true);
   let loadError: string | undefined = $state();
   const current = $derived(list.find((p) => !seen.has(p.id)));
 
   /** The list request of the current view; `limit: "0"` asks for counts and facets only. */
-  const listUrl = (extra: Record<string, string> = {}) => `puzzles?${new URLSearchParams({ ...Object.fromEntries(params), mode, ...extra })}`;
+  const listUrl = (extra: Record<string, string> = {}) =>
+    `puzzles?${new URLSearchParams({ mode, ...(tag && { tag }), ...(phase && { phase }), ...extra })}`;
 
   async function fetchList(): Promise<void> {
     loading = true;
@@ -55,12 +68,34 @@
   }
   function startRun(): void {
     seen = new Set();
+    skipped = 0;
     fetchList();
   }
   $effect(() => {
     void query; // a new run whenever the view in the address changes
     startRun();
   });
+  // A finished analysis can bring new puzzles: fresh counts, and a fresh list when nothing is on screen.
+  $effect(() =>
+    onGameAnalysed(() => {
+      refreshStats();
+      if (!current) fetchList();
+    }),
+  );
+
+  let refreshing = $state(false);
+  async function refresh(): Promise<void> {
+    refreshing = true;
+    try {
+      const r = await apiPost<{ created: number; total: number }>("puzzles/refresh");
+      showToast(r.created > 0 ? `Puzzles refreshed: ${r.created} new, ${r.total} in total.` : `Puzzles are up to date (${r.total} in total).`);
+      startRun();
+    } catch (e) {
+      showToast(`Could not refresh puzzles: ${e instanceof Error ? e.message : String(e)}`, "error");
+    } finally {
+      refreshing = false;
+    }
+  }
 
   // The current puzzle: asking, checking a move, or answered.
   let stage: "ask" | "checking" | "answered" = $state("ask");
@@ -108,7 +143,8 @@
   }
 
   /** Next or Skip: the puzzle counts as seen; past the last one the list is fetched again. */
-  async function moveOn(): Promise<void> {
+  async function moveOn(skip = false): Promise<void> {
+    if (skip) skipped++;
     seen = new Set(seen).add(current!.id);
     if (!list.some((p) => !seen.has(p.id))) await fetchList();
     await tick();
@@ -141,7 +177,14 @@
   );
 </script>
 
-<div class="puzzles">
+<svelte:window
+  onkeydown={(e) => {
+    const typing = e.target instanceof HTMLElement && e.target.closest("input, textarea, select");
+    if (e.key.toLowerCase() === "n" && answer && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) moveOn();
+  }}
+/>
+
+<div class="puzzles" class:no-board={!current}>
   <h1 class="sr-only">Puzzles</h1>
   {#if current}
     <div class="board">
@@ -167,10 +210,42 @@
           </label>
         {/each}
       </div>
+      <button type="button" class="neutral filters" aria-expanded={showFilters} aria-controls="puzzle-filters" onclick={() => (showFilters = !showFilters)}>
+        <Icon name="filter" size={18} />Filters{filterCount > 0 ? ` (${filterCount})` : ""}
+      </button>
     </div>
     <p class="muted stats" aria-live="polite">
       {#if view}<strong>{view.counts.due}</strong> due · {view.counts.total} total · {view.counts.solved} solved{:else}Loading…{/if}
     </p>
+
+    {#if showFilters && view}
+      <div class="card filter-card" id="puzzle-filters">
+        <p class="label">Tactic</p>
+        <div class="chips">
+          <button type="button" class="chip" aria-pressed={!tag} onclick={() => show({ mode, phase })}>Any tactic</button>
+          {#each view.tagFacets as f (f.key)}
+            <button type="button" class="chip" aria-pressed={tag === f.key} onclick={() => show({ mode, tag: tag === f.key ? undefined : f.key, phase })}>
+              {TAG_LABEL[f.key]} ({f.count})
+            </button>
+          {/each}
+        </div>
+        <p class="label">Phase</p>
+        <div class="chips">
+          <button type="button" class="chip" aria-pressed={!phase} onclick={() => show({ mode, tag })}>Any phase</button>
+          {#each view.phaseFacets as f (f.key)}
+            <button type="button" class="chip" aria-pressed={phase === f.key} onclick={() => show({ mode, tag, phase: phase === f.key ? undefined : f.key })}>
+              {f.key[0].toUpperCase() + f.key.slice(1)} ({f.count})
+            </button>
+          {/each}
+        </div>
+        <div class="actions">
+          {#if filterCount > 0}<button type="button" class="neutral small" onclick={() => show({ mode })}>Clear filters</button>{/if}
+          <button type="button" class="neutral small" class:spinning={refreshing} disabled={refreshing} onclick={refresh}>
+            {refreshing ? "Refreshing…" : "Refresh puzzles"}
+          </button>
+        </div>
+      </div>
+    {/if}
 
     {#if current}
       <section class="panel">
@@ -206,9 +281,9 @@
 
         <div class="actions">
           {#if answer}
-            <button type="button" class="primary grow" bind:this={nextButton} onclick={moveOn}>Next puzzle</button>
+            <button type="button" class="primary grow" bind:this={nextButton} onclick={() => moveOn()}>Next puzzle</button>
           {:else}
-            <button type="button" class="neutral" disabled={stage === "checking"} onclick={moveOn}>Skip</button>
+            <button type="button" class="neutral" disabled={stage === "checking"} onclick={() => moveOn(true)}>Skip</button>
             <button type="button" class="neutral" disabled={stage === "checking"} onclick={() => submit({ giveUp: true })}>
               Give up / show solution
             </button>
@@ -224,9 +299,42 @@
         <p>{loadError}</p>
         <button type="button" class="neutral" onclick={fetchList}>Try again</button>
       </div>
-    {:else}
-      <div class="card">
-        <h2>{seen.size > 0 ? "Session complete" : "Nothing due right now"}</h2>
+    {:else if view}
+      <!-- Spec section 7, first match wins. -->
+      <div class="card message">
+        {#if view.phaseFacets.every((f) => f.count === 0) && view.analysedGames === 0}
+          <h2>No analysed games yet</h2>
+          <p>Puzzles are made from your own Mistakes, Blunders and Misses. Import some games and analyse them first.</p>
+          <a class="primary" href="#/games">Go to the library</a>
+        {:else if view.phaseFacets.every((f) => f.count === 0)}
+          <h2>No puzzles yet</h2>
+          <p>
+            Puzzles are made from your own Mistakes, Blunders and Misses in analysed games. If your games were analysed before
+            puzzles existed, build them now.
+          </p>
+          {#if queueVisible(queue.status)}<p class="muted">Analysis is still running: puzzles appear here as games finish.</p>{/if}
+          <button type="button" class="primary" class:spinning={refreshing} disabled={refreshing} onclick={refresh}>
+            {refreshing ? "Refreshing…" : "Refresh puzzles"}
+          </button>
+        {:else if filterCount > 0 && view.counts.total === 0}
+          <h2>No puzzles match these filters</h2>
+          <button type="button" class="neutral" onclick={() => show({ mode })}>Clear filters</button>
+        {:else if mode === "due"}
+          <h2>{seen.size > 0 ? "Session complete" : "Nothing due right now"}</h2>
+          <p>
+            {#if seen.size > 0}You worked through {plural(seen.size, "puzzle")}.{skipped > 0 ? ` ${skipped} skipped and still due.` : ""}{/if}
+            {view.nextDue !== undefined
+              ? `Next puzzle due ${relativeTime(view.nextDue, view.now)}.`
+              : "Every puzzle is solved or retired. New ones appear as you analyse more games."}
+          </p>
+          <div class="actions">
+            <button type="button" class="primary" onclick={() => setMode("all")}>Practise all puzzles</button>
+            {#if skipped > 0}<button type="button" class="neutral" onclick={startRun}>Start again</button>{/if}
+          </div>
+        {:else}
+          <h2>You have been through every puzzle in this view</h2>
+          <button type="button" class="primary" onclick={startRun}>Start again</button>
+        {/if}
       </div>
     {/if}
   </div>
@@ -257,6 +365,13 @@
     .board {
       grid-column: 1;
       grid-row: 1;
+    }
+    .no-board {
+      grid-template-columns: minmax(0, 560px);
+      justify-content: center;
+    }
+    .no-board .side {
+      grid-column: 1;
     }
   }
   @media (max-width: 767px) {
@@ -293,6 +408,28 @@
   }
   .strip .segmented {
     min-width: 152px;
+  }
+  .strip .filters {
+    margin: 0 0 0 auto;
+    white-space: nowrap;
+  }
+  .message h2 {
+    margin-top: 0;
+  }
+  .filter-card,
+  .message {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .filter-card .label {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .message > .primary,
+  .message > .neutral {
+    justify-self: start;
+    margin-top: 4px;
   }
   .stats strong {
     color: var(--ink);
