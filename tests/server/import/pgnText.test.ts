@@ -1,13 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { splitIntoGames, parseTagLine, extractTags, normalizeText } from "../../../src/server/import/pgnText.ts";
+import { sample } from "../../fixtures/samples.ts";
 
-const SAMPLES = new URL("../../../../reference/pgn-samples/", import.meta.url);
-
-function sample(name: string): string {
-  return readFileSync(new URL(name, SAMPLES), "utf8");
-}
 
 test("parseTagLine: the grammar, escapes, and what is not a tag line", () => {
   assert.deepEqual(parseTagLine('[White "alice"]'), { name: "White", value: "alice" });
@@ -24,7 +19,7 @@ test("normalizeText: strips a leading BOM and normalises CRLF/CR/LF", () => {
   assert.equal(normalizeText("﻿a\r\nb\rc\nd"), "a\nb\nc\nd");
 });
 
-// The sample README's per-file counts.
+// The known per-file game counts of the samples.
 test("loose-format.pgn: 4 games, despite sloppy layout", () => {
   const games = splitIntoGames(sample("loose-format.pgn"));
   assert.equal(games.length, 4);

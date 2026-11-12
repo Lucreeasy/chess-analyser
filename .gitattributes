@@ -1,0 +1,2 @@
+# The sample games stay byte-identical: one has CRLF line ends and a BOM on purpose.
+tests/fixtures/pgn/*.pgn -text

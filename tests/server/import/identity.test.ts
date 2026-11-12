@@ -1,15 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { gameId } from "../../../src/server/import/identity.ts";
 import { splitIntoGames, extractTags, movetextOf } from "../../../src/server/import/pgnText.ts";
 import { tokenizeMovetext } from "../../../src/server/import/movetext.ts";
+import { sample } from "../../fixtures/samples.ts";
 
-const SAMPLES = new URL("../../../../reference/pgn-samples/", import.meta.url);
-function sample(name: string): string {
-  return readFileSync(new URL(name, SAMPLES), "utf8");
-}
 
 test("the Link tag, trimmed, is the id when present", () => {
   const tags = new Map([["Link", "  https://www.chess.com/game/live/130000197975  "]]);

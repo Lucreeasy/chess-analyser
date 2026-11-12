@@ -1,13 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { splitIntoGames } from "../../../src/server/import/pgnText.ts";
 import { positionsOf } from "../../../src/server/games/positions.ts";
+import { sample } from "../../fixtures/samples.ts";
 
-const SAMPLES = new URL("../../../../reference/pgn-samples/", import.meta.url);
-function sample(name: string): string {
-  return readFileSync(new URL(name, SAMPLES), "utf8");
-}
 
 test("positionsOf: one FEN per ply plus the start position, for a clean game", () => {
   const [gameText] = splitIntoGames(sample("annotations.pgn"));

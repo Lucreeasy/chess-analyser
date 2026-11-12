@@ -1,13 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { tokenizeMovetext } from "../../../src/server/import/movetext.ts";
 import { splitIntoGames, movetextOf } from "../../../src/server/import/pgnText.ts";
+import { sample } from "../../fixtures/samples.ts";
 
-const SAMPLES = new URL("../../../../reference/pgn-samples/", import.meta.url);
-function sample(name: string): string {
-  return readFileSync(new URL(name, SAMPLES), "utf8");
-}
 
 function raws(text: string): string[] {
   return tokenizeMovetext(text).moves.map((m) => m.raw);
@@ -66,7 +62,7 @@ test("en passant marker e.p. is a separate, dropped token", () => {
   assert.deepEqual(raws("1. e4 d5 2. e5 f5 3. exf6 e.p."), ["e4", "d5", "e5", "f5", "exf6"]);
 });
 
-// The sample files, checked against their README's ply counts.
+// The sample files, checked against their known ply counts.
 test("annotations.pgn: 41 and 40 plies, despite heavy annotation", () => {
   const games = splitIntoGames(sample("annotations.pgn"));
   assert.equal(games.length, 2);

@@ -1,20 +1,19 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { readdirSync } from "node:fs";
 import { splitIntoGames } from "../../../src/server/import/pgnText.ts";
 import { parseGame } from "../../../src/server/import/parseGame.ts";
+import { sample, SAMPLES_DIR } from "../../fixtures/samples.ts";
 
-const SAMPLES_DIR = fileURLToPath(new URL("../../../../reference/pgn-samples/", import.meta.url));
 const NOW = Date.UTC(2026, 9, 31);
 
 function parseFile(name: string) {
-  const text = readFileSync(SAMPLES_DIR + name, "utf8");
+  const text = sample(name);
   return splitIntoGames(text).map((g) => parseGame(g, "file", ["bc_tester"], NOW));
 }
 
 // Every sample file, concatenated.
-test("every reference/pgn-samples file together: total 52, new 49, duplicates 2, failed 1", () => {
+test("every sample file together: total 52, new 49, duplicates 2, failed 1", () => {
   const files = readdirSync(SAMPLES_DIR).filter((f) => f.endsWith(".pgn")).sort();
   let total = 0;
   let added = 0;
@@ -51,7 +50,7 @@ test("malformed.pgn: the middle game fails with the exact reason, its neighbours
   assert.equal(results[2].failure, undefined);
 });
 
-test("endings.pgn: every field matches the sample README exactly", () => {
+test("endings.pgn: every field matches the documented values exactly", () => {
   const results = parseFile("endings.pgn");
   const games = results.map((r) => r.game!);
   assert.deepEqual(

@@ -49,7 +49,7 @@ test("per-move classes, tags and Win%/accuracy match the reference table", () =>
     ["book", "", 52.7588, 52.7588, 0, 100.0],
     ["book", "", 52.7588, 53.6754, 0.0092, 96.963],
     ["book", "", 53.6754, 52.2997, 0.0138, 95.001],
-    // Not "book": docs/OPEN-QUESTIONS.md #5 - this position is not a key in reference/data/openings.json,
+    // Not "book": this position is not a key in the opening book (src/server/data/openings.json),
     // even though the worked example's prose says it is. Same accuracy either way (the label doesn't affect EP loss).
     ["best", "", 52.2997, 52.4834, 0.0018, 100.0],
     ["excellent", "", 52.4834, 50.9204, 0.0156, 94.2123],
@@ -85,7 +85,7 @@ test("per-game summary: accuracy, counts, phase accuracy, max/min EP", () => {
   assert.equal(summary.counts.w.book, 2);
   assert.equal(summary.counts.w.best, 1);
   assert.equal(summary.counts.w.excellent, 1);
-  // Black: book1 (e5), best1 (Nc6, see docs/OPEN-QUESTIONS.md #5), blunder1 (Nf6).
+  // Black: book1 (e5), best1 (Nc6, not in the book, see above), blunder1 (Nf6).
   assert.equal(summary.counts.b.book, 1);
   assert.equal(summary.counts.b.best, 1);
   assert.equal(summary.counts.b.blunder, 1);

@@ -1,15 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { splitIntoGames } from "../../../src/server/import/pgnText.ts";
 import { importGames } from "../../../src/server/import/report.ts";
+import { sample } from "../../fixtures/samples.ts";
 
-const SAMPLES_DIR = fileURLToPath(new URL("../../../../reference/pgn-samples/", import.meta.url));
 const NOW = Date.UTC(2026, 9, 31);
 
 function textsOf(fileName: string): string[] {
-  return splitIntoGames(readFileSync(SAMPLES_DIR + fileName, "utf8"));
+  return splitIntoGames(sample(fileName));
 }
 
 // Re-importing the same games: duplicates, not new games.

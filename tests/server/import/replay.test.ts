@@ -1,15 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { Chess } from "chess.js";
 import { splitIntoGames, extractTags, movetextOf } from "../../../src/server/import/pgnText.ts";
 import { tokenizeMovetext } from "../../../src/server/import/movetext.ts";
 import { resolveStartPosition, replayGame } from "../../../src/server/import/replay.ts";
+import { sample } from "../../fixtures/samples.ts";
 
-const SAMPLES = new URL("../../../../reference/pgn-samples/", import.meta.url);
-function sample(name: string): string {
-  return readFileSync(new URL(name, SAMPLES), "utf8");
-}
 
 function gamesOf(fileName: string): string[] {
   return splitIntoGames(sample(fileName));
@@ -23,7 +19,7 @@ function replay(gameText: string, fullReplay: boolean) {
   return replayGame(start.fen, moves, fullReplay);
 }
 
-// The sample files' README.
+// The known outcomes of the sample files.
 test("malformed.pgn: game 2 fails at import with the exact message, its neighbours are fine", () => {
   const games = gamesOf("malformed.pgn");
   assert.equal(games.length, 3);
