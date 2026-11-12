@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { Chess } from "chess.js";
 import { analyseGame, type AnalyseGameInput } from "../../../src/server/analysis/game.ts";
+import type { EngineLineWithPv } from "../../../src/server/analysis/tacticTags.ts";
 
 function close(got: number, expected: number, tolerance = 1e-3): void {
   assert.ok(Math.abs(got - expected) < tolerance, `got ${got}, expected ${expected}`);
@@ -128,3 +130,74 @@ test("an empty game: no moves, start position counts as Win% 50, accuracy 100/10
   assert.equal(summary.minEp.w, 0.5);
   assert.deepEqual(summary.keyMoments, []);
 });
+
+// The full examples with positions: one-move games through the whole pipeline, my colour White. They assume
+// no opening book, so the start position appears without castling rights: the same moves and lines, but no
+// position of these games is a book position.
+const BASE = { timeControlText: "-", engineName: "test", depth: 16, myColour: "w" } as const;
+const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1";
+const E3_BEFORE: EngineLineWithPv[] = [
+  { cp: 30, pv: ["e2e4", "e7e5"] },
+  { cp: 25, pv: ["d2d4"] },
+];
+
+// prettier-ignore
+const EXAMPLES: Array<[string, string, string, EngineLineWithPv[], EngineLineWithPv[] | "terminal", number, number, number, number, string, string]> = [
+  ["E1", START, "e2e4", [{ cp: 0, pv: ["e2e4", "e7e5"] }, { cp: -300, pv: ["d2d4", "d7d5"] }], [{ cp: 0, pv: ["e7e5"] }], 50.0, 50.0, 0, 100, "great", ""],
+  ["E2", "4k3/8/4p3/8/8/8/8/3QK3 w - - 0 1", "d1d5", [{ cp: 150, pv: ["d1d5", "e6d5"] }], [{ cp: 150, pv: ["e6d5", "e1e2"] }], 63.47, 63.47, 0, 100, "brilliant", ""],
+  ["E3", START, "d2d4", E3_BEFORE, [{ cp: 10, pv: ["d7d5", "c2c4"] }], 52.76, 50.92, 0.0184, 93.06, "excellent", ""],
+  ["E4", START, "d2d4", E3_BEFORE, [{ cp: 0, pv: ["d7d5", "c2c4"] }], 52.76, 50.0, 0.0276, 89.32, "good", ""],
+  ["E5", START, "d2d4", E3_BEFORE, [{ cp: -60, pv: ["d7d5", "c2c4"] }], 52.76, 44.5, 0.0826, 69.84, "inaccuracy", "positional"],
+  ["E6", "4k3/8/8/3n4/8/8/3R4/4K3 w - - 0 1", "e1f1", [{ cp: 500, pv: ["d2d5", "e8e7"] }], [{ cp: 300, pv: ["d5f6", "f1e2"] }], 86.31, 75.11, 0.1119, 61.2, "mistake", "missed_tactic"],
+  ["E7", "4k3/8/8/5n2/8/8/8/3QK3 w - - 0 1", "d1d4", [{ cp: 0, pv: ["d1d2"] }], [{ cp: -800, pv: ["f5d4", "e1e2"] }], 50.0, 4.99, 0.4501, 12.37, "blunder", "hung_piece"],
+  ["E8", "4k3/8/8/4n3/8/8/P2R4/6K1 w - - 0 1", "a2a3", [{ cp: 300, pv: ["d2d3"] }], [{ cp: -200, pv: ["e5f3", "g1f1", "f3d2", "f1e1"] }], 75.11, 32.38, 0.4273, 13.88, "blunder", "allowed_tactic"],
+  ["E9", START, "f2f3", [{ cp: 30, pv: ["e2e4"] }], [{ mate: -3, pv: ["e7e5"] }], 52.76, 2.46, 0.503, 9.37, "blunder", "allowed_mate"],
+  ["E10", "k7/8/2K5/8/8/8/1Q6/8 w - - 0 1", "b2b6", [{ mate: 1, pv: ["b2b7"] }, { cp: 900, pv: ["b2a3"] }], "terminal", 97.54, 50.0, 0.4754, 10.85, "blunder", "missed_mate"],
+];
+
+for (const [name, fen, uci, before, after, wBefore, wAfter, loss, accuracy, cls, tag] of EXAMPLES) {
+  test(`full example ${name}: ${cls}${tag ? `, ${tag}` : ""}`, () => {
+    const game = new Chess(fen);
+    const move = game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4) });
+    const after1 = after === "terminal" ? { fen: game.fen(), lines: [], terminalWhiteWinPercent: 50 } : { fen: game.fen(), lines: after };
+    const [m] = analyseGame({ ...BASE, positions: [{ fen, lines: before }, after1], plies: [{ colour: "w", san: move.san, uci }] }).moves;
+    assert.deepEqual([m.classification, m.tag ?? ""], [cls, tag]);
+    close(m.winPercentBefore, wBefore, 0.005);
+    close(m.winPercentAfter, wAfter, 0.005);
+    close(m.epLoss, loss, 0.00005);
+    close(m.accuracy, accuracy, 0.005);
+  });
+}
+
+// The Miss examples: after 1.e4 (castling rights dropped, no book), 1...f6 is a positional blunder; 2.Nf3 then
+// fails to punish it by how much the position after it is worth.
+const AFTER_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b - - 0 1";
+for (const [name, cpAfter, wAfter, loss, cls, tag] of [
+  ["M1", 150, 63.47, 0.2664, "miss", "positional"],
+  ["M2", 300, 75.11, 0.15, "miss", "positional"],
+  ["M3", -100, 40.9, 0.4921, "blunder", "positional"],
+  ["M4", 700, 92.94, 0, "excellent", ""],
+] as const) {
+  test(`miss example ${name}: 2.Nf3 is ${cls}`, () => {
+    const game = new Chess(AFTER_E4);
+    const fens = [AFTER_E4, game.move("f6") && game.fen(), game.move("Nf3") && game.fen()];
+    const [f6, nf3] = analyseGame({
+      ...BASE,
+      positions: [
+        { fen: fens[0], lines: [{ cp: 30, pv: ["e7e5"] }, { cp: 40, pv: ["c7c5"] }] },
+        { fen: fens[1], lines: [{ cp: 600, pv: ["d2d4"] }, { cp: 450, pv: ["b1c3"] }] },
+        { fen: fens[2], lines: [{ cp: cpAfter, pv: ["e7e5"] }] },
+      ],
+      plies: [
+        { colour: "b", san: "f6", uci: "f7f6" },
+        { colour: "w", san: "Nf3", uci: "g1f3" },
+      ],
+    }).moves;
+    assert.deepEqual([f6.classification, f6.tag], ["blunder", "positional"]);
+    close(f6.winPercentAfter, 90.11, 0.005);
+    close(f6.epLoss, 0.3735, 0.00005);
+    assert.deepEqual([nf3.classification, nf3.tag ?? ""], [cls, tag]);
+    close(nf3.winPercentAfter, wAfter, 0.005);
+    close(nf3.epLoss, loss, 0.00005);
+  });
+}

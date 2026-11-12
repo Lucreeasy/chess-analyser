@@ -130,19 +130,6 @@ test("T10: positional", () => {
   assert.equal(tag, "positional");
 });
 
-// Main table, example E7: none of T1-T11 actually fires hung_piece.
-test("E7: hung_piece - the queen is left where a knight wins it", () => {
-  const tag = tacticTag({
-    mover: "w",
-    fenBefore: "4k3/8/8/5n2/8/8/8/3QK3 w - - 0 1",
-    playedUci: "d1d4",
-    fenAfter: "4k3/8/8/5n2/3Q4/8/8/4K3 b - - 0 1",
-    best: line(0, ["d1d2"]),
-    after: line(-800, ["f5d4", "e1e2"]),
-  });
-  assert.equal(tag, "hung_piece");
-});
-
 test("T11: positional - no lines", () => {
   const tag = tacticTag({
     mover: "w",

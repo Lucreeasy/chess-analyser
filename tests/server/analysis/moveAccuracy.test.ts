@@ -37,6 +37,16 @@ test("accuracy by loss, full precision", () => {
     const got = moveAccuracy(100, 100 - loss);
     assert.ok(Math.abs(got - expected) < 1e-9, `loss ${loss}: got ${got}, expected ${expected}`);
   }
+  // The rest of the "by loss" table, at its rounding.
+  // prettier-ignore
+  const table: Array<[number, number]> = [
+    [0.224, 99.9985], [0.3, 99.66096], [0.5, 98.778], [2, 92.3954], [3, 88.3661], [7.5, 72.2562],
+    [15, 51.5208], [30, 25.772], [40, 15.909], [60, 5.3993], [70, 2.7283],
+  ];
+  for (const [loss, expected] of table) {
+    const got = moveAccuracy(100, 100 - loss);
+    assert.ok(Math.abs(got - expected) < 5e-5, `loss ${loss}: got ${got}, expected ${expected}`);
+  }
 });
 
 test("bonus keeps a tiny loss at 100, clamps a huge loss to 0", () => {
