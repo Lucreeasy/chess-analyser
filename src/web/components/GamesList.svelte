@@ -71,7 +71,9 @@
   <thead>
     <tr>
       <th scope="col" class="checkbox-col">
-        <input type="checkbox" checked={allSelected} use:indeterminate={someSelected} onchange={onToggleSelectAll} aria-label="Select all games on this page" />
+        <label class="check-target">
+          <input type="checkbox" checked={allSelected} use:indeterminate={someSelected} onchange={onToggleSelectAll} aria-label="Select all games on this page" />
+        </label>
       </th>
       {#each columns as column (column.key)}
         <th scope="col" aria-sort={ariaSort(column.key)}>
@@ -87,7 +89,9 @@
     {#each games as game (game.id)}
       <tr class:selected={selected.has(game.id)}>
         <td class="checkbox-col">
-          <input type="checkbox" checked={selected.has(game.id)} onchange={() => onToggleSelect(game.id)} aria-label={`Select game vs ${opponentLabel(game)}`} />
+          <label class="check-target">
+            <input type="checkbox" checked={selected.has(game.id)} onchange={() => onToggleSelect(game.id)} aria-label={`Select game vs ${opponentLabel(game)}`} />
+          </label>
         </td>
         <td>{formatDate(game.playedAt)}</td>
         <td>
@@ -118,13 +122,14 @@
 <ul class="games-cards">
   {#each games as game (game.id)}
     <li class="card" class:selected={selected.has(game.id)}>
-      <input
-        type="checkbox"
-        class="card-checkbox"
-        checked={selected.has(game.id)}
-        onchange={() => onToggleSelect(game.id)}
-        aria-label={`Select game vs ${opponentLabel(game)}`}
-      />
+      <label class="check-target card-checkbox">
+        <input
+          type="checkbox"
+          checked={selected.has(game.id)}
+          onchange={() => onToggleSelect(game.id)}
+          aria-label={`Select game vs ${opponentLabel(game)}`}
+        />
+      </label>
       <div class="card-line1">
         <a href={`#/games/${encodeURIComponent(game.id)}`} class="card-link">
           {#if game.opponent}
@@ -193,10 +198,12 @@
     border-color: var(--brand);
     background: var(--surface-2);
   }
+  /* In the top left corner, above the card-wide link. */
   .card-checkbox {
     position: absolute;
-    top: 12px;
-    left: 12px;
+    top: 0;
+    left: 0;
+    z-index: 1;
   }
   .card-line1 {
     display: flex;
@@ -204,6 +211,11 @@
     justify-content: space-between;
     gap: 8px;
     padding-left: 32px;
+  }
+  .card-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
   }
   .card-link {
     font-size: 16px;
@@ -251,8 +263,16 @@
       padding: 0;
     }
     .games-table td {
-      padding: 10px 12px;
+      padding: 0 12px;
       border-top: 1px solid var(--line);
+    }
+    .games-table .checkbox-col {
+      padding: 0 0 0 8px;
+    }
+    .games-table td a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
     }
     .games-table .num {
       text-align: right;

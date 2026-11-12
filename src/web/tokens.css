@@ -214,6 +214,20 @@ label {
   background: var(--surface);
   color: var(--ink);
 }
+/* Checkboxes (not switches): 22 px with the brand accent; the label around them is the 44 px target. */
+input[type="checkbox"]:not([role="switch"]) {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--brand);
+}
+.check-target {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+}
 /* A small button: less padding and text, still 44 px high. */
 .small {
   padding: 0 12px;

@@ -549,7 +549,7 @@
     margin-top: 16px;
   }
   .dimmed {
-    opacity: 0.6;
+    opacity: 0.7;
   }
   /* Playstyle before Recommendations on the phone, after it on a desktop. */
   .dashboard {

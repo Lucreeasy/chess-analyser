@@ -92,6 +92,7 @@
 <style>
   input[type="file"] {
     display: block;
+    min-height: 44px;
     margin-top: 8px;
   }
   .file-list {

@@ -151,7 +151,6 @@
   }
   .small {
     margin-top: 0;
-    min-height: 36px;
     font-weight: 400;
   }
   .inset {

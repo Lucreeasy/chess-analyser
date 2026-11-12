@@ -149,9 +149,10 @@
   }
   td a {
     display: inline-block;
+    min-width: 44px;
     padding: 12px 0;
     color: var(--ink);
-    text-decoration: underline dotted var(--brand);
+    text-decoration: underline dotted var(--brand) 2px;
     text-underline-offset: 4px;
   }
   .num {
