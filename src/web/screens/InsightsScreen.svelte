@@ -230,7 +230,7 @@
           <StatTile
             label="Punish rate"
             value={pct(o.punish.value)}
-            sub={`answered ${o.punish.count} of ${o.punish.n} opponent errors`}
+            sub={`answered ${thousands(o.punish.count ?? 0)} of ${thousands(o.punish.n)} opponent errors`}
             link={link("punish:opportunities", "Games with an opponent error to punish")}
           />
           <StatTile
