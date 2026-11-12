@@ -9,10 +9,13 @@
   let {
     gameId,
     analysisStatus,
+    errorMessage,
     onQueued,
   }: {
     gameId: string;
     analysisStatus: "none" | "queued" | "running" | "error";
+    /** Why the last analysis failed, as the server recorded it ("engine unavailable: …"). */
+    errorMessage?: string;
     /** Called after a successful queue request, so the caller can re-fetch and pick up the new status. */
     onQueued: () => void;
   } = $props();
@@ -105,6 +108,7 @@
     <div class="error-card" role="alert">
       <h2>The analysis failed.</h2>
       <p>The engine could not finish this game. You can try again.</p>
+      {#if errorMessage}<p class="muted-inline">{errorMessage}</p>{/if}
     </div>
     {@render depthChooser()}
     <button type="button" class="primary" class:spinning={busy} disabled={busy} onclick={() => analyse(true)}>

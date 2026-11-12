@@ -350,7 +350,10 @@
           <Explanation {game} {currentPly} {plyCount} />
         {:else}
           <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set. -->
-          <AnalysePanel gameId={game.id} analysisStatus={game.analysisStatus as "none" | "queued" | "running" | "error"} onQueued={load} />
+          <AnalysePanel gameId={game.id} analysisStatus={game.analysisStatus as "none" | "queued" | "running" | "error"}
+            errorMessage={game.errorMessage}
+            onQueued={load}
+          />
         {/if}
         {#if viewport.isDesktop}
           <EvalGraph {winPercents} {classifications} {currentPly} onJump={jumpTo} />
