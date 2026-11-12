@@ -1,7 +1,7 @@
 import { isValidUsername, isValidMonth } from "./parsing.ts";
 import { ALL_TIME_CLASSES, type TimeClass } from "../import/timeClass.ts";
 
-/** Validates a manual chess.com import request. docs/03-IMPORT-SPEC.md section 3.2 (exact messages). */
+/** Validates a manual chess.com import request, with the exact error messages the interface shows. */
 
 export interface ImportRequest {
   username: string;

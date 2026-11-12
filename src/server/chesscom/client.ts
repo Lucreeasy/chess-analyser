@@ -2,11 +2,11 @@ import { withRetry, type AttemptOutcome } from "./httpRetry.ts";
 import type { RequestPacer } from "./pacer.ts";
 import { parseRetryAfter, stripBom, looksLikePgn, parseArchiveList } from "./parsing.ts";
 
-/** The chess.com HTTP client. docs/03-IMPORT-SPEC.md sections 3.3-3.4, 3.6. */
+/** The chess.com HTTP client. */
 
 export const USER_AGENT = "ChessAnalyser/1 (self-hosted; personal use)";
 const API = "https://api.chess.com";
-/** Section 3.3: 30s per request. Overridable so tests don't wait 30 real seconds to see a timeout. */
+/** 30s per request. Overridable so tests don't wait 30 real seconds to see a timeout. */
 export const TIMEOUT_MS = 30000;
 
 export interface HttpResponseLike {
@@ -135,7 +135,7 @@ export interface FetchMonthOptions {
 
 const realWait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/** Fetches one month of a player's games. Section 3.4 (answer handling), 3.6 (ETags). */
+/** Fetches one month of a player's games, handling every kind of answer and the optional ETag. */
 export async function fetchMonth(
   fetchImpl: FetchLike,
   pacer: RequestPacer,
@@ -177,7 +177,7 @@ export interface ArchiveListResult {
   retryAfterSeconds?: number;
 }
 
-/** The months a player has archived games in, ascending. Section 3.3. */
+/** The months a player has archived games in, ascending. */
 export async function fetchArchiveMonths(
   fetchImpl: FetchLike,
   pacer: RequestPacer,

@@ -1,6 +1,6 @@
 import { isValidUsername } from "./chesscom/parsing.ts";
 
-/** Settings that affect import and analysis. docs/03-IMPORT-SPEC.md section 6. */
+/** Settings that affect import and analysis. */
 
 export type DepthPreset = "quick" | "standard" | "deep";
 
@@ -20,7 +20,7 @@ export type ValidateSettingsResult = { ok: true; settings: Settings } | { ok: fa
  * Validates a settings update against the current settings: fields not
  * present in `body` keep their current value. `usernames`, when present,
  * is trimmed, lower-cased and de-duplicated before the per-name and
- * count checks (section 6's exact messages).
+ * count checks (with the exact messages the Settings screen shows).
  */
 export function validateSettingsUpdate(body: unknown, current: Settings): ValidateSettingsResult {
   if (typeof body !== "object" || body === null) return { ok: false, message: "JSON body required" };

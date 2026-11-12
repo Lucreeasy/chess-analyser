@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { MovetextToken } from "./movetext.ts";
 
-/** Game identity. docs/03-IMPORT-SPEC.md section 2.13. */
+/** Game identity. */
 
 function normalizeMoveForHash(raw: string): string {
   const withoutCheckMarks = raw.replace(/[+#]+$/, "");

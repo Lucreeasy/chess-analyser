@@ -3,7 +3,7 @@ import type { ExploreEvent } from "../explore/session.ts";
 import { Throttle } from "./throttle.ts";
 import { APP_VERSION } from "../version.ts";
 
-/** Live events pushed to every connected interface. docs/03-IMPORT-SPEC.md section 5.6. */
+/** Live events pushed to every connected interface. */
 export type LiveEvent =
   | WorkerEvent
   | ExploreEvent
@@ -15,7 +15,7 @@ export interface SseClient {
   onClose(cb: () => void): void;
 }
 
-/** Rate limits (section 5.6); event types absent here are sent unthrottled. */
+/** Rate limits; event types absent here are sent unthrottled. */
 const THROTTLE_MS: Partial<Record<LiveEvent["type"], number>> = {
   queue: 250,
   progress: 100,
@@ -28,7 +28,7 @@ function format(eventName: string, data: unknown): string {
 
 /**
  * Holds connected clients and broadcasts events to all of them, each event
- * type smoothed independently (section 5.6). A newly connected client gets
+ * type smoothed independently. A newly connected client gets
  * a `greeting` event with the app version; it must fetch current state
  * itself (for example the queue status) rather than being sent a snapshot.
  */

@@ -86,7 +86,7 @@ function onWorkerEvent(event: WorkerEvent): void {
   if (event.type === "queue") eventHub.broadcast({ type: "gamesChanged" });
 }
 
-// Start-up recovery (section 5.7): any entry left "running" by an interrupted process goes back to waiting.
+// Start-up recovery: any entry left "running" by an interrupted process goes back to waiting.
 clearRunningFlags(db);
 export const analysisWorker = new AnalysisWorker(db, getEngine, { onEvent: onWorkerEvent });
 if (process.env.NODE_ENV !== "test") analysisWorker.notify(); // resume any work waiting from a previous run
@@ -99,7 +99,7 @@ async function readBody(req: import("node:http").IncomingMessage): Promise<strin
   return Buffer.concat(chunks).toString("utf8");
 }
 
-/** Section 3.2: the archive-list/import-level chess.com failures (not_found, rate_limited, error). */
+/** The archive-list/import-level chess.com failures (not_found, rate_limited, error). */
 function chessComFailureResponse(result: {
   status: "ok" | "not_found" | "rate_limited" | "error";
   message?: string;

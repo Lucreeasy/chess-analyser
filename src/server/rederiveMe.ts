@@ -3,7 +3,7 @@ import { resolveMyColour, resolvePersonalResult } from "./import/players.ts";
 
 /**
  * Recomputes myColour/myResult for stored games after the saved username
- * list changes. docs/03-IMPORT-SPEC.md section 6.
+ * list changes.
  */
 export function rederiveMe(games: StoredGame[], usernames: string[]): StoredGame[] {
   return games.map((game) => {

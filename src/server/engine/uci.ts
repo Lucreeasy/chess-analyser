@@ -8,7 +8,7 @@ export interface ParsedInfo {
   pv: string[];
 }
 
-/** Parses one "info ..." line; null if it has no score, no pv, or a bound score. docs/02-ANALYSIS-SPEC.md 2.4. */
+/** Parses one "info ..." line; null if it has no score, no pv, or a bound score. */
 export function parseInfoLine(line: string): ParsedInfo | null {
   const tokens = line.trim().split(/\s+/);
   if (tokens[0] !== "info") return null;
@@ -62,7 +62,7 @@ function toWhitePov(info: ParsedInfo, sideToMove: "w" | "b"): EngineLineWithPv {
 }
 
 /**
- * Reduces a search's "info" lines to an ordered list of engine lines (section 2.4): for each
+ * Reduces a search's "info" lines to an ordered list of engine lines: for each
  * (depth, slot) keep the latest line; take the deepest depth with every slot 1..S present, or
  * (if none is complete) the deepest depth with slot 1, up to its first missing slot.
  */

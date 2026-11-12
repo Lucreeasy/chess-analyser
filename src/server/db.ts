@@ -65,7 +65,7 @@ export function openDb(path: string): Database.Database {
   return db;
 }
 
-/** Stores new games in one atomic write (section 2.13/2.17); first write wins per id. */
+/** Stores new games in one atomic write; first write wins per id. */
 export function insertGames(db: Database.Database, games: StoredGame[]): void {
   const insert = db.prepare(`insert or ignore into games (id, played_at, data_json) values (?, ?, ?)`);
   const insertAll = db.transaction((toInsert: StoredGame[]) => {
@@ -84,7 +84,7 @@ export function getGame(db: Database.Database, gameId: string): StoredGame | und
   return row ? JSON.parse(row.data_json) : undefined;
 }
 
-/** Overwrites already-stored games in place, keyed by id (section 6: re-deriving colour/result). */
+/** Overwrites already-stored games in place, keyed by id (used when re-deriving colour and result). */
 export function updateGames(db: Database.Database, games: StoredGame[]): void {
   const update = db.prepare(`update games set data_json = ? where id = ?`);
   const updateAll = db.transaction((toUpdate: StoredGame[]) => {
@@ -99,8 +99,7 @@ export interface CachedEval {
 }
 
 /**
- * The evaluation cache. docs/02-ANALYSIS-SPEC.md section 16: keyed by
- * (EPD, requested depth, multipv); first write wins; never store an empty
+ * The evaluation cache, keyed by (EPD, requested depth, multipv); first write wins; never store an empty
  * or aborted result.
  */
 export function getCachedEval(db: Database.Database, epd: string, depth: number, multipv: number): CachedEval | undefined {
@@ -127,7 +126,7 @@ export function putCachedEval(
 
 /**
  * The stored ETag for one (lower-cased username, month), used only by
- * auto-sync's conditional requests. docs/03-IMPORT-SPEC.md section 3.6.
+ * auto-sync's conditional requests.
  */
 export function getStoredEtag(db: Database.Database, username: string, month: string): string | undefined {
   const row = db.prepare(`select etag from chesscom_etags where username = ? and month = ?`).get(username, month) as
@@ -149,7 +148,7 @@ export function deleteStoredEtag(db: Database.Database, username: string, month:
   db.prepare(`delete from chesscom_etags where username = ? and month = ?`).run(username, month);
 }
 
-/** Settings that affect import and analysis. docs/03-IMPORT-SPEC.md section 6. There is only ever one row. */
+/** Settings that affect import and analysis. There is only ever one row. */
 export function getSettings(db: Database.Database): Settings {
   const row = db.prepare(`select data_json from settings where id = 1`).get() as { data_json: string } | undefined;
   return row ? JSON.parse(row.data_json) : DEFAULT_SETTINGS;
@@ -159,7 +158,7 @@ export function putSettings(db: Database.Database, settings: Settings): void {
   db.prepare(`insert or replace into settings (id, data_json) values (1, ?)`).run(JSON.stringify(settings));
 }
 
-/** The analysis queue. docs/03-IMPORT-SPEC.md sections 5.1, 5.4, 5.7. */
+/** The analysis queue. */
 export interface QueueEntry {
   gameId: string;
   depth: DepthPreset;
@@ -201,7 +200,7 @@ export function getQueueEntry(db: Database.Database, gameId: string): QueueEntry
  * Inserts a new entry, or - if the game is already waiting - updates its
  * depth/force/urgent in place: `requestedAt` and the running flag are
  * left untouched on an update, since the entry's original request order
- * and running state do not change (section 5.4).
+ * and running state do not change.
  */
 export function upsertQueueEntry(db: Database.Database, gameId: string, depth: DepthPreset, force: boolean, urgent: boolean, requestedAt: number): void {
   db.prepare(
@@ -219,7 +218,7 @@ export function clearRunningFlags(db: Database.Database): void {
   db.prepare(`update analysis_queue set running = 0 where running = 1`).run();
 }
 
-/** The queue in analysis order (section 5.4): urgent first, then newest game first, then request order, then id. */
+/** The queue in analysis order: urgent first, then newest game first, then request order, then id. */
 export function isQueueEmpty(db: Database.Database): boolean {
   const row = db.prepare(`select 1 from analysis_queue limit 1`).get();
   return row === undefined;
@@ -255,7 +254,7 @@ export function getAnalysisError(db: Database.Database, gameId: string): string 
 }
 
 /**
- * Finishes a game's analysis atomically (section 5.7): stores the
+ * Finishes a game's analysis atomically: stores the
  * analysis (replacing any older one), removes the queue entry and any
  * stale error, and increments the batch's `done` counter - all in one
  * write, so a crash leaves either all of it or none of it done.
@@ -275,7 +274,7 @@ export function finishAnalysis(db: Database.Database, gameId: string, depth: Dep
   tx();
 }
 
-/** Removes the queue entry and records the error (section 5.9); does not increment `done`. */
+/** Removes the queue entry and records the error; does not increment `done`. */
 export function recordAnalysisError(db: Database.Database, gameId: string, message: string, failedAt: number): void {
   const tx = db.transaction(() => {
     db.prepare(`delete from analysis_queue where game_id = ?`).run(gameId);
@@ -304,8 +303,7 @@ export function resetDoneCount(db: Database.Database): void {
 
 /**
  * Deletes games (and their analyses/queue entries/errors) atomically.
- * Returns how many were actually stored. docs/03-IMPORT-SPEC.md section
- * 5.10. Does not touch the running flag; the caller aborts the running
+ * Returns how many were actually stored. Does not touch the running flag; the caller aborts the running
  * game first if it is among `gameIds`.
  */
 export function deleteGames(db: Database.Database, gameIds: string[]): number {
@@ -323,7 +321,7 @@ export function deleteGames(db: Database.Database, gameIds: string[]): number {
 
 /**
  * "Delete all data": every game, analysis, queue entry, error, cached
- * evaluation and stored ETag; settings are kept. Section 5.10.
+ * evaluation and stored ETag; settings are kept.
  */
 export function deleteAllData(db: Database.Database): void {
   const tx = db.transaction(() => {

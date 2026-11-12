@@ -11,7 +11,7 @@ export interface StartPosition {
   failure?: string;
 }
 
-/** The start position from the FEN/SetUp/Variant tags, or a failure reason. Section 2.6. */
+/** The start position from the FEN/SetUp/Variant tags, or a failure reason. */
 export function resolveStartPosition(tags: Map<string, string>): StartPosition {
   const variant = (tags.get("Variant") ?? "").trim().toLowerCase();
   if (variant !== "" && variant !== "standard" && variant !== "chess") {
@@ -41,11 +41,11 @@ export interface ReplayResult {
   plyCount: number;
   /** The final position, only when the game was replayed all the way to the end. */
   finalFen?: string;
-  /** The FEN after each fully-replayed ply, for opening lookup (section 2.14). */
+  /** The FEN after each fully-replayed ply, for opening lookup. */
   fens: string[];
-  /** Each fully-replayed ply's move, from/to squares as "e2e4" (docs/06-GAMES-SPEC.md section B3), parallel to `fens`. */
+  /** Each fully-replayed ply's move, from/to squares as "e2e4", parallel to `fens`. */
   uci: string[];
-  /** Each fully-replayed ply's move in SAN ("Nxe5"), parallel to `fens` (docs/06-GAMES-SPEC.md section B7 Moves tab). */
+  /** Each fully-replayed ply's move in SAN ("Nxe5"), parallel to `fens` (Moves tab). */
   sans: string[];
   failure?: string;
 }
@@ -53,7 +53,7 @@ export interface ReplayResult {
 /**
  * Replays a game's moves: fully (legality checked) up to `BOOK_DEPTH`
  * plies, or further when `fullReplay` is requested; later moves are only
- * checked for a plausible shape. Section 2.15, 2.18.
+ * checked for a plausible shape.
  */
 export function replayGame(startFen: string, moves: MovetextToken[], fullReplay: boolean): ReplayResult {
   const chess = new Chess(startFen);

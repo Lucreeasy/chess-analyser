@@ -1,4 +1,4 @@
-/** The date and time a game was played (`playedAt`). docs/03-IMPORT-SPEC.md section 2.8. */
+/** The date and time a game was played (`playedAt`). */
 
 interface UtcDate {
   year: number;

@@ -1,6 +1,6 @@
 import type { DepthPreset } from "../settings.ts";
 
-/** Deciding what to do with one game id in a queue request. docs/03-IMPORT-SPEC.md section 5.4. */
+/** Deciding what to do with one game id in a queue request. */
 
 export type GameAnalysisState = "running" | "waiting" | "done" | "error" | "none";
 

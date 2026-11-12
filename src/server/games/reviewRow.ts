@@ -6,7 +6,7 @@ import { getAnalysis, getAnalysisError } from "../db.ts";
 import { analysisStatusOf, opponentOf, opponentRatingOf, type AnalysisStatus } from "./shared.ts";
 import { positionsOf, type BoardPositions } from "./positions.ts";
 
-/** A game as the Review screen needs it. docs/06-GAMES-SPEC.md Part B. */
+/** A game as the Review screen needs it. */
 export interface GameReviewRow extends Omit<StoredGame, "analysisStatus"> {
   analysisStatus: AnalysisStatus;
   opponent: string | undefined;
@@ -19,7 +19,7 @@ export interface GameReviewRow extends Omit<StoredGame, "analysisStatus"> {
 
 export function toGameReviewRow(db: Database.Database, game: StoredGame): GameReviewRow {
   const status = analysisStatusOf(db, game.id);
-  // docs/06-GAMES-SPEC.md section B8: a re-analysed game keeps showing its old analysis
+  // A re-analysed game keeps showing its old analysis
   // (not the Analyse panel) until the new one replaces it, so this isn't gated on status.
   const stored = getAnalysis(db, game.id);
 

@@ -1,6 +1,6 @@
 /**
  * The overall numbers: accuracy, errors per 100 moves, tactic shares, punish rate and consistency, also
- * by phase. docs/04-INSIGHTS-SPEC.md section 5 (and the phase figures of section 6).
+ * by phase (which the Phases section shows).
  */
 import type { MoveRecord } from "../analysis/game.ts";
 import { ERROR_CLASSES, isError, type ErrorClass, type MoveClass } from "../analysis/classification.ts";
@@ -31,7 +31,7 @@ export function per100(count: number, n: number): Stat {
   return { value: n ? (count / n) * 100 : undefined, n, count };
 }
 
-/** Section 5.1: pooled harmonic mean, each accuracy floored at 1. */
+/** Pooled harmonic mean, each accuracy floored at 1. */
 function harmonicAccuracy(accuracies: number[]): Stat {
   return { value: harmonicMeanFloored(accuracies), n: accuracies.length };
 }
@@ -49,7 +49,7 @@ function errorRates(moves: MoveRecord[]): Record<ErrorClass | "all", Stat> {
   return rates;
 }
 
-/** Section 5.4: my replies to an opponent Mistake or Blunder (an opportunity each). */
+/** My replies to an opponent Mistake or Blunder (an opportunity each). */
 export function opportunities(u: UsedGame): MoveRecord[] {
   const moves = u.analysis.moves;
   return moves.filter((mine, i) => {
@@ -58,7 +58,7 @@ export function opportunities(u: UsedGame): MoveRecord[] {
   });
 }
 
-/** Section 5.4: an opportunity is punished by a Best, Excellent, Great or Brilliant reply. */
+/** An opportunity is punished by a Best, Excellent, Great or Brilliant reply. */
 export function isPunished(reply: MoveRecord): boolean {
   return PUNISHING.includes(reply.classification);
 }

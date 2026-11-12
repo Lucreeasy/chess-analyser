@@ -4,8 +4,8 @@ import type { EngineLineWithPv } from "../analysis/tacticTags.ts";
 import { parseInfoLine, parseBestmoveLine, reduceInfoLines, type ParsedInfo } from "./uci.ts";
 
 /**
- * Drives one UCI engine process. docs/02-ANALYSIS-SPEC.md 2.2-2.4; ANA-5/5.9
- * for the resource and availability rules.
+ * Drives one UCI engine process: the handshake, its thread count and hash size, the analysis of a position
+ * and the interactive explore search.
  */
 export class UciEngine {
   #process: ChildProcessWithoutNullStreams | undefined;
@@ -24,7 +24,7 @@ export class UciEngine {
   /**
    * Starts the engine and waits for its UCI handshake, up to 20 s (section
    * 5.9). Rejects with a clear message if the engine program cannot be
-   * started at all (ANA-6).
+   * started at all.
    */
   async start(options: { threads: number; hashMb: number }): Promise<void> {
     this.#process = spawn(this.#command, this.#args);
@@ -51,14 +51,14 @@ export class UciEngine {
     this.#process?.kill();
   }
 
-  /** Analyses one position. docs/02-ANALYSIS-SPEC.md 2.2 (depth presets), 2.3-2.4 (line reduction). */
+  /** Analyses one position to the preset's depth and reduces the engine output to its final lines. */
   async analyse(
     fen: string,
     sideToMove: "w" | "b",
     options: { depth: number; multipv: number; movetimeMs: number },
   ): Promise<{ lines: EngineLineWithPv[]; reachedDepth: number }> {
     return this.#serialized(async () => {
-      // No "ucinewgame": the hash is never cleared between positions (section 2.2), by design.
+      // No "ucinewgame": the hash is never cleared between positions, by design.
       this.#send(`setoption name MultiPV value ${options.multipv}`);
       this.#send(`position fen ${fen}`);
 
@@ -80,7 +80,7 @@ export class UciEngine {
   }
 
   /**
-   * An interactive, cancellable search (docs/06-GAMES-SPEC.md section B10 "Explore mode"): searches to
+   * An interactive, cancellable search ("Explore mode"): searches to
    * `depthTarget` or `hardCapMs`, whichever comes first. `onProgress` is called with the best lines known
    * so far on each newly-completed depth (never a partial one), at most 5 times a second - a plain
    * leading-edge rate gate is enough since the authoritative final state is this method's own return

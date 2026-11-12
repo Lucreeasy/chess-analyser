@@ -3,7 +3,7 @@ import { getQueueEntry, upsertQueueEntry, getAnalysis, getAnalysisError, listGam
 import { mergeQueueValues, shouldQueue, type GameAnalysisState } from "./entryRules.ts";
 import type { DepthPreset } from "../settings.ts";
 
-/** Applying a queue request to the stored queue. docs/03-IMPORT-SPEC.md sections 5.1, 5.4. */
+/** Applying a queue request to the stored queue. */
 
 export function gameAnalysisState(db: Database.Database, gameId: string): GameAnalysisState {
   const entry = getQueueEntry(db, gameId);
@@ -13,17 +13,17 @@ export function gameAnalysisState(db: Database.Database, gameId: string): GameAn
   return "none";
 }
 
-/** The ids in `gameIds` that are not stored games (section 5.4's "unknown game ids" rejection). */
+/** The ids in `gameIds` that are not stored games (rejected as "unknown game ids"). */
 export function unknownGameIds(db: Database.Database, gameIds: string[]): string[] {
   const known = new Set(listGames(db).map((g) => g.id));
   return gameIds.filter((id) => !known.has(id));
 }
 
 /**
- * Queues each (already known) game id per section 5.4's entry rules,
+ * Queues each (already known) game id per the queue's entry rules,
  * merging with any already-waiting entry instead of duplicating it.
  * Returns the number of NEW entries, which is what "queued" counts.
- * Starts a new batch (section 5.6) when at least one game is added to an
+ * Starts a new batch when at least one game is added to an
  * empty queue: the `done` counter resets to 0.
  */
 export function enqueueGames(db: Database.Database, gameIds: string[], depth: DepthPreset, force: boolean, urgent: boolean, requestedAt: number): number {

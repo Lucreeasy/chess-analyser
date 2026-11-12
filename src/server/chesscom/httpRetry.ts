@@ -1,6 +1,6 @@
 /**
- * Generic retry/backoff over one HTTP-ish attempt. docs/03-IMPORT-SPEC.md
- * sections 3.4-3.5. Independent of chess.com's URLs/parsing so it is
+ * Generic retry/backoff over one HTTP-ish attempt.
+ * Independent of chess.com's URLs/parsing so it is
  * testable with a scripted sequence of outcomes and no real timers.
  */
 
@@ -23,8 +23,7 @@ const BACKOFF_MS = [2000, 4000, 8000]; // doubling from 2s
 const NEXT_BACKOFF_SECONDS = 16; // the "last backoff estimate" once retries are exhausted
 
 /**
- * Retries an attempt up to `maxRetries` times after the first (section 3.3:
- * "up to 3"). Not retried: ok, not_found, other_status. Retried with the
+ * Retries an attempt up to `maxRetries` times after the first (3 in use). Not retried: ok, not_found, other_status. Retried with the
  * doubling backoff: network_error, timeout, server_error, and rate_limited
  * without a usable hint. Retried with the hint's own wait: rate_limited
  * with a hint of at most 120s. A hint over 120s stops immediately.

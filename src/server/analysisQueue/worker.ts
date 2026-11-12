@@ -5,7 +5,7 @@ import { SEARCH_DEPTH } from "./depthPresets.ts";
 import type { UciEngine } from "../engine/engine.ts";
 import type { DepthPreset } from "../settings.ts";
 
-/** The single background worker driving the analysis queue. docs/03-IMPORT-SPEC.md sections 5.4, 5.6, 5.7-5.9. */
+/** The single background worker driving the analysis queue. */
 
 export interface QueueStatus {
   paused: boolean;
@@ -27,10 +27,10 @@ export interface WorkerDeps {
 }
 
 /**
- * One game at a time, in `listQueueOrdered`'s order (section 5.4). Pause
- * aborts the running game back to waiting (5.8); any other failure is
- * recorded as an error and the queue continues (5.9). A finished game is
- * stored atomically by `finishAnalysis` (5.7).
+ * One game at a time, in `listQueueOrdered`'s order. Pause
+ * aborts the running game back to waiting; any other failure is
+ * recorded as an error and the queue continues. A finished game is
+ * stored atomically by `finishAnalysis`.
  */
 export class AnalysisWorker {
   readonly #db: Database.Database;
@@ -72,7 +72,7 @@ export class AnalysisWorker {
     });
   }
 
-  /** Aborts the running game back to waiting (5.8); accepted requests still get queued while paused. */
+  /** Aborts the running game back to waiting; accepted requests still get queued while paused. */
   pause(): void {
     setPaused(this.#db, true);
     this.#abortController?.abort();
@@ -86,7 +86,7 @@ export class AnalysisWorker {
 
   /**
    * Aborts `gameId` if it is the one currently running; a no-op
-   * otherwise. For deleting a running game (section 5.10): the abort
+   * otherwise. For deleting a running game: the abort
    * takes the same AnalysisAbortedError path as pause (no error
    * recorded), and the caller deletes the game's rows itself.
    */

@@ -3,7 +3,7 @@ import type { EngineLineWithPv } from "../analysis/tacticTags.ts";
 import { explorePositionError } from "./position.ts";
 import { sanLineOf } from "../analysis/notation.ts";
 
-/** docs/06-GAMES-SPEC.md section B10: one interactive engine slot, shared across all clients. */
+/** One interactive engine slot, shared across all clients. */
 
 export interface ExploreRequest {
   fen: string;
@@ -15,7 +15,7 @@ export interface ExploreRequest {
 }
 
 export interface ExploreLine extends EngineLineWithPv {
-  /** `pv` as move text from the explored position, up to 6 plies (docs/06-GAMES-SPEC.md B10). */
+  /** `pv` as move text from the explored position, up to 6 plies. */
   lineText: string;
 }
 
@@ -29,7 +29,7 @@ export type ExploreEvent =
 export interface ExploreSessionDeps {
   getEngine: () => Promise<UciEngine>;
   onEvent: (event: ExploreEvent) => void;
-  /** docs/06-GAMES-SPEC.md B10: 3 lines, depth target 40, hard cap 60s - overridable so tests run fast. */
+  /** 3 lines, depth target 40, hard cap 60s - overridable so tests run fast. */
   multipv?: number;
   depthTarget?: number;
   hardCapMs?: number;
@@ -57,7 +57,7 @@ export class ExploreSession {
     const error = explorePositionError(req.fen);
     if (error) return { ok: false, error };
 
-    // The newest request always wins; a *different* displaced client is told so (B10).
+    // The newest request always wins; a *different* displaced client is told so.
     const previous = this.#current;
     previous?.controller.abort();
     if (previous && previous.clientId !== req.clientId) {

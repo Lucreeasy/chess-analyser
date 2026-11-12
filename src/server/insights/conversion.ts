@@ -1,6 +1,5 @@
 /**
  * Converting winning positions, saving losing ones, and accuracy right after a loss or a win.
- * docs/04-INSIGHTS-SPEC.md section 9.
  */
 import { mean, share, type Stat } from "./overview.ts";
 import type { UsedGame } from "./select.ts";
@@ -42,7 +41,6 @@ function outcome(decided: UsedGame[], reachedIt: (u: UsedGame) => boolean, saved
   };
 }
 
-/** Section 9.1. */
 export function conversion(used: UsedGame[]): { conversion: Outcome; resilience: Outcome } {
   const decided = used.filter((u) => u.game.myResult !== undefined);
   return {
@@ -51,7 +49,7 @@ export function conversion(used: UsedGame[]): { conversion: Outcome; resilience:
   };
 }
 
-/** Section 9.3: consecutive used games (play order) started at most 2 hours apart. */
+/** Consecutive used games (play order) started at most 2 hours apart. */
 export function tilt(used: UsedGame[]): Tilt {
   const afterLossGames: UsedGame[] = [];
   const afterWinGames: UsedGame[] = [];

@@ -1,5 +1,5 @@
 /**
- * Where the clock goes and what happens when it runs low. docs/04-INSIGHTS-SPEC.md section 8.
+ * Where the clock goes and what happens when it runs low.
  */
 import { mean, myMoves, per100, share, type Stat } from "./overview.ts";
 import type { UsedGame } from "./select.ts";

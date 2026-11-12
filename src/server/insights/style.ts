@@ -1,5 +1,5 @@
 /**
- * The raw style features behind the playstyle radar. docs/04-INSIGHTS-SPEC.md section 11.
+ * The raw style features behind the playstyle radar.
  */
 import { Chess } from "chess.js";
 import type { Colour, MoveRecord } from "../analysis/game.ts";

@@ -1,6 +1,5 @@
 /**
  * Splitting a PGN text into games, and reading one game's tag block.
- * docs/03-IMPORT-SPEC.md sections 2.2-2.4.
  */
 
 const TAG_LINE = /^\s*\[([A-Za-z0-9_]+)\s+"((?:\\.|[^"\\])*)"\s*\]\s*$/;
@@ -14,13 +13,13 @@ function unescape(value: string): string {
   return value.replace(/\\(["\\])/g, "$1");
 }
 
-/** Parses one line as a tag pair ([Name "value"]), or null if it is not one. Section 2.4. */
+/** Parses one line as a tag pair ([Name "value"]), or null if it is not one. */
 export function parseTagLine(line: string): Tag | null {
   const match = TAG_LINE.exec(line);
   return match ? { name: match[1], value: unescape(match[2]) } : null;
 }
 
-/** Normalises line endings (CRLF, CR, LF) to LF and strips a single leading BOM. Section 2.2. */
+/** Normalises line endings (CRLF, CR, LF) to LF and strips a single leading BOM. */
 export function normalizeText(text: string): string {
   const withoutBom = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   return withoutBom.replace(/\r\n|\r/g, "\n");
@@ -35,7 +34,7 @@ function updateBraceState(line: string, isOpen: boolean): boolean {
   return isOpen;
 }
 
-/** Splits a text into the trimmed text of each game it contains. Section 2.3. */
+/** Splits a text into the trimmed text of each game it contains. */
 export function splitIntoGames(rawText: string): string[] {
   const lines = normalizeText(rawText).split("\n");
 
@@ -77,7 +76,7 @@ export function splitIntoGames(rawText: string): string[] {
   return games.map((g) => g.join("\n").trim()).filter((g) => g.length > 0);
 }
 
-/** Reads one game's leading tag block (first occurrence of a repeated tag wins). Section 2.4. */
+/** Reads one game's leading tag block (first occurrence of a repeated tag wins). */
 export function extractTags(gameText: string): Map<string, string> {
   const tags = new Map<string, string>();
   for (const [tag] of walkTagBlock(gameText)) {
@@ -86,7 +85,7 @@ export function extractTags(gameText: string): Map<string, string> {
   return tags;
 }
 
-/** The game's text after its leading tag block (section 2.4): the raw movetext to tokenize. */
+/** The game's text after its leading tag block: the raw movetext to tokenize. */
 export function movetextOf(gameText: string): string {
   const lines = gameText.split("\n");
   let lastTagLine = -1;

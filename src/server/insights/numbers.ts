@@ -1,4 +1,4 @@
-/** The number formats of the Insights texts and screen. docs/04-INSIGHTS-SPEC.md section 0. */
+/** The number formats of the Insights texts and screen. */
 
 /** Fixed one decimal ("3.5", "2.0"); "–" without a value. */
 export function one(x: number | undefined): string {

@@ -1,6 +1,6 @@
 /**
  * The whole Insights computation for one request: the query, the default range, the selection, every section
- * and the drill-down lists. docs/04-INSIGHTS-SPEC.md.
+ * and the drill-down lists.
  */
 import { opponentOf } from "../games/shared.ts";
 import { defaultRange, selectGames, type DefaultRange, type GameWithAnalysis, type InsightsQuery } from "./select.ts";

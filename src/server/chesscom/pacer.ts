@@ -1,6 +1,6 @@
 /**
  * Serialises calls to one at a time, with a minimum gap between the end of
- * one call and the start of the next. docs/03-IMPORT-SPEC.md section 3.3:
+ * one call and the start of the next.
  * "one request at a time, at least 1 second between requests... across ALL
  * callers because they share one client; concurrent callers queue up in
  * call order."

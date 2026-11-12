@@ -11,8 +11,7 @@ let starting: Promise<UciEngine> | undefined;
 /**
  * The shared engine instance, started on first use and reused after. A
  * failed start is not cached, so the next call tries a fresh process
- * (ANA-6: "the engine program is restarted automatically on the next use
- * after a crash").
+ * ("the engine program is restarted automatically on the next use after a crash").
  */
 export async function getEngine(): Promise<UciEngine> {
   if (engine) return engine;

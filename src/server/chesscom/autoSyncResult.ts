@@ -1,6 +1,6 @@
 import type { SyncResult } from "./sync.ts";
 
-/** One username's result in auto-sync's status. docs/03-IMPORT-SPEC.md section 4.4. */
+/** One username's result in auto-sync's status. */
 export interface UsernameSyncResult {
   username: string;
   added: number;

@@ -1,4 +1,4 @@
-/** Selecting which available months to fetch. docs/03-IMPORT-SPEC.md sections 3.1, 3.8. */
+/** Selecting which available months to fetch. */
 
 /** Default From/To: To = newest available month, From = third newest (or oldest if fewer than three). */
 export function defaultRange(availableMonths: string[]): { from: string; to: string } | undefined {
@@ -20,7 +20,7 @@ function formatMonth(year: number, month0: number): string {
 /**
  * The months auto-sync fetches for `now` (UTC): always the current month,
  * plus the previous month on the 1st-3rd so late games are not missed.
- * docs/03-IMPORT-SPEC.md section 4.2. Order: previous month first.
+ * Order: previous month first.
  */
 export function autoSyncMonths(now: Date): string[] {
   const year = now.getUTCFullYear();

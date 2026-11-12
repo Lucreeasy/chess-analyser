@@ -17,7 +17,7 @@ import { normalizeTermination } from "./termination.ts";
 import { classifyOpening } from "./opening.ts";
 import { gameId } from "./identity.ts";
 
-/** What is stored for a game. docs/03-IMPORT-SPEC.md section 2.16. */
+/** What is stored for a game. */
 export interface StoredGame {
   id: string;
   source: "file" | "paste" | "chesscom_api";
@@ -49,7 +49,7 @@ export interface ParseGameResult {
 
 /**
  * Parses one already-split game's text into a stored game, or a failure
- * reason (section 2.18). `usernames` are already normalised (trimmed,
+ * reason. `usernames` are already normalised (trimmed,
  * lower case).
  */
 export function parseGame(

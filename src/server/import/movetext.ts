@@ -1,13 +1,12 @@
 /**
  * Reading movetext: never fails, extracts the main-line move tokens (in
  * their original, possibly lenient, spelling) and ignores everything else.
- * docs/03-IMPORT-SPEC.md section 2.5.
  */
 
 export interface MovetextToken {
   /** The move as written (lenient spelling kept as is; chess.js corrects it on replay). */
   raw: string;
-  /** The brace comment(s) immediately following this move in the main line, if any (section 2.11). */
+  /** The brace comment(s) immediately following this move in the main line, if any. */
   comment?: string;
 }
 
@@ -15,7 +14,7 @@ export type GameResult = "1-0" | "0-1" | "1/2-1/2" | "*";
 
 export interface MovetextResult {
   moves: MovetextToken[];
-  /** The result token found in the movetext, if any (section 2.5). */
+  /** The result token found in the movetext, if any. */
   result?: GameResult;
 }
 

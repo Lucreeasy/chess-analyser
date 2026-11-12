@@ -1,4 +1,4 @@
-/** Pure validation and parsing helpers for the chess.com client. docs/03-IMPORT-SPEC.md section 3.3-3.4. */
+/** Pure validation and parsing helpers for the chess.com client. */
 
 export function isValidUsername(username: string): boolean {
   return /^[A-Za-z0-9_-]{3,25}$/.test(username.trim());
@@ -20,7 +20,7 @@ export function parseRetryAfter(headerValue: string | null, now: number = Date.n
   return Math.max(0, Math.round((when - now) / 1000));
 }
 
-/** section 3.4: a 200 body is PGN-shaped if it carries at least one of these tags. */
+/** A 200 body is PGN-shaped if it carries at least one of these tags. */
 export function looksLikePgn(body: string): boolean {
   return body.includes('[Event "') || body.includes('[White "') || body.includes('[Black "');
 }

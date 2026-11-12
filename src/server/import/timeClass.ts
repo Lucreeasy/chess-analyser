@@ -1,6 +1,6 @@
 import { parseTimeControl } from "../analysis/clock.ts";
 
-/** Time control and time class. docs/03-IMPORT-SPEC.md section 2.10. */
+/** Time control and time class. */
 
 export type TimeClass = "bullet" | "blitz" | "rapid" | "daily" | "classical";
 

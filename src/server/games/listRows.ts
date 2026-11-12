@@ -3,7 +3,7 @@ import type { StoredGame } from "../import/parseGame.ts";
 import { getAnalysis } from "../db.ts";
 import { analysisStatusOf, opponentOf, opponentRatingOf, type AnalysisStatus } from "./shared.ts";
 
-/** A game as the Games list needs it. docs/06-GAMES-SPEC.md section A1. */
+/** A game as the Games list needs it. */
 export interface GameListRow extends Omit<StoredGame, "analysisStatus"> {
   analysisStatus: AnalysisStatus;
   opponent: string | undefined;

@@ -1,5 +1,5 @@
 /**
- * Up to five recommendations from patterns across the used games. docs/04-INSIGHTS-SPEC.md section 13.
+ * Up to five recommendations from patterns across the used games.
  */
 import type { MoveRecord } from "../analysis/game.ts";
 import { isError } from "../analysis/classification.ts";
@@ -43,7 +43,7 @@ export interface RuleInputs {
 const MAX_EVIDENCE = 5;
 const MAX_SHOWN = 5;
 
-// Section 13.1: severity.
+// Severity.
 const clamp01 = (x: number) => (Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0);
 export const depth = (excess: number, scale: number) => clamp01(excess / scale);
 export const support = (n: number, fullAt: number) => clamp01(n / fullAt);
@@ -55,7 +55,7 @@ interface Candidate extends Evidence {
   score: number;
 }
 
-/** Section 13.1 evidence choice: best first; by default the best of each game first, then the rest. */
+/** Evidence choice: best first; by default the best of each game first, then the rest. */
 export function chooseEvidence(candidates: Candidate[], onePerGameFirst = true): Evidence[] {
   const sorted = [...candidates].sort(
     (a, b) => b.score - a.score || (a.gameId < b.gameId ? -1 : a.gameId > b.gameId ? 1 : 0) || a.ply - b.ply,
@@ -89,7 +89,6 @@ function worstMove(moves: MoveRecord[]): MoveRecord {
   return moves.reduce((w, m) => (m.epLoss > w.epLoss ? m : w));
 }
 
-/** Section 13.2. */
 function blunderCheck({ used, overview }: RuleInputs): Recommendation | undefined {
   if (overview.moves < 300) return undefined;
   const hung = overview.tactics.hung_piece;
@@ -119,7 +118,6 @@ function blunderCheck({ used, overview }: RuleInputs): Recommendation | undefine
   };
 }
 
-/** Section 13.3. */
 function timeTrouble({ used, time }: RuleInputs): Recommendation | undefined {
   const { troubleBlunders: trouble, normalBlunders: normal, gamesInTrouble } = time;
   const ratioTrigger =
@@ -159,7 +157,6 @@ function timeTrouble({ used, time }: RuleInputs): Recommendation | undefined {
   };
 }
 
-/** Section 13.4. */
 function weakEndgames({ used, overview }: RuleInputs): Recommendation | undefined {
   const { endgame, middlegame } = overview.accuracyByPhase;
   if (endgame.value === undefined || middlegame.value === undefined || endgame.n < 60 || middlegame.n < 60) return undefined;
@@ -178,7 +175,7 @@ function weakEndgames({ used, overview }: RuleInputs): Recommendation | undefine
   };
 }
 
-/** Section 13.5 evidence: in a won-position game I did not win, my worst move after I first stood at 80% or more. */
+/** Poor-conversion evidence: in a won-position game I did not win, my worst move after I first stood at 80% or more. */
 function slipCandidate(u: UsedGame): Candidate {
   const moves = u.analysis.moves;
   const myEp = (m: MoveRecord) => moverEp(m.winPercentAfter, u.me);
@@ -191,7 +188,6 @@ function slipCandidate(u: UsedGame): Candidate {
   return { gameId: u.game.id, ply: worst.ply, score: worst.epLoss + lost };
 }
 
-/** Section 13.5. */
 function poorConversion({ conversion }: RuleInputs): Recommendation | undefined {
   const { rate, reached, won, drawn, lost } = conversion;
   if (rate.value === undefined || reached.count! < 10 || rate.value >= 0.7) return undefined;
@@ -208,7 +204,6 @@ function poorConversion({ conversion }: RuleInputs): Recommendation | undefined 
   };
 }
 
-/** Section 13.8. */
 function missedChances({ used, overview }: RuleInputs): Recommendation | undefined {
   const { missed } = overview;
   if (missed.value === undefined || missed.n < 20 || missed.value < 0.3) return undefined;
@@ -228,7 +223,6 @@ function missedChances({ used, overview }: RuleInputs): Recommendation | undefin
   };
 }
 
-/** Section 13.9. */
 function inconsistency({ used, overview, tilt }: RuleInputs): Recommendation | undefined {
   const sd = overview.consistency.value;
   if (sd === undefined || overview.consistency.n < 25 || sd <= 11) return undefined;
@@ -264,7 +258,7 @@ function inconsistency({ used, overview, tilt }: RuleInputs): Recommendation | u
 
 const colourName = (row: OpeningRow) => (row.colour === "w" ? "White" : "Black");
 
-/** Sections 13.6/13.7: the qualifying row with the highest severity; ties: more games, then family name. */
+/** The qualifying row with the highest severity; ties: more games, then family name. */
 function pickRow(rows: OpeningRow[], severityOf: (row: OpeningRow) => number): { row: OpeningRow; severity: number } | undefined {
   let best: { row: OpeningRow; severity: number } | undefined;
   for (const row of rows) {
@@ -278,7 +272,7 @@ function pickRow(rows: OpeningRow[], severityOf: (row: OpeningRow) => number): {
   return best;
 }
 
-/** Rows carrying the section 7.2 flag that also have 8+ games with a result and an EP @20 (13.6/13.7). */
+/** Rows carrying the Problem or Strong flag that also have 8+ games with a result and an EP @20. */
 function flaggedRows({ white, black }: Openings, flag: OpeningRow["flag"]): OpeningRow[] {
   return [...white, ...black].filter((r) => r.flag === flag && r.score.n >= 8 && r.ep20.value !== undefined);
 }
@@ -286,7 +280,7 @@ function flaggedRows({ white, black }: Openings, flag: OpeningRow["flag"]): Open
 /** "N.SAN" for White, "N...SAN" for Black (N = ceil(ply / 2)). */
 const moveText = (m: MoveRecord) => `${Math.ceil(m.ply / 2)}${m.colour === "w" ? "." : "..."}${m.san}`;
 
-/** Section 13.6: the moves before `ply`, at most the last 12 plies. */
+/** The moves before `ply`, at most the last 12 plies. */
 function lineBefore(moves: MoveRecord[], ply: number): string {
   const before = moves.filter((m) => m.ply < ply);
   const shown = before.slice(-12);
@@ -295,7 +289,6 @@ function lineBefore(moves: MoveRecord[], ply: number): string {
   return shown.length < before.length ? `... ${text}` : text;
 }
 
-/** Section 13.6. */
 function problemOpening({ openings }: RuleInputs): Recommendation | undefined {
   const rows = flaggedRows(openings, "problem");
   const picked = pickRow(rows, (r) =>
@@ -348,7 +341,7 @@ function problemOpening({ openings }: RuleInputs): Recommendation | undefined {
 }
 
 
-/** Section 13.7 (positive). */
+/** The strong-opening rule (the one positive card). */
 function strongOpening({ openings }: RuleInputs): Recommendation | undefined {
   const rows = flaggedRows(openings, "strong");
   const picked = pickRow(rows, (r) => positiveSeverity(depth(r.score.value! - 0.6, 0.25), support(r.games.length, 30)));
@@ -372,7 +365,7 @@ function strongOpening({ openings }: RuleInputs): Recommendation | undefined {
 
 const RULES = [blunderCheck, timeTrouble, weakEndgames, poorConversion, problemOpening, strongOpening, missedChances, inconsistency];
 
-/** Section 13.1 "running the rules": evidence de-duplicated and capped, then the top 5 by severity. */
+/** Running the rules: evidence de-duplicated and capped, then the top 5 by severity. */
 export function recommendations(inputs: RuleInputs): Recommendation[] {
   return RULES.map((rule) => rule(inputs))
     .filter((r) => r !== undefined)

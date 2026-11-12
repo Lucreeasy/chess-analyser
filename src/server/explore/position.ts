@@ -1,6 +1,6 @@
 import { Chess, validateFen } from "chess.js";
 
-/** docs/06-GAMES-SPEC.md section B10: the chess rules explore mode needs, kept server-side (the client has none). */
+/** The chess rules explore mode needs, kept server-side (the client has none). */
 
 /** Legal destinations per origin square, for chessground's `movable.dests`; empty when the position is illegal. */
 export function legalDestinations(fen: string): Record<string, string[]> {
@@ -52,7 +52,7 @@ export function isLegalPosition(fen: string): boolean {
 }
 
 /**
- * docs/06-GAMES-SPEC.md section B10: "positions the engine cannot take (invalid, or the side not to move
+ * "positions the engine cannot take (invalid, or the side not to move
  * is in check) are rejected with `invalid FEN: ...`-style messages shown as the engine error." Undefined
  * when `fen` is fine to search.
  */

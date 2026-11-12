@@ -14,8 +14,8 @@ const MULTIPV = 2;
 const MOVETIME_MS = 5000;
 
 /**
- * Thrown when `options.signal` is aborted mid-analysis (section 5.8:
- * pause aborts the running game, no partial result is saved).
+ * Thrown when `options.signal` is aborted mid-analysis (pause aborts the
+ * running game; no partial result is saved).
  */
 export class AnalysisAbortedError extends Error {}
 
@@ -23,7 +23,7 @@ export interface RunAnalysisOptions {
   depth: 12 | 16 | 20;
   engineName: string;
   myColour?: "w" | "b";
-  /** Called after each position is evaluated (section 5.6's progress/plyEval events). */
+  /** Called after each position is evaluated (the live progress/plyEval events). */
   onPosition?: (ply: number, totalPlies: number, whiteWinPercent: number) => void;
   /** Checked between positions; aborting mid-search is bounded by MOVETIME_MS (5s). */
   signal?: AbortSignal;
@@ -31,8 +31,7 @@ export interface RunAnalysisOptions {
 
 /**
  * Replays a PGN, gets every position evaluated (from the cache or the
- * engine) and runs the result through analyseGame. docs/02-ANALYSIS-SPEC.md
- * sections 2.3 (what is searched), 16 (cache).
+ * engine) and runs the result through analyseGame.
  */
 export async function runAnalysis(
   db: Database.Database,
@@ -45,7 +44,7 @@ export async function runAnalysis(
   const history = chess.history({ verbose: true });
 
   const fens = [history[0]?.before ?? chess.fen(), ...history.map((m) => m.after)];
-  // Each main-line move's comment, in history order, for its "[%clk ...]" (docs/02-ANALYSIS-SPEC.md section 14).
+  // Each main-line move's comment, in history order, for its "[%clk ...]".
   const comments = tokenizeMovetext(movetextOf(pgn)).moves.map((t) => t.comment);
   const plies = history.map((m, i) => ({
     colour: m.color as "w" | "b",

@@ -1,8 +1,7 @@
 import type { DepthPreset } from "../settings.ts";
 
 /**
- * Validates requests to queue or delete games. docs/03-IMPORT-SPEC.md
- * sections 5.4 and 5.10 (exact messages).
+ * Validates requests to queue or delete games, with the exact error messages the interface shows.
  */
 
 const DEPTH_PRESETS: readonly DepthPreset[] = ["quick", "standard", "deep"];
@@ -22,13 +21,13 @@ export interface QueueRequest {
   depth: DepthPreset | undefined;
   force: boolean;
   urgent: boolean;
-  /** "Re-analyse deeper" (section 5.5): force on, depth one step above the saved default. */
+  /** "Re-analyse deeper": force on, depth one step above the saved default. */
   deeper: boolean;
 }
 
 export type ValidateQueueRequestResult = { ok: true; request: QueueRequest } | { ok: false; message: string };
 
-/** `urgent` is not part of the request body; the caller decides it from the id count (section 5.4). */
+/** `urgent` is not part of the request body; the caller decides it from the id count. */
 export function validateQueueRequest(body: unknown): ValidateQueueRequestResult {
   if (typeof body !== "object" || body === null) return { ok: false, message: "JSON body required" };
   const b = body as Record<string, unknown>;
@@ -56,7 +55,7 @@ export function unknownIdsMessage(unknownIds: string[]): string {
 
 export type ValidateDeleteRequestResult = { ok: true; ids: string[] } | { ok: false; message: string };
 
-/** Section 5.10: 1 to 10000 ids under "ids" (not "gameIds"). */
+/** 1 to 10000 ids under "ids" (not "gameIds"). */
 export function validateDeleteRequest(body: unknown): ValidateDeleteRequestResult {
   if (typeof body !== "object" || body === null) return { ok: false, message: "JSON body required" };
   return validateIdsField((body as Record<string, unknown>).ids, "ids");

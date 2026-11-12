@@ -1,6 +1,6 @@
 import { Chess } from "chess.js";
 
-/** Termination, normalised to a short label. docs/03-IMPORT-SPEC.md section 2.12. */
+/** Termination, normalised to a short label. */
 
 const RULES: Array<[RegExp, string]> = [
   [/abandon/, "abandoned"],

@@ -1,13 +1,12 @@
 /**
  * The playstyle radar: percentiles against club players, five axes, their explanations and the archetype.
- * docs/04-INSIGHTS-SPEC.md section 12.
  */
 import type { Stat } from "./overview.ts";
 
 export type AxisKey = "aggression" | "sharpness" | "precision" | "technique" | "clock";
 type Unit = "perMove" | "share" | "per100" | "winPoints" | "accuracy";
 
-/** Section 12.2: each input's label, unit, club-player band (p10, p25, p50, p75, p90) and direction. */
+/** Each input's label, unit, club-player band (p10, p25, p50, p75, p90) and direction. */
 interface InputSpec {
   label: string;
   unit: Unit;
@@ -114,7 +113,7 @@ const AXES: { key: AxisKey; label: string; short: string; high: string; low: str
   },
 ];
 
-/** Section 12.6: the unordered pair of the two highest axes, keyed in axis order. */
+/** The unordered pair of the two highest axes, keyed in axis order. */
 const ARCHETYPES: Record<string, [string, string]> = {
   "aggression+sharpness": ["Sharp tactician", "You attack and complicate: games are decided by tactics, often yours."],
   "aggression+precision": ["Precise attacker", "You go for the king and still find the accurate moves while doing it."],
@@ -134,7 +133,7 @@ const PERCENTILES = [10, 25, 50, 75, 90];
 
 const round1 = (x: number) => Math.round(x * 10) / 10;
 
-/** Section 12.1: linear between breakpoints, extended past the ends, flat segments as steps, clamped. */
+/** Linear between breakpoints, extended past the ends, flat segments as steps, clamped. */
 export function percentile(raw: number, band: number[], inverted = false): number {
   let p: number;
   const [b, P] = [band, PERCENTILES];
@@ -153,7 +152,7 @@ export function ordinal(n: number): string {
   return `${n}${suffix}`;
 }
 
-/** Section 12.4's raw formats inside the explanation sentence. */
+/** The raw formats inside the explanation sentence. */
 function sentenceRaw(raw: number, unit: Unit): string {
   switch (unit) {
     case "share":

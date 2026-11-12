@@ -1,5 +1,5 @@
 /**
- * The game lists behind the numbers. docs/04-INSIGHTS-SPEC.md section 15.1.
+ * The game lists behind the numbers.
  */
 import { ERROR_CLASSES, isError } from "../analysis/classification.ts";
 import { ALL_PHASES } from "../analysis/phases.ts";

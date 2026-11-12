@@ -1,6 +1,6 @@
 import { epdOf, lookupOpening, BOOK_DEPTH } from "../analysis/book.ts";
 
-/** Opening classification by position-chain matching. docs/03-IMPORT-SPEC.md section 2.14. */
+/** Opening classification by position-chain matching. */
 
 export interface OpeningInfo {
   eco?: string;
@@ -10,7 +10,7 @@ export interface OpeningInfo {
 
 /**
  * `fens` are the positions after each ply, in order, for a game that starts
- * from the standard position (section 2.6); `isStandardStart` is false for
+ * from the standard position; `isStandardStart` is false for
  * games from a given FEN, which only keep the ECO tag (rule 6).
  */
 export function classifyOpening(fens: string[], isStandardStart: boolean, ecoTag: string | undefined): OpeningInfo {

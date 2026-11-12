@@ -9,8 +9,8 @@ import { Chess } from "chess.js";
  *
  * Built on chess.js (loaded with `skipValidation` so a toy position - one
  * side's king missing, say - still works) rather than a second hand-written
- * rules engine: real chess.js legality (including pins) matches the spec
- * exactly for every move except castling and en passant, where the spec is
+ * rules engine: real chess.js legality (including pins) matches this model
+ * exactly for every move except castling and en passant, where the model is
  * deliberately looser than real chess, so only those two are special-cased.
  */
 

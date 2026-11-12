@@ -1,6 +1,5 @@
 /**
  * Which games the Insights profile uses: the filters and the selection steps.
- * docs/04-INSIGHTS-SPEC.md sections 2 and 3.
  */
 import type { StoredGame } from "../import/parseGame.ts";
 import type { PersonalResult } from "../import/players.ts";
@@ -8,7 +7,7 @@ import { ALL_TIME_CLASSES, type TimeClass } from "../import/timeClass.ts";
 import type { Colour, GameAnalysis } from "../analysis/game.ts";
 
 export const MINIMUM_GAMES = 20;
-/** At most 500 ids per game list, and per id list given as a filter (sections 3 and 15; the library too). */
+/** At most 500 ids per game list, and per id list given as a filter (the library applies the same cap). */
 export const MAX_IDS = 500;
 const MINIMUM_MY_MOVES = 3;
 
@@ -48,7 +47,7 @@ export interface Selection {
   needed: number;
 }
 
-/** Section 3: a game must satisfy every filter that is set. */
+/** A game must satisfy every filter that is set. */
 export function matchesFilters(game: StoredGame, filters: InsightFilters): boolean {
   if (filters.timeClasses && !filters.timeClasses.includes(game.timeClass)) return false;
   if (filters.colour && game.myColour !== filters.colour) return false;
@@ -80,7 +79,7 @@ function startOfUtcDay(ms: number): number {
 }
 
 /**
- * Section 4: the range used when the user picked no dates and not "All time", over the games that match the
+ * The range used when the user picked no dates and not "All time", over the games that match the
  * other filters and are usable (a "me" side, an analysis, at least 3 of my moves).
  */
 export function defaultRange(games: GameWithAnalysis[], filters: InsightFilters, now: number): DefaultRange {
@@ -94,7 +93,7 @@ export function defaultRange(games: GameWithAnalysis[], filters: InsightFilters,
   return { kind: "all" };
 }
 
-/** Section 2: games matching, the exclusions, the gate of 20 and the play order. */
+/** Games matching, the exclusions, the gate of 20 and the play order. */
 export function selectGames(games: GameWithAnalysis[], filters: InsightFilters): Selection {
   const excluded = { notAnalysed: 0, noMyColor: 0, tooShort: 0 };
   let gamesTotal = 0;
@@ -126,7 +125,7 @@ export function selectGames(games: GameWithAnalysis[], filters: InsightFilters):
   };
 }
 
-/** The query string shared by GET /api/insights and the library's drill-down links (sections 3 and 15). */
+/** The query string shared by GET /api/insights and the library's drill-down links. */
 export interface InsightsQuery {
   filters: InsightFilters;
   /** "All time" chosen explicitly: no default range. */

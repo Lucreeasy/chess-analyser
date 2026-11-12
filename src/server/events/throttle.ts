@@ -7,8 +7,8 @@ export interface ThrottleDeps {
 }
 
 /**
- * Leading-and-trailing smoothing for one event stream. docs/03-IMPORT-SPEC.md
- * section 5.6: "the first event goes out at once, events inside the window
+ * Leading-and-trailing smoothing for one event stream.
+ * "the first event goes out at once, events inside the window
  * are merged into one at the end of the window so the final state is never
  * lost."
  */

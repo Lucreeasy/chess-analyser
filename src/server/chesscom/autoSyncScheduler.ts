@@ -1,7 +1,7 @@
 import type { SyncResult } from "./sync.ts";
 import { summarizeUsernameSync, type UsernameSyncResult } from "./autoSyncResult.ts";
 
-/** Auto-sync's schedule, status and "Sync now". docs/03-IMPORT-SPEC.md sections 4.3, 4.4. */
+/** Auto-sync's schedule, status and "Sync now". */
 
 export interface AutoSyncStatus {
   enabled: boolean;
@@ -28,7 +28,7 @@ const FIRST_RUN_DELAY_MS = 60_000;
 
 /**
  * The configured sync interval in whole hours, clamped to 0-48; empty or
- * non-numeric becomes the default, 6. Section 4.3.
+ * non-numeric becomes the default, 6.
  */
 export function parseIntervalHours(value: string | undefined): number {
   const hours = Number(value);
@@ -37,7 +37,7 @@ export function parseIntervalHours(value: string | undefined): number {
 }
 
 /**
- * Runs each saved username's sync one after another (section 4.3), never
+ * Runs each saved username's sync one after another, never
  * overlapping: a tick that finds a run already in progress waits for it
  * and then schedules the next, without running itself. "Sync now" starts
  * a run immediately and never moves `nextRunAt`.

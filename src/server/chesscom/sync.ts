@@ -6,7 +6,7 @@ import { importGames } from "../import/report.ts";
 import type { StoredGame } from "../import/parseGame.ts";
 import type { TimeClass } from "../import/timeClass.ts";
 
-/** Fetching and importing a range of months for one username. docs/03-IMPORT-SPEC.md sections 3.1, 3.5, 3.7, 3.8. */
+/** Fetching and importing a range of months for one username. */
 
 export interface MonthReport {
   month: string;
@@ -24,7 +24,7 @@ export interface SyncResult {
 export interface SyncOptions extends Omit<FetchMonthOptions, "ifNoneMatch"> {
   onProgress?: (event: { username: string; month: string; done: number; total: number }) => void;
   /**
-   * Auto-sync only (section 3.6): sends a stored ETag per month and keeps
+   * Auto-sync only: sends a stored ETag per month and keeps
    * it up to date. A 304 skips the month entirely. Manual import omits
    * this and always fetches in full.
    */
@@ -43,10 +43,10 @@ function stoppedMessage(retryAfterSeconds: number | undefined): string {
 /**
  * Fetches each month in order, parses and stores what is new, and reports
  * per month. A rate-limited month stops the import: every later month is
- * reported as rate_limited without being fetched (section 3.5). Other
+ * reported as rate_limited without being fetched. Other
  * month problems do not stop it.
  *
- * `options.etags` (auto-sync only, section 3.6) sends a stored ETag per
+ * `options.etags` (auto-sync only) sends a stored ETag per
  * month and keeps it current: a 304 skips the month with no parsing; a
  * full fetch stores the new ETag only when every time class was imported
  * with no failures, and clears any stored ETag otherwise. Manual import

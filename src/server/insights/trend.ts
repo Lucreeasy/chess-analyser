@@ -1,5 +1,5 @@
 /**
- * Rolling accuracy over a window of 20 games. docs/04-INSIGHTS-SPEC.md section 10.1.
+ * Rolling accuracy over a window of 20 games.
  */
 import { mean } from "./overview.ts";
 import type { UsedGame } from "./select.ts";

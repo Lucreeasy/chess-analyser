@@ -2,7 +2,7 @@ import { parseGame, type StoredGame } from "./parseGame.ts";
 import { extractTags } from "./pgnText.ts";
 import { classifyTimeControl, type TimeClass } from "./timeClass.ts";
 
-/** The import report. docs/03-IMPORT-SPEC.md sections 2.17-2.18. */
+/** The import report. */
 
 export interface Failure {
   index: number;
@@ -28,7 +28,7 @@ function snippetOf(gameText: string): string {
  * analysis - the caller does that with `newGames` (one atomic write).
  *
  * `timeClasses`, when given, filters by the game's real (parsed) time
- * class (section 3.7): games outside it are skipped silently, neither
+ * class: games outside it are skipped silently, neither
  * counted nor reported, even when they fail to parse.
  */
 export function importGames(

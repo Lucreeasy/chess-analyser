@@ -1,10 +1,10 @@
-/** Players, "me", result and ratings. docs/03-IMPORT-SPEC.md section 2.9. */
+/** Players, "me", result and ratings. */
 
 export type Colour = "w" | "b";
 export type Result = "1-0" | "0-1" | "1/2-1/2" | "*";
 export type PersonalResult = "win" | "loss" | "draw";
 
-/** Trimmed name, or "?" when missing/empty (section 2.7). */
+/** Trimmed name, or "?" when missing/empty. */
 export function playerName(tagValue: string | undefined): string {
   const trimmed = (tagValue ?? "").trim();
   return trimmed === "" ? "?" : trimmed;

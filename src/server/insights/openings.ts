@@ -1,6 +1,5 @@
 /**
  * Results by opening family and colour: score, accuracy in plies 1-20, EP at ply 20, and the flags.
- * docs/04-INSIGHTS-SPEC.md section 7.
  */
 import type { Colour, GameAnalysis } from "../analysis/game.ts";
 import { moverEp } from "../analysis/expectedPoints.ts";
