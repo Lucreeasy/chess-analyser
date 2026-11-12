@@ -4,7 +4,7 @@
   import { accuracyText, thousands, ukDate, ukRange } from "../lib/format.ts";
   import { drillLink } from "../lib/insightsLinks.ts";
   import { niceTicks } from "../lib/ticks.ts";
-  import AreaChart from "./AreaChart.svelte";
+  import Chart from "./Chart.svelte";
   import Icon from "./Icon.svelte";
 
   /**
@@ -56,7 +56,7 @@
   const tableRows = $derived(points.filter((_, i) => i % step === 0 || i === points.length - 1));
 </script>
 
-<AreaChart
+<Chart
   {xs}
   {xTicks}
   left={{ min: lo, max: hi, ticks: niceTicks(lo, hi), format: (v) => `${v}%` }}

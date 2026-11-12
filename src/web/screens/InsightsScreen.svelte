@@ -15,7 +15,7 @@
   import Recommendations from "../components/Recommendations.svelte";
   import Playstyle from "../components/Playstyle.svelte";
   import BarRow from "../components/BarRow.svelte";
-  import AreaChart from "../components/AreaChart.svelte";
+  import Chart from "../components/Chart.svelte";
   import Trend from "../components/Trend.svelte";
   import OpeningsTable from "../components/OpeningsTable.svelte";
   import Icon from "../components/Icon.svelte";
@@ -297,7 +297,7 @@
             {@const yStep = [1, 2, 5, 10, 20, 30, 60, 120, 300].find((st) => Math.max(...secs) / st <= 4) ?? 600}
             {@const yTicks = Array.from({ length: Math.max(1, Math.ceil(Math.max(...secs) / yStep)) + 1 }, (_, i) => i * yStep)}
             {@const peak = secs.indexOf(Math.max(...secs))}
-            <AreaChart
+            <Chart
               xs={moves}
               xTicks={[...moves.filter((m) => (m - moves[0]) % xStep === 0 && moves[moves.length - 1] - m >= xStep / 2), moves[moves.length - 1]].map(
                 (m) => ({ at: m, label: String(m) }),
@@ -308,7 +308,7 @@
               hover
             >
               {#snippet tip(i)}<strong>Move {moves[i]}</strong><br />{one(secs[i])} s Average{/snippet}
-            </AreaChart>
+            </Chart>
           {/if}
           <h3>Blunders per 100 moves: time trouble vs not</h3>
           <div class="across">
