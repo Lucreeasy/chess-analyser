@@ -27,23 +27,14 @@ export interface SchedulerDeps {
 const FIRST_RUN_DELAY_MS = 60_000;
 
 /**
- * The configured sync interval in whole hours, clamped to 0-48; empty or
- * non-numeric becomes the default, 6.
- */
-export function parseIntervalHours(value: string | undefined): number {
-  const hours = Number(value);
-  if (value === undefined || value.trim() === "" || !Number.isFinite(hours)) return 6;
-  return Math.min(48, Math.max(0, Math.trunc(hours)));
-}
-
-/**
  * Runs each saved username's sync one after another, never
  * overlapping: a tick that finds a run already in progress waits for it
  * and then schedules the next, without running itself. "Sync now" starts
  * a run immediately and never moves `nextRunAt`.
  */
 export class AutoSyncScheduler {
-  readonly #intervalHours: number;
+  /** The saved interval in whole hours, read on every scheduling; 0 = off. */
+  readonly #intervalHours: () => number;
   readonly #getUsernames: () => string[];
   readonly #runUsername: (username: string) => Promise<SyncResult>;
   readonly #now: () => number;
@@ -56,7 +47,7 @@ export class AutoSyncScheduler {
   #lastResults: UsernameSyncResult[] = [];
   #timer: TimerHandle | null = null;
 
-  constructor(intervalHours: number, getUsernames: () => string[], runUsername: (username: string) => Promise<SyncResult>, deps: SchedulerDeps = {}) {
+  constructor(intervalHours: () => number, getUsernames: () => string[], runUsername: (username: string) => Promise<SyncResult>, deps: SchedulerDeps = {}) {
     this.#intervalHours = intervalHours;
     this.#getUsernames = getUsernames;
     this.#runUsername = runUsername;
@@ -67,7 +58,7 @@ export class AutoSyncScheduler {
 
   /** Schedules the first run, unless the interval is 0. */
   start(): void {
-    if (this.#intervalHours > 0) this.#scheduleNext(FIRST_RUN_DELAY_MS);
+    if (this.#intervalHours() > 0) this.#scheduleNext(FIRST_RUN_DELAY_MS);
   }
 
   /** Stops any pending timer; does not interrupt a run already in progress. */
@@ -79,8 +70,8 @@ export class AutoSyncScheduler {
 
   status(): AutoSyncStatus {
     return {
-      enabled: this.#intervalHours > 0 && this.#getUsernames().length > 0,
-      intervalHours: this.#intervalHours,
+      enabled: this.#intervalHours() > 0 && this.#getUsernames().length > 0,
+      intervalHours: this.#intervalHours(),
       lastRunAt: this.#lastRunAt,
       nextRunAt: this.#nextRunAt,
       running: this.#runningPromise !== null,
@@ -109,7 +100,7 @@ export class AutoSyncScheduler {
     } else {
       await this.#runOnce();
     }
-    if (this.#intervalHours > 0) this.#scheduleNext(this.#intervalHours * 3_600_000);
+    if (this.#intervalHours() > 0) this.#scheduleNext(this.#intervalHours() * 3_600_000);
   }
 
   #runOnce(): Promise<void> {

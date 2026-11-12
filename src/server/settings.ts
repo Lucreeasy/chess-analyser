@@ -8,9 +8,12 @@ export interface Settings {
   usernames: string[];
   depthPreset: DepthPreset;
   autoAnalyse: boolean;
+  /** Hours between automatic chess.com syncs; 0 = off. */
+  autoSyncHours: number;
 }
 
-export const DEFAULT_SETTINGS: Settings = { usernames: [], depthPreset: "standard", autoAnalyse: true };
+export const DEFAULT_SETTINGS: Settings = { usernames: [], depthPreset: "standard", autoAnalyse: true, autoSyncHours: 6 };
+export const AUTO_SYNC_HOURS = [0, 1, 3, 6, 12, 24];
 
 const DEPTH_PRESETS: readonly DepthPreset[] = ["quick", "standard", "deep"];
 
@@ -53,5 +56,11 @@ export function validateSettingsUpdate(body: unknown, current: Settings): Valida
 
   const autoAnalyse = b.autoAnalyse !== undefined ? Boolean(b.autoAnalyse) : current.autoAnalyse;
 
-  return { ok: true, settings: { usernames, depthPreset, autoAnalyse } };
+  let autoSyncHours = current.autoSyncHours;
+  if (b.autoSyncHours !== undefined) {
+    if (!AUTO_SYNC_HOURS.includes(b.autoSyncHours as number)) return { ok: false, message: `autoSyncHours must be one of ${AUTO_SYNC_HOURS.join(", ")}` };
+    autoSyncHours = b.autoSyncHours as number;
+  }
+
+  return { ok: true, settings: { usernames, depthPreset, autoAnalyse, autoSyncHours } };
 }

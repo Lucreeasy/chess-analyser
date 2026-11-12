@@ -163,7 +163,7 @@ export function deleteStoredEtag(db: Database.Database, username: string, month:
 /** Settings that affect import and analysis. There is only ever one row. */
 export function getSettings(db: Database.Database): Settings {
   const row = db.prepare(`select data_json from settings where id = 1`).get() as { data_json: string } | undefined;
-  return row ? JSON.parse(row.data_json) : DEFAULT_SETTINGS;
+  return { ...DEFAULT_SETTINGS, ...(row ? JSON.parse(row.data_json) : {}) }; // older rows lack newer fields
 }
 
 export function putSettings(db: Database.Database, settings: Settings): void {

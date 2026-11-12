@@ -1,22 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AutoSyncScheduler, parseIntervalHours, type TimerHandle } from "../../../src/server/chesscom/autoSyncScheduler.ts";
+import { AutoSyncScheduler, type TimerHandle } from "../../../src/server/chesscom/autoSyncScheduler.ts";
 import type { SyncResult } from "../../../src/server/chesscom/sync.ts";
 
 function okResult(added: number): SyncResult {
   return { months: [], added, duplicates: 0, failed: 0 };
 }
-
-test("parseIntervalHours: clamped to 0-48, empty/non-numeric defaults to 6", () => {
-  assert.equal(parseIntervalHours(undefined), 6);
-  assert.equal(parseIntervalHours(""), 6);
-  assert.equal(parseIntervalHours("not-a-number"), 6);
-  assert.equal(parseIntervalHours("12"), 12);
-  assert.equal(parseIntervalHours("0"), 0);
-  assert.equal(parseIntervalHours("-5"), 0);
-  assert.equal(parseIntervalHours("100"), 48);
-  assert.equal(parseIntervalHours("48"), 48);
-});
 
 interface FakeTimer extends TimerHandle {
   at: number;
@@ -53,7 +42,7 @@ function fakeClock() {
 
 test("status before any run: not running, no results, null lastRunAt", () => {
   const clock = fakeClock();
-  const scheduler = new AutoSyncScheduler(6, () => ["bc_tester"], async () => okResult(0), clock);
+  const scheduler = new AutoSyncScheduler(() => 6, () => ["bc_tester"], async () => okResult(0), clock);
   assert.deepEqual(scheduler.status(), {
     enabled: true,
     intervalHours: 6,
@@ -66,15 +55,15 @@ test("status before any run: not running, no results, null lastRunAt", () => {
 
 test("enabled requires both a positive interval and a saved username", () => {
   const clock = fakeClock();
-  assert.equal(new AutoSyncScheduler(0, () => ["bc_tester"], async () => okResult(0), clock).status().enabled, false);
-  assert.equal(new AutoSyncScheduler(6, () => [], async () => okResult(0), clock).status().enabled, false);
+  assert.equal(new AutoSyncScheduler(() => 0, () => ["bc_tester"], async () => okResult(0), clock).status().enabled, false);
+  assert.equal(new AutoSyncScheduler(() => 6, () => [], async () => okResult(0), clock).status().enabled, false);
 });
 
 test("start(): first run 60s later; after it finishes, the next is one interval after that", async () => {
   const clock = fakeClock();
   let calls = 0;
   const scheduler = new AutoSyncScheduler(
-    6,
+    () => 6,
     () => ["bc_tester"],
     async () => {
       calls++;
@@ -93,7 +82,7 @@ test("start(): first run 60s later; after it finishes, the next is one interval 
 
 test("an interval of 0 never schedules a run", () => {
   const clock = fakeClock();
-  const scheduler = new AutoSyncScheduler(0, () => ["bc_tester"], async () => okResult(0), clock);
+  const scheduler = new AutoSyncScheduler(() => 0, () => ["bc_tester"], async () => okResult(0), clock);
   scheduler.start();
   assert.equal(scheduler.status().nextRunAt, null);
 });
@@ -103,7 +92,7 @@ test("runs never overlap: a second trigger while running returns the current sta
   let concurrentCalls = 0;
   let maxConcurrent = 0;
   const scheduler = new AutoSyncScheduler(
-    6,
+    () => 6,
     () => ["bc_tester"],
     async () => {
       concurrentCalls++;
@@ -126,14 +115,14 @@ test("runs never overlap: a second trigger while running returns the current sta
 
 test("triggerNow with no saved usernames is refused", () => {
   const clock = fakeClock();
-  const scheduler = new AutoSyncScheduler(6, () => [], async () => okResult(0), clock);
+  const scheduler = new AutoSyncScheduler(() => 6, () => [], async () => okResult(0), clock);
   const result = scheduler.triggerNow();
   assert.deepEqual(result, { ok: false, message: "set a chess.com username in Settings first" });
 });
 
 test("triggerNow works even with the interval off, and does not move nextRunAt", async () => {
   const clock = fakeClock();
-  const scheduler = new AutoSyncScheduler(0, () => ["bc_tester"], async () => okResult(1), clock);
+  const scheduler = new AutoSyncScheduler(() => 0, () => ["bc_tester"], async () => okResult(1), clock);
   const result = scheduler.triggerNow();
   assert.equal(result.ok, true);
   await Promise.resolve();
@@ -144,7 +133,7 @@ test("triggerNow works even with the interval off, and does not move nextRunAt",
 
 test("a run with an empty username list does nothing but still updates lastRunAt", async () => {
   const clock = fakeClock();
-  const scheduler = new AutoSyncScheduler(6, () => [], async () => okResult(1), clock);
+  const scheduler = new AutoSyncScheduler(() => 6, () => [], async () => okResult(1), clock);
   scheduler.start();
   await clock.advance(60_000);
   assert.deepEqual(scheduler.status().lastResults, []);
@@ -154,7 +143,7 @@ test("a run with an empty username list does nothing but still updates lastRunAt
 test("a username whose sync throws is recorded with zero counts and the error message", async () => {
   const clock = fakeClock();
   const scheduler = new AutoSyncScheduler(
-    6,
+    () => 6,
     () => ["bc_tester"],
     async () => {
       throw new Error("boom");
@@ -171,7 +160,7 @@ test("a username whose sync throws is recorded with zero counts and the error me
 test("a failure for one username does not stop the next", async () => {
   const clock = fakeClock();
   const scheduler = new AutoSyncScheduler(
-    6,
+    () => 6,
     () => ["first", "second"],
     async (username: string) => {
       if (username === "first") throw new Error("boom");
@@ -193,7 +182,7 @@ test("a scheduled tick that finds a run already going waits for it, then schedul
   let calls = 0;
   let resolveRun: (() => void) | undefined;
   const scheduler = new AutoSyncScheduler(
-    6,
+    () => 6,
     () => ["bc_tester"],
     () => {
       calls++;

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { validateSettingsUpdate, DEFAULT_SETTINGS } from "../../src/server/settings.ts";
 
 test("an empty update keeps the current settings", () => {
-  const current = { usernames: ["bc_tester"], depthPreset: "deep" as const, autoAnalyse: false };
+  const current = { usernames: ["bc_tester"], depthPreset: "deep" as const, autoAnalyse: false, autoSyncHours: 6 };
   const result = validateSettingsUpdate({}, current);
   assert.deepEqual(result, { ok: true, settings: current });
 });
@@ -56,4 +56,12 @@ test("autoAnalyse: coerced to a boolean", () => {
   const result = validateSettingsUpdate({ autoAnalyse: 0 }, DEFAULT_SETTINGS);
   assert.equal(result.ok, true);
   if (result.ok) assert.equal(result.settings.autoAnalyse, false);
+});
+
+test("autoSyncHours: one of Off, 1, 3, 6, 12 or 24 hours", () => {
+  for (const autoSyncHours of [0, 1, 3, 6, 12, 24]) {
+    const result = validateSettingsUpdate({ autoSyncHours }, DEFAULT_SETTINGS);
+    assert.ok(result.ok && result.settings.autoSyncHours === autoSyncHours);
+  }
+  for (const autoSyncHours of [2, -1, "6", 48]) assert.equal(validateSettingsUpdate({ autoSyncHours }, DEFAULT_SETTINGS).ok, false);
 });

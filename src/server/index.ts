@@ -29,7 +29,7 @@ import { isValidUsername } from "./chesscom/parsing.ts";
 import { validateImportRequest } from "./chesscom/requestValidation.ts";
 import { monthsInRange, autoSyncMonths } from "./chesscom/monthRange.ts";
 import { syncMonths, type SyncResult } from "./chesscom/sync.ts";
-import { AutoSyncScheduler, parseIntervalHours } from "./chesscom/autoSyncScheduler.ts";
+import { AutoSyncScheduler } from "./chesscom/autoSyncScheduler.ts";
 import { validateSettingsUpdate } from "./settings.ts";
 import { syncAllPuzzles, listPuzzles, getPuzzle, saveSchedule } from "./puzzles/store.ts";
 import { checkAnswer, puzzleEvaluator } from "./puzzles/check.ts";
@@ -83,7 +83,7 @@ async function runUsernameSync(username: string): Promise<SyncResult> {
   });
 }
 
-export const autoSync = new AutoSyncScheduler(parseIntervalHours(process.env.AUTO_SYNC_INTERVAL_HOURS), () => getSettings(db).usernames, runUsernameSync);
+export const autoSync = new AutoSyncScheduler(() => getSettings(db).autoSyncHours, () => getSettings(db).usernames, runUsernameSync);
 if (process.env.NODE_ENV !== "test") autoSync.start();
 
 function onWorkerEvent(event: WorkerEvent): void {
@@ -245,6 +245,10 @@ export const server = createServer(async (req, res) => {
       eventHub.broadcast({ type: "gamesChanged" });
     }
     putSettings(db, settings);
+    if (settings.autoSyncHours !== current.autoSyncHours && process.env.NODE_ENV !== "test") {
+      autoSync.stop(); // the new interval applies from now
+      autoSync.start();
+    }
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(settings));
     return;

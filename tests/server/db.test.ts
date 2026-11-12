@@ -76,7 +76,7 @@ test("settings: default before anything is stored, then round-trips what was put
   const db = openDb(":memory:");
   assert.deepEqual(getSettings(db), DEFAULT_SETTINGS);
 
-  const settings = { usernames: ["bc_tester"], depthPreset: "deep" as const, autoAnalyse: false };
+  const settings = { usernames: ["bc_tester"], depthPreset: "deep" as const, autoAnalyse: false, autoSyncHours: 6 };
   putSettings(db, settings);
   assert.deepEqual(getSettings(db), settings);
 

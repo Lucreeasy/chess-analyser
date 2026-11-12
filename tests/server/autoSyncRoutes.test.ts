@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { withServer } from "./testServer.ts";
 
 process.env.NODE_ENV = "test";
-process.env.AUTO_SYNC_INTERVAL_HOURS = "6";
 const { server, chessComDeps } = await import("../../src/server/index.ts");
 
 interface FakeResponse {
