@@ -17,6 +17,11 @@ export function ukDate(ms: number): string {
   return UK_DATE.format(ms);
 }
 
+/** Two dates as "3 Sept 2026 – 9 Oct 2026"; equal dates once. docs/04-INSIGHTS-SPEC.md section 0. */
+export function ukRange(from: number, to: number): string {
+  return ukDate(from) === ukDate(to) ? ukDate(from) : `${ukDate(from)} – ${ukDate(to)}`;
+}
+
 
 const TIME_CLASS_LABEL: Record<string, string> = {
   bullet: "Bullet",

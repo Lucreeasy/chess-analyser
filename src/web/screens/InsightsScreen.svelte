@@ -16,6 +16,7 @@
   import Playstyle from "../components/Playstyle.svelte";
   import BarRow from "../components/BarRow.svelte";
   import AreaChart from "../components/AreaChart.svelte";
+  import Trend from "../components/Trend.svelte";
   import OpeningsTable from "../components/OpeningsTable.svelte";
   import Icon from "../components/Icon.svelte";
 
@@ -198,6 +199,14 @@
         <Recommendations recommendations={data.recommendations} />
       </section>
 
+      {#if data.trend.length > 0}
+        <section id="trend" class="card">
+          <h2>Accuracy trend</h2>
+          <p class="muted">Your average accuracy over a rolling window of 20 games. Are you improving?</p>
+          <Trend points={data.trend} filters={data.filters} />
+        </section>
+      {/if}
+
       <section id="phases" class="card">
         <h2>Phases</h2>
         <p class="muted">How accurately you play, and how often you err, in the opening, middlegame and endgame.</p>
@@ -281,7 +290,25 @@
           {@const warn = (time.ratio ?? 0) >= 2}
           {#if time.byMoveNumber.length > 0}
             <h3>Average seconds per move, by move number</h3>
-            <AreaChart label="Average seconds per move, by move number" points={time.byMoveNumber.map((p) => ({ move: p.move, s: p.seconds.value ?? 0 }))} />
+            {@const secs = time.byMoveNumber.map((p) => p.seconds.value ?? 0)}
+            {@const moves = time.byMoveNumber.map((p) => p.move)}
+            <!-- About 7 whole move-number ticks with the first and last; seconds in steps of 1, 2, 5 … 300 s. -->
+            {@const xStep = Math.max(1, Math.round((moves[moves.length - 1] - moves[0]) / 6))}
+            {@const yStep = [1, 2, 5, 10, 20, 30, 60, 120, 300].find((st) => Math.max(...secs) / st <= 4) ?? 600}
+            {@const yTicks = Array.from({ length: Math.max(1, Math.ceil(Math.max(...secs) / yStep)) + 1 }, (_, i) => i * yStep)}
+            {@const peak = secs.indexOf(Math.max(...secs))}
+            <AreaChart
+              xs={moves}
+              xTicks={[...moves.filter((m) => (m - moves[0]) % xStep === 0 && moves[moves.length - 1] - m >= xStep / 2), moves[moves.length - 1]].map(
+                (m) => ({ at: m, label: String(m) }),
+              )}
+              left={{ min: 0, max: yTicks[yTicks.length - 1], ticks: yTicks, format: (v) => `${v} s` }}
+              series={[{ values: secs, area: true }]}
+              label={`Average seconds per move, by move number. It starts at ${one(secs[0])} s on move ${moves[0]} and peaks at ${one(secs[peak])} s on move ${moves[peak]}.`}
+              hover
+            >
+              {#snippet tip(i)}<strong>Move {moves[i]}</strong><br />{one(secs[i])} s Average{/snippet}
+            </AreaChart>
           {/if}
           <h3>Blunders per 100 moves: time trouble vs not</h3>
           <div class="across">

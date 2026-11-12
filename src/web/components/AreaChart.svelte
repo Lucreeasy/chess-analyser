@@ -1,73 +1,99 @@
 <script lang="ts">
-  import { one } from "../lib/format.ts";
+  import type { Snippet } from "svelte";
+
+  export interface Axis {
+    min: number;
+    max: number;
+    ticks: number[];
+    format: (v: number) => string;
+  }
+  export interface Series {
+    values: (number | undefined)[];
+    right?: boolean;
+    dashed?: boolean;
+    area?: boolean;
+  }
 
   /**
-   * docs/07-UI-SPEC.md section 7, area chart: 200 px high, Brand 2.5 px line over a 22 % fill, about 7 x ticks,
-   * a y axis in seconds, a tooltip "Move {n}" / "{s} s Average" for the point nearest the pointer.
+   * A line chart over shared x positions (docs/07-UI-SPEC.md section 7: the area chart and the trend line).
+   * Series 0 is Brand on the left axis; a `right` series is Accent on the right axis. A pointer press picks the
+   * nearest point; with `hover` moving the pointer does too, and leaving clears it. `tip` draws a tooltip.
    */
-  let { points, label }: { points: { move: number; s: number }[]; label: string } = $props();
+  let {
+    xs,
+    xTicks,
+    left,
+    right,
+    series,
+    label,
+    height = 200,
+    hover = false,
+    picked = $bindable(),
+    tip,
+  }: {
+    xs: number[];
+    xTicks: { at: number; label: string }[];
+    left: Axis;
+    right?: Axis;
+    series: Series[];
+    label: string;
+    height?: number;
+    hover?: boolean;
+    picked?: number;
+    tip?: Snippet<[number]>;
+  } = $props();
 
   // The view box is the pixel size, so the text never scales.
-  const HEIGHT = 200;
-  const LEFT = 36;
-  const RIGHT = 8;
+  const LEFT = 40;
   const BOTTOM = 20;
   const TOP = 8;
+  const RIGHT = $derived(right ? 44 : 8);
   let width = $state(600);
-  let picked: number | undefined = $state();
 
-  const first = $derived(points[0].move);
-  const last = $derived(points[points.length - 1].move);
-  const top = $derived(Math.max(...points.map((p) => p.s)));
-  const yStep = $derived([1, 2, 5, 10, 20, 30, 60, 120, 300].find((st) => top / st <= 4) ?? 600);
-  const yTicks = $derived(Array.from({ length: Math.max(1, Math.ceil(top / yStep)) + 1 }, (_, i) => i * yStep));
-  const yMax = $derived(yTicks[yTicks.length - 1]);
-  const xStep = $derived(Math.max(1, Math.round((last - first) / 6)));
-  const xTicks = $derived([
-    ...Array.from({ length: Math.floor((last - first) / xStep) + 1 }, (_, i) => first + i * xStep).filter((m) => last - m >= xStep / 2),
-    last,
-  ]);
-  const x = (move: number) => LEFT + (last === first ? 0 : ((move - first) / (last - first)) * (width - LEFT - RIGHT));
-  const y = (s: number) => TOP + (1 - s / yMax) * (HEIGHT - TOP - BOTTOM);
-  const line = $derived(points.map((p) => `${x(p.move)},${y(p.s)}`).join(" L "));
-  const peak = $derived(points.reduce((a, b) => (b.s > a.s ? b : a)));
+  const x = (v: number) => LEFT + (xs.length < 2 ? 0 : ((v - xs[0]) / (xs[xs.length - 1] - xs[0])) * (width - LEFT - RIGHT));
+  const y = (v: number, a: Axis) => TOP + (1 - (v - a.min) / (a.max - a.min || 1)) * (height - TOP - BOTTOM);
+  const path = (s: Series) =>
+    xs.flatMap((v, i) => (s.values[i] === undefined ? [] : [`${x(v)},${y(s.values[i]!, s.right ? right! : left)}`])).join(" L ");
 
   function pick(e: PointerEvent): void {
     const px = e.clientX - (e.currentTarget as SVGElement).getBoundingClientRect().left;
-    picked = points.reduce((best, p, i) => (Math.abs(x(p.move) - px) < Math.abs(x(points[best].move) - px) ? i : best), 0);
+    picked = xs.reduce((best, v, i) => (Math.abs(x(v) - px) < Math.abs(x(xs[best]) - px) ? i : best), 0);
   }
 </script>
 
 <div class="chart" bind:clientWidth={width}>
   <svg
-    viewBox={`0 0 ${width} ${HEIGHT}`}
-    height={HEIGHT}
+    viewBox={`0 0 ${width} ${height}`}
+    {height}
     role="img"
-    aria-label={`${label}. It starts at ${one(points[0].s)} s on move ${first} and peaks at ${one(peak.s)} s on move ${peak.move}.`}
-    onpointermove={pick}
+    aria-label={label}
     onpointerdown={pick}
-    onpointerleave={() => (picked = undefined)}
+    onpointermove={hover ? pick : undefined}
+    onpointerleave={hover ? () => (picked = undefined) : undefined}
   >
-    {#each yTicks as t (t)}
-      <line class="grid" class:base={t === 0} x1={LEFT} x2={width - RIGHT} y1={y(t)} y2={y(t)} />
-      <text x={LEFT - 6} y={y(t) + 4} text-anchor="end">{t} s</text>
+    {#each left.ticks as t, i (t)}
+      <line class="grid" class:base={i === 0} x1={LEFT} x2={width - RIGHT} y1={y(t, left)} y2={y(t, left)} />
+      <text class:left={!!right} x={LEFT - 6} y={y(t, left) + 4} text-anchor="end">{left.format(t)}</text>
     {/each}
-    {#each xTicks as m (m)}
-      <text x={x(m)} y={HEIGHT - 4} text-anchor="middle">{m}</text>
+    {#each right?.ticks ?? [] as t (t)}
+      <text class="right" x={width - RIGHT + 6} y={y(t, right!) + 4}>{right!.format(t)}</text>
     {/each}
-    <path class="area" d={`M ${x(first)},${y(0)} L ${line} L ${x(last)},${y(0)} Z`} />
-    <path class="line" d={`M ${line}`} />
+    {#each xTicks as t (t.at)}
+      <text x={x(t.at)} y={height - 4} text-anchor="middle">{t.label}</text>
+    {/each}
+    {#each series as s, i (i)}
+      {#if s.area}
+        <path class="area" d={`M ${x(xs[0])},${height - BOTTOM} L ${path(s)} L ${x(xs[xs.length - 1])},${height - BOTTOM} Z`} />
+      {/if}
+      <path class="line" class:second={s.right} class:dashed={s.dashed} d={`M ${path(s)}`} />
+    {/each}
     {#if picked !== undefined}
-      {@const p = points[picked]}
-      <line class="marker" x1={x(p.move)} x2={x(p.move)} y1={TOP} y2={y(0)} />
-      <circle cx={x(p.move)} cy={y(p.s)} r="5" />
+      <line class="marker" x1={x(xs[picked])} x2={x(xs[picked])} y1={TOP} y2={height - BOTTOM} />
+      {#if series[0].values[picked] !== undefined}<circle cx={x(xs[picked])} cy={y(series[0].values[picked]!, left)} r="5" />{/if}
     {/if}
   </svg>
-  {#if picked !== undefined}
-    {@const p = points[picked]}
-    <div class="tooltip" style={`left: ${Math.min(x(p.move) + 8, width - 100)}px`}>
-      <strong>Move {p.move}</strong><br />{one(p.s)} s Average
-    </div>
+  {#if tip && picked !== undefined}
+    <div class="tooltip" style={`left: ${Math.min(x(xs[picked]) + 8, width - 100)}px`}>{@render tip(picked)}</div>
   {/if}
 </div>
 
@@ -84,6 +110,12 @@
     font-size: 11px;
     fill: var(--muted);
   }
+  .left {
+    fill: var(--brand);
+  }
+  .right {
+    fill: var(--accent);
+  }
   .grid {
     stroke: var(--line);
     stroke-dasharray: 3 3;
@@ -99,6 +131,13 @@
     stroke: var(--brand);
     stroke-width: 2.5;
     stroke-linejoin: round;
+  }
+  .line.second {
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .line.dashed {
+    stroke-dasharray: 6 4;
   }
   .marker {
     stroke: var(--ink);
