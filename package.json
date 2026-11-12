@@ -11,7 +11,8 @@
     "dev": "node --watch src/server/index.ts",
     "test": "node --test",
     "typecheck": "tsc --noEmit",
-    "build:web": "vite build"
+    "build:web": "vite build",
+    "smoke": "bash scripts/smoke.sh"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

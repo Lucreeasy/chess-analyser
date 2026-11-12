@@ -44,6 +44,7 @@ npm run build:web    # builds the frontend once, into dist/web
 ```bash
 npm test             # all unit/integration tests, no Docker and no engine needed
 npm run typecheck    # type-checks the whole project
+npm run smoke        # builds the image, starts it, imports a sample game and lists it (needs Docker or Podman)
 ```
 
 ## Licence
