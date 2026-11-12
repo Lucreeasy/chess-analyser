@@ -149,7 +149,7 @@
 </script>
 
 <div>
-  <label for="username-input">chess.com username</label>
+  <label for="username-input" class="main-label">chess.com username</label>
   <div class="row">
     <input
       id="username-input"
@@ -226,6 +226,9 @@
   .row input {
     flex: 1;
   }
+  .row .neutral {
+    margin-top: 0;
+  }
   .month-row {
     display: flex;
     flex-direction: column;
@@ -244,14 +247,7 @@
     }
   }
   fieldset {
-    margin: 16px 0 0;
-    padding: 0;
-    border: none;
-  }
-  legend {
-    font-size: 14px;
-    font-weight: 600;
-    padding: 0;
+    margin-top: 16px;
   }
   .classes {
     display: grid;

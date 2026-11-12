@@ -57,7 +57,7 @@
 </script>
 
 <div>
-  <label for="pgn-files">PGN files</label>
+  <label for="pgn-files" class="main-label">PGN files</label>
   <input id="pgn-files" type="file" accept=".pgn,text/plain" multiple disabled={importing} onchange={onChoose} />
   <p class="muted">Choose one or more files from chess.com's archive download. Each file is a separate upload.</p>
 
@@ -90,10 +90,27 @@
 </div>
 
 <style>
+  /* Drawn like a text field, with the browser's button as a Surface-2 pill inside. */
   input[type="file"] {
     display: block;
+    width: 100%;
     min-height: 44px;
     margin-top: 8px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 16px;
+  }
+  input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font: inherit;
   }
   .file-list {
     list-style: none;

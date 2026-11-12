@@ -183,7 +183,27 @@ input[type="month"] {
 label {
   display: block;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+}
+/* A field's label: muted for secondary fields, 16 px ink for the main field of a form. */
+label[for] {
+  color: var(--muted);
+}
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+label.main-label {
+  color: var(--ink);
+  font-size: 16px;
 }
 .muted {
   color: var(--muted);
@@ -200,7 +220,7 @@ label {
   margin-top: 16px;
   border-radius: 12px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
 }

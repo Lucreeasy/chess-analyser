@@ -131,7 +131,7 @@
           ? "Automatic sync is off."
           : `Fetches new games for your usernames every ${plural(settings.autoSyncHours, "hour")}.`}
       </p>
-      <label for="auto-sync" class="field-label">Check chess.com every</label>
+      <label for="auto-sync">Check chess.com every</label>
       <select
         id="auto-sync"
         disabled={settings.usernames.length === 0}
@@ -204,17 +204,6 @@
   }
   .pills button:hover {
     color: var(--danger);
-  }
-  fieldset {
-    margin: 0;
-    padding: 0;
-    border: none;
-  }
-  legend {
-    margin-bottom: 8px;
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 500;
   }
   /* Option cards: radio rows with a title and a description. */
   .options {
@@ -307,10 +296,5 @@
   .switch-row input:checked::after {
     background: var(--brand-ink);
     transform: translateX(20px);
-  }
-  .field-label {
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 500;
   }
 </style>

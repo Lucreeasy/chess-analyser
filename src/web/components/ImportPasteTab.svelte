@@ -38,7 +38,7 @@
 </script>
 
 <div>
-  <label for="pgn-text">PGN text</label>
+  <label for="pgn-text" class="main-label">PGN text</label>
   <textarea id="pgn-text" bind:value={text} disabled={importing} placeholder={PLACEHOLDER}></textarea>
   <p class="muted">One game or many, separated by blank lines.</p>
 
