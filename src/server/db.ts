@@ -252,12 +252,22 @@ export interface StoredAnalysis {
   finishedAt: number;
 }
 
+/**
+ * Parsed analyses by their stored text: parsing is most of the time Insights and the Games list take for
+ * many games, and the text only changes when a game is analysed again. Callers must not change the result.
+ */
+const parsedAnalyses = new WeakMap<Database.Database, Map<string, { json: string; analysis: GameAnalysis }>>();
+
 export function getAnalysis(db: Database.Database, gameId: string): StoredAnalysis | undefined {
   const row = db.prepare(`select depth, data_json, finished_at from analyses where game_id = ?`).get(gameId) as
     | { depth: DepthPreset; data_json: string; finished_at: number }
     | undefined;
   if (!row) return undefined;
-  return { depth: row.depth, analysis: JSON.parse(row.data_json), finishedAt: row.finished_at };
+  if (!parsedAnalyses.has(db)) parsedAnalyses.set(db, new Map());
+  const cache = parsedAnalyses.get(db)!;
+  let hit = cache.get(gameId);
+  if (hit?.json !== row.data_json) cache.set(gameId, (hit = { json: row.data_json, analysis: JSON.parse(row.data_json) }));
+  return { depth: row.depth, analysis: hit.analysis, finishedAt: row.finished_at };
 }
 
 export function countAnalyses(db: Database.Database): number {
