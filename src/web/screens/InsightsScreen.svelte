@@ -173,7 +173,7 @@
   {:else if !data.ready}
     <section class="card not-ready">
       <h2>{data.needed} more analysed {data.needed === 1 ? "game" : "games"} needed</h2>
-      <p>Your playstyle profile needs at least 20 analysed games, so the averages mean something.</p>
+      <p class="muted">Your playstyle profile needs at least 20 analysed games, so the averages mean something.</p>
       <p class="progress-text">
         <span>{data.analysed} of 20 analysed</span>
         <span>{Math.round(progress)}%</span>
@@ -193,7 +193,7 @@
           <li>{plural(data.excluded.noMyColor, "game")} where neither player is you; check your usernames in Settings.</li>
         {/if}
       </ul>
-      {#if queueLine}<p class="muted">{queueLine}</p>{/if}
+      {#if queueLine}<p class="inset">{queueLine}</p>{/if}
       <div class="actions">
         <a class="primary" href="#/games?analysis=not_analysed">Analyse more games</a>
         {#if filtersActive}
@@ -504,7 +504,8 @@
   }
   .not-ready ul {
     margin: 12px 0;
-    padding-left: 20px;
+    padding: 0;
+    list-style: none;
     font-size: 14px;
   }
   .progress-text {
