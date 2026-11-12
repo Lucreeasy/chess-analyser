@@ -162,8 +162,8 @@
   }
   .grabber {
     display: block;
-    width: 36px;
-    height: 20px;
+    width: 100%; /* the grip area spans the sheet: 14 px high, as specified */
+    height: 14px;
     margin: 0 auto;
     padding: 0;
     border: none;
@@ -174,11 +174,11 @@
   .grabber::before {
     content: "";
     position: absolute;
-    top: 8px;
+    top: 4px;
     left: 50%;
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
+    width: 40px;
+    height: 6px;
+    border-radius: 3px;
     background: var(--line);
     transform: translateX(-50%);
   }

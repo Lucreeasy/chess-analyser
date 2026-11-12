@@ -1,6 +1,5 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import Logo from "../components/Logo.svelte";
   import Icon from "../components/Icon.svelte";
   import Board from "../components/Board.svelte";
   import EvalBar from "../components/EvalBar.svelte";
@@ -268,15 +267,15 @@
 <div class="page">
   <header class="header">
     <button type="button" class="back" onclick={goBack} aria-label="Back to games">
-      <Icon name="chevron" size={20} />
+      <Icon name="chevronLeft" size={22} />
     </button>
     {#if game}
       <div class="titles">
-        <h1><Logo />{whiteTitle} <span class="vs">vs</span> {blackTitle}</h1>
-        <p class="sub-line" title={subLineTooltip}>{subLine}</p>
-      </div>
-      <div class="badge-slot">
-        <ResultBadge myResult={game.myResult} result={game.result} />
+        <h1>{whiteTitle} <span class="vs">vs</span> {blackTitle}</h1>
+        <div class="sub-row">
+          <p class="sub-line" title={subLineTooltip}>{subLine}</p>
+          <span class="badge-slot"><ResultBadge myResult={game.myResult} result={game.result} /></span>
+        </div>
       </div>
       <button
         type="button"
@@ -394,36 +393,30 @@
   .header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 4px;
   }
+  /* Quiet buttons: no border or background until pressed. */
   .back,
-  .flip {
+  .flip,
+  .explore-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    border: 1px solid var(--line);
+    gap: 6px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: none;
     border-radius: 12px;
-    background: var(--surface);
+    background: none;
     color: var(--ink);
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
     flex: none;
   }
   .explore-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 44px;
     padding: 0 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--surface);
-    color: var(--ink);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    flex: none;
   }
   .explore-toggle.active {
     border-color: var(--brand);
@@ -438,17 +431,11 @@
       display: inline;
     }
   }
-  .back :global(svg) {
-    transform: rotate(90deg);
-  }
   .titles {
     flex: 1;
     min-width: 0;
   }
   h1 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     font-size: 15px;
     font-weight: 600;
     margin: 0;
@@ -460,8 +447,14 @@
     font-weight: 400;
     color: var(--muted);
   }
+  .sub-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
   .sub-line {
-    margin: 2px 0 0;
+    min-width: 0;
     font-size: 12px;
     color: var(--muted);
     overflow: hidden;

@@ -59,6 +59,7 @@
 </script>
 
 <section class="panel" aria-label="Game review panel">
+  <div class="tab-row">
   <div role="tablist" aria-label="Game views" class="tabs" tabindex="-1" onkeydown={onKeydown}>
     {#each TABS as tab (tab.id)}
       <button
@@ -66,18 +67,19 @@
         type="button"
         role="tab"
         aria-selected={active === tab.id}
-        aria-controls={`review-panel-${tab.id}`}
+        aria-controls={active === tab.id && !hideContent ? `review-panel-${tab.id}` : undefined}
         tabindex={active === tab.id ? 0 : -1}
         class="tab"
         class:active={active === tab.id}
         onclick={(e) => activate(tab.id, e.currentTarget)}
       >{tab.label}</button>
     {/each}
-    {#if onExpand}
-      <button type="button" class="expand" aria-label="Expand the moves panel" onclick={(e) => onExpand(e.currentTarget)}>
-        <Icon name="chevron" size={18} />
-      </button>
-    {/if}
+  </div>
+  {#if onExpand}
+    <button type="button" class="expand" aria-label="Expand the moves panel" onclick={(e) => onExpand(e.currentTarget)}>
+      <Icon name="chevronUp" size={22} />
+    </button>
+  {/if}
   </div>
 
   {#if !hideContent}
@@ -105,27 +107,43 @@
   .panel {
     margin-top: 16px;
   }
-  .tabs {
+  .tab-row {
     display: flex;
     border-bottom: 1px solid var(--line);
+  }
+  .tabs {
+    flex: 1;
+    display: flex;
     gap: 4px;
   }
+  /* 13 px on the phone sheet, 14 px on the desktop panel; selected: Surface-2, Brand text, 3 px Brand bar. */
   .tab {
+    flex: 1 1 auto;
     min-height: 44px;
-    padding: 0 12px;
+    padding: 0 8px;
     border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 12px 12px 0 0;
     background: none;
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    border-bottom: 2px solid transparent;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
     cursor: pointer;
   }
+  @media (min-width: 768px) {
+    .tab {
+      font-size: 14px;
+    }
+  }
   .tab.active {
-    color: var(--ink);
+    background: var(--surface-2);
+    color: var(--brand);
+    font-weight: 600;
     border-bottom-color: var(--brand);
   }
   .expand {
+    flex: none;
     margin-left: auto;
     display: inline-flex;
     align-items: center;
