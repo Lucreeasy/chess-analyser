@@ -82,3 +82,12 @@ Alternatives: one raise per commit (a decision per commit, no added control); ke
 first (the trainer is new behaviour the requirements demand: selection, the schedule, the answer check with
 its engine fallback, listing and its screen).
 Why: one raise per phase, tightened at the phase's end, keeps the budget meaningful.
+
+## D-004: puzzle answers are searched on the one shared engine
+Date: 2026-11-12 · Phase: P7
+Chosen: when an off-list puzzle answer has no stored evaluation, the quick search (depth 12, two lines,
+2.5 s) runs on the program's single engine process, whose calls are serialised, under the 8 s hard timeout.
+Alternatives: a second engine process reserved for interactive use (puzzles and explore), as the old app had.
+Why: one Stockfish process keeps memory and code small on the target hardware; if a game analysis holds the
+engine past the 8 s timeout, the answer falls back to the stored solution list and says so, the behaviour
+already specified for an unavailable engine.

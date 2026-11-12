@@ -34,5 +34,16 @@ test("refresh builds the puzzles; the list has the opponent but never the soluti
     const bad = await fetch(`${base}/api/puzzles?tag=pin`);
     assert.equal(bad.status, 400);
     assert.match((await bad.json()).error, /unknown tag/);
+
+    const id = list.items[0].id;
+    const post = (path: string, body: unknown) => fetch(`${base}${path}`, { method: "POST", body: JSON.stringify(body) });
+    assert.equal((await post("/api/puzzles/0123456789abcdef/attempt", { move: "e2e4" })).status, 404);
+    const illegal = await post(`/api/puzzles/${id}/attempt`, { move: "e2e5" });
+    assert.equal(illegal.status, 400);
+    assert.equal((await (await fetch(`${base}/api/puzzles?limit=0`)).json()).counts.solved, 0, "nothing recorded");
+    const solved = await (await post(`/api/puzzles/${id}/attempt`, { move: "e2e4" })).json();
+    assert.deepEqual([solved.correct, solved.retired, solved.bestSan], [true, true, "e4"]);
+    const after = await (await fetch(`${base}/api/puzzles?limit=0`)).json();
+    assert.deepEqual([after.counts.solved, after.counts.retired, after.counts.due], [1, 1, 0]);
   });
 });

@@ -31,7 +31,8 @@ import { monthsInRange, autoSyncMonths } from "./chesscom/monthRange.ts";
 import { syncMonths, type SyncResult } from "./chesscom/sync.ts";
 import { AutoSyncScheduler, parseIntervalHours } from "./chesscom/autoSyncScheduler.ts";
 import { validateSettingsUpdate } from "./settings.ts";
-import { syncAllPuzzles, listPuzzles } from "./puzzles/store.ts";
+import { syncAllPuzzles, listPuzzles, getPuzzle, saveSchedule } from "./puzzles/store.ts";
+import { checkAnswer, puzzleEvaluator } from "./puzzles/check.ts";
 import { listView, parseListQuery } from "./puzzles/list.ts";
 import { rederiveMe } from "./rederiveMe.ts";
 import { ALL_TIME_CLASSES } from "./import/timeClass.ts";
@@ -174,6 +175,29 @@ export const server = createServer(async (req, res) => {
     const items = view.items.map((item) => ({ ...item, opponent: opponents.get(item.gameId) }));
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ ...view, items, analysedGames: countAnalyses(db) }));
+    return;
+  }
+
+  const attemptMatch = req.method === "POST" ? req.url?.match(/^\/api\/puzzles\/([0-9a-f]{16})\/attempt$/) : null;
+  if (attemptMatch) {
+    const puzzle = getPuzzle(db, attemptMatch[1]);
+    let body: unknown;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      body = undefined;
+    }
+    const answer = puzzle
+      ? await checkAnswer(puzzle, typeof body === "object" && body !== null ? body : {}, puzzleEvaluator(db, getEngine), Date.now())
+      : { error: "no such puzzle" };
+    if ("error" in answer) {
+      res.writeHead(puzzle ? 400 : 404, { "content-type": "application/json" });
+      res.end(JSON.stringify(answer));
+      return;
+    }
+    saveSchedule(db, puzzle!.id, answer.schedule);
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(answer.result));
     return;
   }
 
