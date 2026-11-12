@@ -6,7 +6,7 @@
   import { apiGet, apiPost } from "../lib/api.ts";
   import { navigate, routeQuery } from "../lib/router.svelte.ts";
   import { provenance, relativeTime, scheduleNote } from "../lib/puzzleText.ts";
-  import { plural } from "../lib/format.ts";
+  import { capitalise, plural } from "../lib/format.ts";
   import { showToast } from "../lib/toasts.svelte.ts";
   import { queue, onGameAnalysed } from "../lib/live.svelte.ts";
   import { queueVisible } from "../lib/queueStatus.ts";
@@ -234,7 +234,7 @@
           <button type="button" class="chip" aria-pressed={!phase} onclick={() => show({ mode, tag })}>Any phase</button>
           {#each view.phaseFacets as f (f.key)}
             <button type="button" class="chip" aria-pressed={phase === f.key} onclick={() => show({ mode, tag, phase: phase === f.key ? undefined : f.key })}>
-              {f.key[0].toUpperCase() + f.key.slice(1)} ({f.count})
+              {capitalise(f.key)} ({f.count})
             </button>
           {/each}
         </div>

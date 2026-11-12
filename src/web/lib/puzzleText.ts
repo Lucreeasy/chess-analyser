@@ -2,7 +2,7 @@ import { TAG_INFO, annotatedSan } from "../../server/analysis/texts.ts";
 import type { MoveClass } from "../../server/analysis/classification.ts";
 import type { TacticTag } from "../../server/analysis/tacticTags.ts";
 import type { Phase } from "../../server/analysis/phases.ts";
-import { plural, ukDate } from "./format.ts";
+import { capitalise, plural, ukDate } from "./format.ts";
 
 /** Wording of the Puzzles screen. */
 
@@ -52,7 +52,7 @@ export function provenance(p: {
     ukDate(p.playedAt),
     `your move ${moveLabel(p.fen, p.playedSan, p.playedClass)}`,
     p.tag && TAG_INFO[p.tag].label,
-    p.phase[0].toUpperCase() + p.phase.slice(1),
+    capitalise(p.phase),
   ]
     .filter(Boolean)
     .join(" · ");

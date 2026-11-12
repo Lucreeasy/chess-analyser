@@ -8,7 +8,7 @@
   import { navigate, routeQuery } from "../lib/router.svelte.ts";
   import { queue } from "../lib/live.svelte.ts";
   import { currentCount, queueVisible } from "../lib/queueStatus.ts";
-  import { accuracyText, one, pct, plural, thousands, ukDate } from "../lib/format.ts";
+  import { accuracyText, one, pct, plural, thousands, ukDate, capitalise } from "../lib/format.ts";
   import { drillLink, insightsParams } from "../lib/insightsLinks.ts";
   import { activeFilterCount, filtersFromQuery, type GamesFilters } from "../lib/gamesFilter.ts";
   import FilterPanel from "../components/FilterPanel.svelte";
@@ -273,7 +273,7 @@
           {#each ALL_PHASES as p (p)}
             {@const errors = o.errorsByPhase[p]}
             <div class="col">
-              <h3>{p[0].toUpperCase() + p.slice(1)} <span class="muted">{thousands(o.accuracyByPhase[p].n)} moves</span></h3>
+              <h3>{capitalise(p)} <span class="muted">{thousands(o.accuracyByPhase[p].n)} moves</span></h3>
               <StatTile
                 label="Accuracy"
                 value={accuracyText(o.accuracyByPhase[p].value)}
@@ -421,7 +421,7 @@
                 <div class="across">
                   {#each ["won", "drawn", "lost"] as const as part (part)}
                     <StatTile
-                      label={part[0].toUpperCase() + part.slice(1)}
+                      label={capitalise(part)}
                       value={thousands(s[part].count ?? 0)}
                       sub={pct(s[part].value)}
                       link={link(`${g.key}:${part}`, `${g.title}: ${part}`)}

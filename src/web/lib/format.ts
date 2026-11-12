@@ -31,6 +31,9 @@ const TIME_CLASS_LABEL: Record<string, string> = {
   classical: "Classical",
 };
 
+/** "middlegame" -> "Middlegame". */
+export const capitalise = (s: string) => s[0].toUpperCase() + s.slice(1);
+
 export function timeClassLabel(timeClass: string): string {
   return TIME_CLASS_LABEL[timeClass] ?? timeClass;
 }
