@@ -41,13 +41,13 @@
     heading.focus({ preventScroll: true });
   }
 
-  /** docs/04-INSIGHTS-SPEC.md section 8.2: one decimal below 10, whole from 10 ("4.3 s", "12 s"). */
+  /** One decimal below 10, whole from 10 ("4.3 s", "12 s"). */
   const secs = (s: number | undefined) => (s === undefined ? "–" : `${s < 10 ? one(s) : Math.round(s)} s`);
 
   /** "{count} of {n} {noun}s", the sub-line of a share. */
   const ofN = (s: Stat, noun: string) => `${thousands(s.count ?? 0)} of ${plural(s.n, noun)}`;
 
-  /** docs/04-INSIGHTS-SPEC.md section 9.2: the texts of the two gauges. */
+  /** The texts of the two gauges. */
   const GAUGES = [
     {
       key: "conversion",
@@ -69,7 +69,7 @@
     },
   ] as const;
 
-  /** docs/04-INSIGHTS-SPEC.md section 3.1: the filters live in the address; its query string is the API's. */
+  /** The filters live in the address; its query string is the API's. */
   const query = $derived(route.path.includes("?") ? route.path.slice(route.path.indexOf("?") + 1) : "");
 
   let data: Insights | undefined = $state();
@@ -216,7 +216,6 @@
       {/each}
     </nav>
     <div class="dashboard" class:dimmed={loading} aria-busy={loading}>
-      <!-- docs/04-INSIGHTS-SPEC.md section 5. -->
       <section id="overall">
         <h2>Overall</h2>
         <p class="muted">{thousands(o.games)} analysed games and {thousands(o.moves)} of your moves.</p>
@@ -518,7 +517,7 @@
     margin-top: 12px;
   }
   .progress {
-    height: 12px; /* docs/07-UI-SPEC.md section 5.15 */
+    height: 12px;
     margin-top: 4px;
   }
   .jumps {
@@ -555,7 +554,7 @@
   .dimmed {
     opacity: 0.6;
   }
-  /* docs/04-INSIGHTS-SPEC.md section 16: Playstyle before Recommendations on the phone, after it on a desktop. */
+  /* Playstyle before Recommendations on the phone, after it on a desktop. */
   .dashboard {
     display: flex;
     flex-direction: column;
@@ -585,7 +584,7 @@
     font-size: 16px;
     font-weight: 500;
   }
-  /* docs/07-UI-SPEC.md section 7: the win/draw/loss bar; patterns, not only colour, tell the parts apart. */
+  /* The win/draw/loss bar; patterns, not only colour, tell the parts apart. */
   .wdl {
     display: flex;
     height: 12px;

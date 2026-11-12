@@ -4,7 +4,7 @@
 
   /**
    * A drill row: name (and hint) at the left, value (and sub-line) with the cue at the right, an 8 px decorative
-   * bar (0-100) in the `tone` colour below. Insights playstyle axes and tactics rows (docs/07-UI-SPEC.md section 8.4).
+   * bar (0-100) in the `tone` colour below. Insights playstyle axes and tactics rows.
    */
   let {
     label,

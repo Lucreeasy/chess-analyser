@@ -16,9 +16,8 @@ window.addEventListener("hashchange", () => {
 });
 
 /**
- * `replace: true` updates the address without adding a history entry
- * (docs/06-GAMES-SPEC.md section B1: the Review screen's ply number
- * "replacing, not adding, history entries").
+ * `replace: true` updates the address without adding a history entry, as the Review screen does for its ply
+ * number ("replacing, not adding, history entries").
  */
 export function navigate(path: string, options: { replace?: boolean } = {}): void {
   if (options.replace) {

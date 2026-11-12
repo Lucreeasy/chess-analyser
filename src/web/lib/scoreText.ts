@@ -8,7 +8,7 @@ function formatCp(cp: number): string {
   return `${pawns > 0 ? "+" : "-"}${Math.abs(pawns).toFixed(1)}`;
 }
 
-/** docs/06-GAMES-SPEC.md section B4: the score text of an engine line, White's point of view. */
+/** The score text of an engine line, White's point of view. */
 export function scoreTextFromLine(line: EngineLine | undefined): string {
   if (!line) return "–";
   if (line.mate !== undefined && line.mate !== 0) return line.mate > 0 ? `M${line.mate}` : `-M${Math.abs(line.mate)}`;

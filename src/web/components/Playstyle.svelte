@@ -5,7 +5,7 @@
   import type { DrillLink } from "../lib/insightsLinks.ts";
   import BarRow from "./BarRow.svelte";
 
-  /** docs/04-INSIGHTS-SPEC.md section 12.7; docs/07-UI-SPEC.md section 7 (radar). */
+  /** The playstyle radar, the archetype card and the five axis rows. */
   let { axes, archetype, link }: { axes: Axis[]; archetype?: Archetype; link: (axis: Axis) => DrillLink | undefined } = $props();
 
   // The radar: centre (210, 150), 90 px for a score of 100, the first axis at the top, clockwise; a tight
@@ -183,7 +183,7 @@
     color: var(--muted);
   }
   summary {
-    color: inherit; /* "What this means" is plain text (docs/07-UI-SPEC.md section 5.17) */
+    color: inherit; /* "What this means" is plain text */
   }
   details p {
     margin-top: 4px;

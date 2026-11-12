@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * docs/06-GAMES-SPEC.md section B4: White's winning chances (Win%), not
+   * White's winning chances (Win%), not
    * centipawns, saturating like chess.com's. Vertical on desktop, horizontal
    * on phone, both handled here with one fill direction derived from the
    * layout + orientation.

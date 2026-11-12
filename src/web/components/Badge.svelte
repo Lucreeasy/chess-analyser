@@ -2,7 +2,7 @@
   import type { Snippet } from "svelte";
 
   /**
-   * A badge (docs/07-UI-SPEC.md section 5.9): an optional tone, and a text mark or a glyph snippet before the label.
+   * A badge: an optional tone, and a text mark or a glyph snippet before the label.
    * `outline` draws the border in the tone colour too (the "Problem" and "Strong" flags).
    */
   let {

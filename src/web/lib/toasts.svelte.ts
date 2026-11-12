@@ -1,4 +1,4 @@
-/** docs/07-UI-SPEC.md section 5.12: a stack of at most 4, success/info auto-dismiss after 5s, errors stay. */
+/** A stack of at most 4, success/info auto-dismiss after 5s, errors stay. */
 
 export interface Toast {
   id: number;

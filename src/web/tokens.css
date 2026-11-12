@@ -1,4 +1,4 @@
-/* Design tokens. docs/07-UI-SPEC.md sections 3.1, 3.3, 3.4. */
+/* Design tokens. */
 
 :root {
   color-scheme: light dark;
@@ -27,7 +27,7 @@
   --radius-card: 16px;
   --radius-tile: 12px;
 
-  /* docs/07-UI-SPEC.md section 4.1: move-classification badge fills. */
+  /* Move-classification badge fills. */
   --class-book: #a58a6a;
   --class-brilliant: #14a7bd;
   --class-great: #4a7fe0;
@@ -39,11 +39,11 @@
   --class-miss: #c9529a;
   --class-blunder: #d03f3f;
 
-  /* docs/07-UI-SPEC.md section 3.1: board arrows. */
+  /* Board arrows. */
   --arrow-best: #2f9e57;
   --arrow-played: #e8891c;
 
-  /* docs/07-UI-SPEC.md section 3.1: the eval bar and eval graph's own fixed colours. */
+  /* The eval bar and eval graph's own fixed colours. */
   --eval-white: #f4f1e8;
   --eval-black: #2d3541;
   --eval-mid: rgba(128, 128, 128, 0.55);
@@ -294,7 +294,7 @@ button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
-/* The screen container and its title (docs/07-UI-SPEC.md sections 2.5 and 3.3). */
+/* The screen container and its title. */
 .page {
   max-width: 1280px;
   margin: 0 auto;

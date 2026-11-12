@@ -37,7 +37,7 @@
       if (!fetching || e.username !== username.trim().toLowerCase()) return;
       fetchDone = e.done;
       fetchTotal = e.total;
-      // docs/03-IMPORT-SPEC.md section 3.1.4: show the month being fetched (done + 1), not the raw count of finished months.
+      // Show the month being fetched (done + 1), not the raw count of finished months.
       fetchProgress = `Fetching ${e.month} (${e.done + 1} of ${e.total})…`;
     }),
   );
@@ -292,6 +292,6 @@
   }
   .progress {
     margin-top: 6px;
-    height: 8px; /* docs/07-UI-SPEC.md section 5.15: import 8 px */
+    height: 8px; /* import 8 px */
   }
 </style>

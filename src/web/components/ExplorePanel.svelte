@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** docs/06-GAMES-SPEC.md section B10: the Explore panel, replacing the info card while exploring. */
+  /** The Explore panel, replacing the info card while exploring. */
   import { scoreTextFromLine } from "../lib/scoreText.ts";
   import type { ExploreState } from "../lib/explore.svelte.ts";
 

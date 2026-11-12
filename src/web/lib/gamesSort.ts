@@ -1,6 +1,6 @@
 import type { GameRow } from "./types.ts";
 
-/** Sorting the Games list. docs/06-GAMES-SPEC.md section A4. */
+/** Sorting the Games list. */
 
 export type SortKey = "date" | "opponent" | "rating" | "colour" | "result" | "time" | "opening" | "accuracy" | "blunders" | "status";
 export type SortDirection = "asc" | "desc";

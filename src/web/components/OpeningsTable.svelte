@@ -9,7 +9,7 @@
 
   type Row = Extract<ReturnType<typeof computeInsights>, { ready: true }>["openings"]["white"][number];
 
-  /** One colour's opening table. docs/04-INSIGHTS-SPEC.md section 7.3. */
+  /** One colour's opening table. */
   let { rows, side, link }: { rows: Row[]; side: "White" | "Black"; link: (row: Row) => DrillLink | undefined } = $props();
 
   const COLUMNS = [

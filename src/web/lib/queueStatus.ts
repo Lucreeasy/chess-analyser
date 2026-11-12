@@ -1,6 +1,6 @@
 import type { QueueStatus } from "./live.svelte.ts";
 
-/** Text and numbers for the analysis queue strip. docs/07-UI-SPEC.md section 2.4. */
+/** Text and numbers for the analysis queue strip. */
 
 export function queueVisible(status: QueueStatus | undefined): status is QueueStatus {
   return status !== undefined && (status.pending > 0 || status.running !== null);

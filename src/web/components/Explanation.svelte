@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** docs/06-GAMES-SPEC.md section B7 "Explanation (under the board, info area)". */
+  /** "Explanation (under the board, info area)". */
   import ClassBadge from "./ClassBadge.svelte";
   import { buildMoveExplanation, annotatedSan, CLASS_INFO } from "../../server/analysis/texts.ts";
   import { scoreTextFromLine } from "../lib/scoreText.ts";
@@ -48,7 +48,7 @@
     });
   });
 
-  // docs/06-GAMES-SPEC.md section B7: not shown at the last ply.
+  // Not shown at the last ply.
   const engineLineText = $derived.by(() => {
     if (currentPly >= plyCount || !nextMove?.bestLine || !nextMove.engineLineText) return undefined;
     const score = scoreTextFromLine(nextMove.bestLine);

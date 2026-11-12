@@ -4,7 +4,7 @@
   import type { DrillLink } from "../lib/insightsLinks.ts";
 
   /**
-   * A stat tile; with a link it opens the games behind the number. docs/07-UI-SPEC.md section 5.10. `bar` (0-100)
+   * A stat tile; with a link it opens the games behind the number. `bar` (0-100)
    * adds an 8 px decorative bar in the `tone` colour; `warn` prints the value in Danger; `children` go last.
    */
   let {

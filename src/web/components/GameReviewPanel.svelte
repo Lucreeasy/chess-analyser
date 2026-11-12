@@ -32,7 +32,7 @@
     keyMoments: KeyMoment[] | undefined;
     currentPly: number;
     onJump: (ply: number) => void;
-    /** docs/06-GAMES-SPEC.md section B9: the phone bottom sheet's collapsed peek doesn't create the tab content. */
+    /** The phone bottom sheet's collapsed peek doesn't create the tab content. */
     hideContent?: boolean;
     /** Called whenever a tab button is activated (click or arrow-key), with the element that triggered it. */
     onTabActivate?: (source: HTMLElement) => void;
@@ -40,7 +40,7 @@
     onExpand?: (source: HTMLElement) => void;
   } = $props();
 
-  // docs/06-GAMES-SPEC.md section B7: "The chosen tab is remembered while the screen is open" - plain state, not the address.
+  // "The chosen tab is remembered while the screen is open" - plain state, not the address.
   let active: TabId = $state("moves");
 
   function activate(id: TabId, source: HTMLElement): void {

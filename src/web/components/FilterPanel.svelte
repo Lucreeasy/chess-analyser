@@ -5,9 +5,9 @@
   import type { TimeClass } from "../lib/types.ts";
 
   /**
-   * The filter panel of the Games library, or with `insights` of the Insights screen (docs/04-INSIGHTS-SPEC.md
-   * section 3.1): no result or analysis filter, and a date range group with presets; `defaultFrom` is the default
-   * range's start, shown while no dates are set and "All time" is not chosen.
+   * The filter panel of the Games library, or with `insights` of the Insights screen: no result or analysis
+   * filter, and a date range group with presets; `defaultFrom` is the default range's start, shown while no
+   * dates are set and "All time" is not chosen.
    */
   let {
     filters = $bindable(),

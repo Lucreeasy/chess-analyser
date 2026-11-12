@@ -2,7 +2,7 @@ import type { GameList } from "../../server/insights/drilldown.ts";
 import type { InsightFilters } from "../../server/insights/select.ts";
 import { plural, thousands } from "./format.ts";
 
-/** Ids travel in the link, so only short lists are linked exactly. docs/04-INSIGHTS-SPEC.md section 15.2. */
+/** Ids travel in the link, so only short lists are linked exactly. */
 const MAX_LINKED_IDS = 300;
 
 export interface DrillLink {

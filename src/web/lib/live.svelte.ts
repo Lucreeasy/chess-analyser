@@ -1,5 +1,5 @@
 /**
- * The live event channel (SSE). docs/03-IMPORT-SPEC.md section 5.6. A
+ * The live event channel (SSE). A
  * single connection for the whole app, opened once this module is
  * imported (same module-singleton pattern as router.svelte.ts). SSE
  * never replays history to a new connection, so on the greeting this
@@ -45,10 +45,10 @@ export interface ExploreError {
 
 export const queue: { status: QueueStatus | undefined } = $state({ status: undefined });
 
-// docs/06-GAMES-SPEC.md section B10: "socket/engine channel down" is this live channel itself, not the engine.
+// "socket/engine channel down" is this live channel itself, not the engine.
 export const live: { connected: boolean } = $state({ connected: false });
 
-// docs/06-GAMES-SPEC.md section B8: live Win% per ply while a game is being analysed, kept
+// Live Win% per ply while a game is being analysed, kept
 // across visits to the Review screen and discarded (by key prefix) once the game finishes.
 const liveEvalsByGame = new SvelteMap<string, number>();
 

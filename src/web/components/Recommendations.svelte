@@ -6,7 +6,6 @@
 
   type Card = Extract<ReturnType<typeof computeInsights>, { ready: true }>["recommendations"][number];
 
-  /** docs/04-INSIGHTS-SPEC.md section 13.11. */
   let { recommendations }: { recommendations: Card[] } = $props();
 
   const top = $derived(Math.max(...recommendations.map((r) => r.severity)));

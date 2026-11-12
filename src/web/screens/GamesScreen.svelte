@@ -29,7 +29,7 @@
   const deeperTooltip = $derived(`Depth ${SEARCH_DEPTH[deeperDepth]} (${deeperDepth})`);
 
   let filters: GamesFilters = $state(defaultFilters());
-  // docs/06-GAMES-SPEC.md section A8: a link from Insights carries filters, ids and a label in the address.
+  // A link from Insights carries filters, ids and a label in the address.
   $effect(() => {
     filters = filtersFromQuery(route.path.split("?")[1] ?? "");
   });

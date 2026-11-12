@@ -1,4 +1,4 @@
-/** Paging the Games list. docs/06-GAMES-SPEC.md section A4: fixed page size 50. */
+/** Paging the Games list: a fixed page size of 50. */
 
 export const PAGE_SIZE = 50;
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** docs/07-UI-SPEC.md section 5.13: the promotion picker, a small modal reusing the confirm dialog's shape. */
+  /** The promotion picker, a small modal reusing the confirm dialog's shape. */
   import type { Color } from "@lichess-org/chessground/types";
 
   const PIECES = [

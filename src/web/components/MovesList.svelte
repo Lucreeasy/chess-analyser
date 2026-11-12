@@ -39,7 +39,7 @@
     return move ? annotatedSan(san, move.classification) : san;
   }
 
-  // docs/06-GAMES-SPEC.md section B7: "{n}. {move}, {Label}" ("9... Nb8, Blunder").
+  // "{n}. {move}, {Label}" ("9... Nb8, Blunder").
   function accessibleName(ply: number, number: number, colour: "w" | "b"): string {
     const prefix = colour === "w" ? `${number}.` : `${number}...`;
     const move = analysisMoves?.[ply - 1];

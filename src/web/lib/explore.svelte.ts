@@ -1,5 +1,5 @@
 /**
- * docs/06-GAMES-SPEC.md section B10: Explore mode's client-side state - the
+ * Explore mode's client-side state - the
  * explored position, its legal destinations, the live top-3 lines, and the
  * line of moves played while exploring. One instance per Explore session
  * (created when the toggle turns on, destroyed when it turns off).
@@ -24,7 +24,7 @@ export class ExploreState {
   dests: Record<string, string[]> = $state({});
   gameOver: { type: "checkmate" | "stalemate" | "draw"; winner?: "w" | "b" } | undefined = $state();
   requestError: string | undefined = $state();
-  /** docs/06-GAMES-SPEC.md B10: "while a new position awaits its first result, the last known value stays". */
+  /** "while a new position awaits its first result, the last known value stays". */
   lastWinPercent: number | undefined = $state();
 
   #fens: string[] = [];
@@ -109,7 +109,7 @@ export class ExploreState {
     }
   }
 
-  /** docs/06-GAMES-SPEC.md B10: undo removes the last explored move; it does not leave explore mode. */
+  /** Undo removes the last explored move; it does not leave explore mode. */
   undo(): void {
     if (this.sans.length === 0) return;
     this.sans = this.sans.slice(0, -1);

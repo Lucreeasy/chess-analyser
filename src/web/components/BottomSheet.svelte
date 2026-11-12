@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** docs/06-GAMES-SPEC.md section B9: the phone bottom sheet wrapping the graph and the review tabs. */
+  /** The phone bottom sheet wrapping the graph and the review tabs. */
   import Transport from "./Transport.svelte";
   import EvalGraph from "./EvalGraph.svelte";
   import GameReviewPanel from "./GameReviewPanel.svelte";
@@ -35,7 +35,7 @@
     currentPly: number;
     plyCount: number;
     playing: boolean;
-    /** docs/06-GAMES-SPEC.md section B10: transport is disabled while exploring. */
+    /** Transport is disabled while exploring. */
     exploring?: boolean;
     onJump: (ply: number) => void;
     onFirst: () => void;
@@ -65,7 +65,7 @@
     opener = undefined;
   }
 
-  // docs/06-GAMES-SPEC.md section B9: opening moves focus to the close button.
+  // Opening moves focus to the close button.
   $effect(() => {
     if (open) closeButtonEl?.focus();
   });
@@ -83,7 +83,7 @@
     }
   }
 
-  // docs/06-GAMES-SPEC.md section B9: tapping the grabber, or dragging it past the 36px threshold in the
+  // Tapping the grabber, or dragging it past the 36px threshold in the
   // sensible direction, always just toggles open/closed - a shorter drag "counts as a tap" either way, so
   // every grabber gesture resolves to the same toggle on release. Pointer capture (not a plain click handler)
   // is what's needed here: a real drag suppresses the browser's own "click" event, but not "pointerup".

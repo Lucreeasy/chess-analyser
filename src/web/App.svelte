@@ -9,7 +9,7 @@
   import ComingSoonScreen from "./screens/ComingSoonScreen.svelte";
   import InsightsScreen from "./screens/InsightsScreen.svelte";
 
-  // docs/06-GAMES-SPEC.md section B1: the game id (URL-encoded) plus an optional ply, out-of-range clamped by the screen itself.
+  // The game id (URL-encoded) plus an optional ply, out-of-range clamped by the screen itself.
   const reviewMatch = $derived(route.path.match(/^\/games\/([^/]+)(?:\/(\d+))?$/));
 </script>
 

@@ -1,7 +1,7 @@
 import type { GameRow, TimeClass } from "./types.ts";
 import { parseInsightsQuery } from "../../server/insights/select.ts";
 
-/** Search and filters for the Games list. docs/06-GAMES-SPEC.md sections A5-A7. */
+/** Search and filters for the Games list. */
 
 export interface GamesFilters {
   search: string;
@@ -13,9 +13,9 @@ export interface GamesFilters {
   /** UTC day boundaries, inclusive: From = 00:00:00.000 UTC, To = 23:59:59.999 UTC. */
   from: number | undefined;
   to: number | undefined;
-  /** Insights only: "All time" was chosen, so no default date range applies (docs/04-INSIGHTS-SPEC.md section 4). */
+  /** Insights only: "All time" was chosen, so no default date range applies. */
   allTime: boolean;
-  /** docs/06-GAMES-SPEC.md section A8: an exact list of games from an Insights drill-down (shown as a chip, not counted). */
+  /** An exact list of games from an Insights drill-down (shown as a chip, not counted). */
   ids: Set<string> | undefined;
   /** Display only, never matched: the chip's label and the "approximate" notice. */
   label: string | undefined;
@@ -40,9 +40,8 @@ export function defaultFilters(): GamesFilters {
 }
 
 /**
- * A library address from elsewhere, e.g. `#/games?ids=a,b&label=...` from an Insights number
- * (docs/04-INSIGHTS-SPEC.md section 15.2, docs/06-GAMES-SPEC.md section A8): the Insights query format plus
- * the library's own analysis filter, label and "approximate" flag.
+ * A library address from elsewhere, e.g. `#/games?ids=a,b&label=...` from an Insights number: the Insights query
+ * format plus the library's own analysis filter, label and "approximate" flag.
  */
 export function filtersFromQuery(query: string): GamesFilters {
   const params = new URLSearchParams(query);
@@ -113,7 +112,7 @@ export interface Facets {
   openingFamilies: Array<{ family: string; count: number }>;
 }
 
-/** Over the whole (unfiltered) library. docs/06-GAMES-SPEC.md section A7. */
+/** Over the whole (unfiltered) library. */
 export function computeFacets(games: GameRow[]): Facets {
   const timeClasses = new Set<TimeClass>();
   const familyCounts = new Map<string, number>();

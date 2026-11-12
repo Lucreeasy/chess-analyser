@@ -16,13 +16,13 @@
     classifications: (MoveClass | undefined)[];
     currentPly: number;
     onJump: (ply: number) => void;
-    /** docs/07-UI-SPEC.md section 7: 80 desktop (default), 40 collapsed phone sheet, 96 expanded sheet. */
+    /** 80 desktop (default), 40 collapsed phone sheet, 96 expanded sheet. */
     height?: number;
   } = $props();
 
   const WIDTH = 400;
   const HEIGHT = $derived(height);
-  // docs/07-UI-SPEC.md section 7: dots are 9px; a diamond's diagonal (not its side) is what reads as 9px.
+  // Dots are 9px; a diamond's diagonal (not its side) is what reads as 9px.
   const DIAMOND_SIDE = 9 / Math.SQRT2;
 
   const plyCount = $derived(Math.max(0, winPercents.length - 1));
@@ -37,7 +37,7 @@
     return HEIGHT - (winPercent / 100) * HEIGHT;
   }
 
-  // docs/06-GAMES-SPEC.md section B4: "gaps are allowed and break the line" - one segment per run of known values.
+  // "gaps are allowed and break the line" - one segment per run of known values.
   const segments = $derived.by(() => {
     const segs: { ply: number; w: number }[][] = [];
     let current: { ply: number; w: number }[] = [];

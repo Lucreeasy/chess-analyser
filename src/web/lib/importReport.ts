@@ -1,4 +1,4 @@
-/** Shapes and text for the import report card. docs/06-GAMES-SPEC.md section A12.4. */
+/** Shapes and text for the import report card. */
 
 export interface Failure {
   index: number;

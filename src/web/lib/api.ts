@@ -1,6 +1,6 @@
 /**
  * The server fetch wrapper. Relative URLs only (CLAUDE.md), so the app
- * keeps working when served under a URL path prefix. docs/06-GAMES-SPEC.md:
+ * keeps working when served under a URL path prefix.
  * "when the server cannot be reached at all" gets a fixed message.
  */
 

@@ -1,6 +1,6 @@
 import type { MoveClass } from "../../server/analysis/classification.ts";
 
-/** docs/06-GAMES-SPEC.md section B4 "Eval graph". */
+/** The eval graph: classification dots, picking the nearest ply, the slider text and the spoken summary. */
 
 export interface GraphDot {
   ply: number;
@@ -9,7 +9,7 @@ export interface GraphDot {
   shape: "diamond" | "round";
 }
 
-// docs/06-GAMES-SPEC.md section B4: which classes get a dot, and its shape.
+// Which classes get a dot, and its shape.
 const DOT_SHAPES: Partial<Record<MoveClass, "diamond" | "round">> = {
   brilliant: "diamond",
   great: "diamond",

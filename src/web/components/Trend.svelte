@@ -8,7 +8,7 @@
   import Icon from "./Icon.svelte";
 
   /**
-   * The rolling accuracy trend: chart, legend, point picker and table. docs/04-INSIGHTS-SPEC.md section 10.2.
+   * The rolling accuracy trend: chart, legend, point picker and table.
    * All points are drawn (at most 300), so the chart, the slider and the table share one index.
    */
   let { points, filters }: { points: TrendPoint[]; filters: InsightFilters } = $props();

@@ -4,7 +4,7 @@ export { one, pct, thousands, plural } from "../../server/insights/numbers.ts";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/** `{day} {Mon} {year}` in local time, e.g. "15 Mar 2024". docs/06-GAMES-SPEC.md section A3. */
+/** `{day} {Mon} {year}` in local time, e.g. "15 Mar 2024". */
 export function formatDate(playedAt: number): string {
   const d = new Date(playedAt);
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
@@ -12,12 +12,12 @@ export function formatDate(playedAt: number): string {
 
 const UK_DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
-/** British style in UTC, e.g. "3 Sept 2026". docs/04-INSIGHTS-SPEC.md section 0. */
+/** British style in UTC, e.g. "3 Sept 2026". */
 export function ukDate(ms: number): string {
   return UK_DATE.format(ms);
 }
 
-/** Two dates as "3 Sept 2026 – 9 Oct 2026"; equal dates once. docs/04-INSIGHTS-SPEC.md section 0. */
+/** Two dates as "3 Sept 2026 – 9 Oct 2026"; equal dates once. */
 export function ukRange(from: number, to: number): string {
   return ukDate(from) === ukDate(to) ? ukDate(from) : `${ukDate(from)} – ${ukDate(to)}`;
 }

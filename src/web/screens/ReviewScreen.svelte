@@ -32,7 +32,7 @@
   let playing = $state(false);
   let explore: ExploreState | undefined = $state();
 
-  // docs/06-GAMES-SPEC.md section B10: the start position is the board's current ply; ends on leaving the screen.
+  // The start position is the board's current ply; ends on leaving the screen.
   function startExploring(): void {
     if (explore || !fen) return;
     playing = false;
@@ -67,14 +67,14 @@
 
   load();
 
-  // docs/06-GAMES-SPEC.md section B1: re-fetch every 4s while the game has no analysis yet and is queued/running.
+  // Re-fetch every 4s while the game has no analysis yet and is queued/running.
   $effect(() => {
     if (game?.analysisStatus !== "queued" && game?.analysisStatus !== "running") return;
     const timer = setInterval(load, 4000);
     return () => clearInterval(timer);
   });
 
-  // docs/06-GAMES-SPEC.md section B8: switch to the analysed view as soon as this game finishes, not just on the next poll.
+  // Switch to the analysed view as soon as this game finishes, not just on the next poll.
   $effect(() => {
     const id = gameId;
     return onGameAnalysed((finishedId) => {
@@ -90,7 +90,7 @@
   const plyCount = $derived(game?.positions.fens.length ? game.positions.fens.length - 1 : 0);
   const currentPly = $derived(clampPly(ply, plyCount));
 
-  // docs/06-GAMES-SPEC.md section B1: the ply replaces, not adds, a history entry.
+  // The ply replaces, not adds, a history entry.
   // Section B10: jumping to a move (graph, move list, key moment) ends exploring.
   function jumpTo(p: number): void {
     playing = false;
@@ -103,7 +103,7 @@
     playing = !playing;
   }
 
-  // docs/06-GAMES-SPEC.md section B5: advances one ply per second, stops at the last ply.
+  // Advances one ply per second, stops at the last ply.
   $effect(() => {
     if (!playing) return;
     const timer = setInterval(() => {
@@ -117,7 +117,7 @@
     return () => clearInterval(timer);
   });
 
-  // docs/06-GAMES-SPEC.md section B11: shortcuts are ignored while typing or with a modifier held.
+  // Shortcuts are ignored while typing or with a modifier held.
   function isTyping(target: EventTarget | null): boolean {
     const el = target as HTMLElement | null;
     return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
@@ -131,7 +131,7 @@
     return role === "tab" || role === "slider";
   }
 
-  // docs/06-GAMES-SPEC.md section B11: Escape leaves explore mode; Left arrow undoes instead of navigating;
+  // Escape leaves explore mode; Left arrow undoes instead of navigating;
   // Right arrow/Home/End/Space do nothing while exploring (F still flips the board either way).
   function onKeydown(e: KeyboardEvent): void {
     if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || isTyping(e.target)) return;
@@ -170,11 +170,11 @@
 
   const fen = $derived(game?.positions.fens[currentPly]);
   const lastMove = $derived(game?.positions.lastMoves[currentPly]);
-  // docs/06-GAMES-SPEC.md section B3: my colour at the bottom by default; Flip inverts it for this visit.
+  // My colour at the bottom by default; Flip inverts it for this visit.
   const baseOrientation = $derived(game?.myColour === "b" ? "black" : "white");
   const orientation = $derived(flipped ? (baseOrientation === "white" ? "black" : "white") : baseOrientation);
 
-  // docs/06-GAMES-SPEC.md section B3: the move that produced the current position, analysed games only, ply >= 1.
+  // The move that produced the current position, analysed games only, ply >= 1.
   const currentMove = $derived(currentPly >= 1 ? game?.analysis?.moves[currentPly - 1] : undefined);
   const bestUci = $derived(currentMove?.bestLine?.pv[0]);
 
@@ -190,7 +190,7 @@
     return shapes;
   });
 
-  // docs/06-GAMES-SPEC.md section B3: the board's accessible name.
+  // The board's accessible name.
   const boardLabel = $derived.by(() => {
     if (currentPly === 0) return "Chess board, start position";
     if (!currentMove || !game) return `Chess board after ply ${currentPly}`;
@@ -207,7 +207,7 @@
     return label;
   });
 
-  // docs/06-GAMES-SPEC.md section B10: while exploring, the board shows the explored position instead -
+  // While exploring, the board shows the explored position instead -
   // no game badge/arrows, the explored last move and the best line's arrow, a fixed accessible name.
   const boardFen = $derived(explore ? explore.fen : (fen ?? "8/8/8/8/8/8/8/8 w - - 0 1"));
   const boardLastMove = $derived(explore ? explore.lastMove : lastMove);
@@ -219,7 +219,7 @@
     return { colour: (explore.sideToMove === "w" ? "white" : "black") as "white" | "black", dests: explore.dests, onMove: (uci: string) => explore?.playMove(uci) };
   });
 
-  // docs/06-GAMES-SPEC.md section B4: Win% for ply p = the stored "after" Win% of ply p (ply 0 = "before" of the first move).
+  // Win% for ply p = the stored "after" Win% of ply p (ply 0 = "before" of the first move).
   // Section B8: before the stored analysis arrives, the same array is filled from live per-ply values instead, with
   // gaps where none has arrived yet, so the eval bar and graph fill in as the engine goes.
   const winPercents = $derived.by(() => {
@@ -243,7 +243,7 @@
     return winPercent !== undefined ? scoreTextFromWinPercent(winPercent) : "–";
   });
 
-  // docs/06-GAMES-SPEC.md section B10: the eval bar follows the explored position's best line instead;
+  // The eval bar follows the explored position's best line instead;
   // a finished position shows the fixed result text, keeping the last known value otherwise.
   const evalWinPercent = $derived(explore ? explore.lastWinPercent : winPercent);
   const evalScoreText = $derived.by(() => {
@@ -315,7 +315,7 @@
   {:else if game === undefined}
     <p class="status-line">Loading game…</p>
   {:else}
-    <!-- docs/06-GAMES-SPEC.md section B9: desktop puts the board+transport and the info/graph/tabs side by
+    <!-- Desktop puts the board+transport and the info/graph/tabs side by
          side in two columns; phone stacks them, with the graph+tabs in a collapsible bottom sheet. -->
     <div class="board-area">
       <div class="board-column">
@@ -349,7 +349,7 @@
         {:else if game.analysis || plyCount === 0}
           <Explanation {game} {currentPly} {plyCount} />
         {:else}
-          <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set (docs/06-GAMES-SPEC.md B8). -->
+          <!-- game.analysisStatus is never "done" here: "done" implies game.analysis is set. -->
           <AnalysePanel gameId={game.id} analysisStatus={game.analysisStatus as "none" | "queued" | "running" | "error"} onQueued={load} />
         {/if}
         {#if viewport.isDesktop}
@@ -499,7 +499,7 @@
     margin-top: 16px;
   }
   @media (min-width: 768px) {
-    /* docs/07-UI-SPEC.md section 8.3: a mini-grid of eval bar + board; the transport sits under the board only. */
+    /* A mini-grid of eval bar + board; the transport sits under the board only. */
     .board-column > :global(.transport) {
       grid-column: 2;
     }

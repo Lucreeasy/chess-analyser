@@ -1,5 +1,5 @@
 /**
- * Line icons, 24x24 grid, 2px stroke (docs/07-UI-SPEC.md section 4).
+ * Line icons, 24x24 grid, 2px stroke.
  * Each value is the inner SVG markup for a <svg viewBox="0 0 24 24">.
  */
 export const icons: Record<string, string> = {

@@ -1,4 +1,4 @@
-/** docs/06-GAMES-SPEC.md section B10: the Explore panel's status line and "Your line" text. */
+/** The Explore panel's status line and "Your line" text. */
 
 export type ExploreStatus =
   | { kind: "finished"; gameOver: "checkmate" | "stalemate" | "draw"; winner?: "w" | "b" }

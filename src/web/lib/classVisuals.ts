@@ -1,6 +1,6 @@
 import type { MoveClass } from "../../server/analysis/classification.ts";
 
-/** Shape, in-badge glyph and ink per classification. docs/07-UI-SPEC.md section 4.1. */
+/** Shape, in-badge glyph and ink per classification. */
 export interface ClassVisual {
   shape: "roundedSquare" | "burst" | "circle" | "star" | "diamond" | "triangle" | "hexagon" | "octagon";
   glyph: "book" | "upArrow" | "tick" | "cross" | "none" | "!!" | "!" | "?!" | "?" | "??";

@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** docs/06-GAMES-SPEC.md section B8: shown in place of the review tabs until a game is analysed. */
+  /** Shown in place of the review tabs until a game is analysed. */
   import Icon from "./Icon.svelte";
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
   import { onAnalyseProgress } from "../lib/live.svelte.ts";

@@ -12,7 +12,7 @@
   import PromotionDialog from "./PromotionDialog.svelte";
 
   /**
-   * docs/07-UI-SPEC.md section 6.1: the three board palettes (light square, dark square; then both slightly dimmed
+   * The three board palettes (light square, dark square; then both slightly dimmed
    * for dark mode). The active one is a single configuration value; there is no chooser yet.
    */
   const BOARD_THEMES = {
@@ -26,7 +26,7 @@
   const PROMOTION_ROLE = { q: "queen", r: "rook", b: "bishop", n: "knight" } as const;
 
   /**
-   * docs/07-UI-SPEC.md section 6.2: arrows at 80 % opacity with a shaft about 1/7 of a square (lineWidth is in 64ths
+   * Arrows at 80 % opacity with a shaft about 1/7 of a square (lineWidth is in 64ths
    * of a square). The colours here are placeholders: the CSS below paints them from the theme tokens, since chessground
    * writes them as SVG attributes, which cannot hold CSS variables. red/blue/yellow are unused but required by Config.
    */
@@ -54,9 +54,9 @@
     arrows?: { orig: string; dest: string; brush: "amber" | "green" }[];
     /** The classification badge at the destination square of the current move. */
     badge?: { square: string; cls: MoveClass };
-    /** docs/06-GAMES-SPEC.md section B3: the board's accessible name. */
+    /** The board's accessible name. */
     label: string;
-    /** When set, the board is interactive for this side (docs/06-GAMES-SPEC.md section B10 Explore mode). */
+    /** When set, the board is interactive for this side (Explore mode). */
     movable?: {
       colour: Color;
       /** Legal destinations per origin square, from GET /api/explore/dests. */
@@ -167,7 +167,7 @@
   style={`--theme-light: ${light}; --theme-dark: ${dark}; --theme-light-dim: ${lightDim}; --theme-dark-dim: ${darkDim};`}
 >
   <div class="board" bind:this={el} aria-hidden="true"></div>
-  <!-- docs/06-GAMES-SPEC.md section B3: each piece has a text name; chessground's own piece elements are unlabelled. -->
+  <!-- Each piece has a text name; chessground's own piece elements are unlabelled. -->
   <div class="sr-only">
     {#each pieceNames(fen) as name (name)}<span role="img" aria-label={name}></span>{/each}
   </div>
@@ -189,7 +189,7 @@
     width: 100%;
     aspect-ratio: 1;
   }
-  /* docs/07-UI-SPEC.md sections 3.1 and 6.1: the squares (a8 light), and the highlight colours. */
+  /* The squares (a8 light), and the highlight colours. */
   /* The palette arrives as inline --theme-* variables; the square colours are derived here, because an inline
      --sq-* would win over the dark-mode rule below. */
   .board-wrap {
@@ -207,7 +207,7 @@
   .board-wrap :global(cg-board) {
     background: repeating-conic-gradient(var(--sq-dark) 0 25%, var(--sq-light) 0 50%) 0 0 / 25% 25%;
   }
-  /* docs/07-UI-SPEC.md section 6.2: coordinates inside the edge squares, 600 weight, 2.4 % of the board width
+  /* Coordinates inside the edge squares, 600 weight, 2.4 % of the board width
      clamped to 8-12 px, in the opposite square colour (chessground tags each label with the colour under it). */
   .board-wrap {
     container-type: inline-size;
@@ -283,7 +283,7 @@
     pointer-events: none;
     z-index: 3; /* above chessground's pieces (z-index 2) */
   }
-  /* docs/07-UI-SPEC.md section 6.2: 46 % of the square wide, 2 % inset, a tiny drop shadow. */
+  /* 46 % of the square wide, 2 % inset, a tiny drop shadow. */
   .badge :global(svg) {
     margin: 2% 2% 0 0; /* percentages of the square-sized .badge box */
     width: 46%;

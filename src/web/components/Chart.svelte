@@ -15,7 +15,7 @@
   }
 
   /**
-   * A line chart over shared x positions (docs/07-UI-SPEC.md section 7: the area chart and the trend line).
+   * A line chart over shared x positions: the seconds-per-move area chart and the accuracy trend line.
    * Series 0 is Brand on the left axis; a `right` series is Accent on the right axis. A pointer press picks the
    * nearest point; with `hover` moving the pointer does too, and leaving clears it. `tip` draws a tooltip.
    */
