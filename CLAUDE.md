@@ -35,6 +35,9 @@ Run from the repository root:
   - `events/` — the live event channel (server-sent events) and its per-type smoothing.
   - `explore/` — explore mode: legal moves server-side and the one shared interactive engine search.
   - `games/` — the rows the Games list and the Review screen need.
+  - `puzzles/` — the puzzle trainer: which mistakes become puzzles (`select.ts`), the 1/3/7-day schedule
+    (`schedule.ts`), storage and sync with each analysis (`store.ts`), listing (`list.ts`) and the answer
+    check (`check.ts`).
   - `insights/` — the Insights computation: selection and filters, overview, openings, time,
     conversion, trend, style and playstyle, recommendations, drill-down lists (`insights.ts` runs it all).
 - `src/web/` — the Svelte + Vite frontend: `screens/` (one per route), `components/`, `lib/` (plain
