@@ -235,17 +235,6 @@
   .field label {
     margin-bottom: 6px;
   }
-  input[type="text"],
-  input[type="month"] {
-    width: 100%;
-    min-height: 44px;
-    padding: 0 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--surface);
-    color: var(--ink);
-    font-size: 16px;
-  }
   @media (min-width: 768px) {
     .month-row {
       flex-direction: row;
@@ -253,11 +242,6 @@
     .month-row .field {
       flex: 1;
     }
-  }
-  .error-text {
-    color: var(--danger);
-    font-size: 14px;
-    margin: 8px 0 0;
   }
   fieldset {
     margin: 16px 0 0;

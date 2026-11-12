@@ -91,3 +91,12 @@ Alternatives: a second engine process reserved for interactive use (puzzles and 
 Why: one Stockfish process keeps memory and code small on the target hardware; if a game analysis holds the
 engine past the 8 s timeout, the answer falls back to the stored solution list and says so, the behaviour
 already specified for an unavailable engine.
+
+## D-005: raise the size budget for the acceptance phase
+Date: 2026-11-12 · Phase: P8
+Chosen: raise the product-lines ceiling from 15,450 to 15,800 for P8, and lower it again to a little above
+the real size at the phase's end, as D-002 and D-003 did.
+Alternatives: keep 15,450 and squeeze elsewhere first (the Settings screen and the first-run card are
+specified behaviour that no earlier phase built).
+Why: the acceptance walk found the Settings screen still unbuilt; one raise for the phase keeps the budget
+meaningful.

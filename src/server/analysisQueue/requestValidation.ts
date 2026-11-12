@@ -1,10 +1,10 @@
 import type { DepthPreset } from "../settings.ts";
+import { DEPTH_PRESETS } from "./depthPresets.ts";
 
 /**
  * Validates requests to queue or delete games, with the exact error messages the interface shows.
  */
 
-const DEPTH_PRESETS: readonly DepthPreset[] = ["quick", "standard", "deep"];
 const MAX_IDS = 10_000;
 
 /** A non-empty, de-duplicated array of up to `MAX_IDS` strings under `fieldName`. */

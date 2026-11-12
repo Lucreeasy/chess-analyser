@@ -3,7 +3,7 @@
   import Icon from "./Icon.svelte";
   import { apiGet, apiPost, ApiError } from "../lib/api.ts";
   import { onAnalyseProgress } from "../lib/live.svelte.ts";
-  import { SEARCH_DEPTH } from "../../server/analysisQueue/depthPresets.ts";
+  import { DEPTH_LABEL, DEPTH_PRESETS, SEARCH_DEPTH } from "../../server/analysisQueue/depthPresets.ts";
   import type { DepthPreset } from "../../server/settings.ts";
 
   let {
@@ -17,7 +17,6 @@
     onQueued: () => void;
   } = $props();
 
-  const DEPTH_LABEL: Record<DepthPreset, string> = { quick: "Quick", standard: "Standard", deep: "Deep" };
 
   let selectedDepth: DepthPreset = $state("standard");
   apiGet<{ depthPreset: DepthPreset }>("settings")
@@ -67,7 +66,7 @@
   <div class="field">
     <span class="legend">Depth {SEARCH_DEPTH[selectedDepth]}</span>
     <div class="segmented" role="radiogroup" aria-label="Analysis depth">
-      {#each ["quick", "standard", "deep"] as const as preset (preset)}
+      {#each DEPTH_PRESETS as preset (preset)}
         <label class="segment" class:selected={selectedDepth === preset}>
           <input type="radio" name="depth" checked={selectedDepth === preset} onchange={() => (selectedDepth = preset)} />
           {DEPTH_LABEL[preset]}

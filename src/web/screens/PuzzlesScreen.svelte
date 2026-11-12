@@ -471,7 +471,6 @@
   .verdict.danger .verdict-line {
     color: var(--danger);
   }
-  .muted-inline,
   .note {
     color: var(--muted);
   }

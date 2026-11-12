@@ -127,9 +127,11 @@ a {
   color: var(--brand);
 }
 
-/* Form fields: selects and date inputs. */
+/* Form fields: selects, text, date and month inputs; and the error line under a field. */
 select,
-input[type="date"] {
+input[type="text"],
+input[type="date"],
+input[type="month"] {
   width: 100%;
   min-height: 44px;
   padding: 0 12px;
@@ -138,6 +140,15 @@ input[type="date"] {
   background: var(--surface);
   color: var(--ink);
   font-size: 16px;
+}
+.error-text {
+  margin: 8px 0 0;
+  color: var(--danger);
+  font-size: 14px;
+}
+/* Secondary words inside a line of ink text. */
+.muted-inline {
+  color: var(--muted);
 }
 
 /* Text for screen readers only. */

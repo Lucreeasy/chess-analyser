@@ -1,4 +1,5 @@
 import { isValidUsername } from "./chesscom/parsing.ts";
+import { DEPTH_PRESETS } from "./analysisQueue/depthPresets.ts";
 
 /** Settings that affect import and analysis. */
 
@@ -15,7 +16,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = { usernames: [], depthPreset: "standard", autoAnalyse: true, autoSyncHours: 6 };
 export const AUTO_SYNC_HOURS = [0, 1, 3, 6, 12, 24];
 
-const DEPTH_PRESETS: readonly DepthPreset[] = ["quick", "standard", "deep"];
+export const MAX_USERNAMES = 10;
 
 export type ValidateSettingsResult = { ok: true; settings: Settings } | { ok: false; message: string };
 
@@ -44,7 +45,7 @@ export function validateSettingsUpdate(body: unknown, current: Settings): Valida
         return { ok: false, message: `"${name.slice(0, 40)}" is not a chess.com username (3-25 letters, digits, "_" or "-")` };
       }
     }
-    if (deduped.length > 10) return { ok: false, message: "at most 10 usernames" };
+    if (deduped.length > MAX_USERNAMES) return { ok: false, message: `at most ${MAX_USERNAMES} usernames` };
     usernames = deduped;
   }
 
