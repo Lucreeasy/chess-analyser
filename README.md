@@ -4,6 +4,8 @@ Import your chess.com games, analyse them with Stockfish, review them move by mo
 play, and train puzzles made from your own mistakes. Runs entirely on your own machine: no accounts, no
 cloud sync, nothing leaves it except requests to chess.com's public API.
 
+![The review screen: board with the engine's best move as an arrow, the explanation of the move, the evaluation graph and the classified move list](docs/screenshot.png)
+
 **Stack:** one TypeScript codebase — a Node.js server (SQLite storage, a Stockfish engine driven over UCI)
 and a Svelte + Vite frontend.
 
