@@ -65,12 +65,8 @@ function row(family: string, colour: Colour, games: UsedGame[]): OpeningRow {
 }
 
 export function openings(used: UsedGame[]): Openings {
-  const groups = new Map<string, UsedGame[]>();
-  for (const u of used) {
-    if (u.game.openingFamily === undefined) continue;
-    const key = `${u.me}:${u.game.openingFamily}`;
-    groups.set(key, [...(groups.get(key) ?? []), u]);
-  }
+  const named = used.filter((u) => u.game.openingFamily !== undefined);
+  const groups = Map.groupBy(named, (u) => `${u.me}:${u.game.openingFamily}`);
   const rows = [...groups.values()]
     .map((games) => row(games[0].game.openingFamily!, games[0].me, games))
     .sort((a, b) => b.games.length - a.games.length || (a.family < b.family ? -1 : a.family > b.family ? 1 : 0));

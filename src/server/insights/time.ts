@@ -30,11 +30,8 @@ export function timeStats(used: UsedGame[]): TimeStats {
   const timed = moves.filter((m) => m.timeSpentMs !== undefined);
   const seconds = (ms: (number | undefined)[]) => mean(ms.map((t) => t! / 1000));
 
-  const byNumber = new Map<number, number[]>();
-  for (const m of timed) {
-    const move = Math.ceil(m.ply / 2);
-    if (move <= MAX_MOVE_NUMBER) byNumber.set(move, [...(byNumber.get(move) ?? []), m.timeSpentMs!]);
-  }
+  const moveNumber = (ply: number) => Math.ceil(ply / 2);
+  const byNumber = Map.groupBy(timed.filter((m) => moveNumber(m.ply) <= MAX_MOVE_NUMBER), (m) => moveNumber(m.ply));
 
   const inTrouble = moves.filter((m) => m.inTimeTrouble === true);
   const notInTrouble = moves.filter((m) => m.inTimeTrouble === false);
@@ -48,7 +45,7 @@ export function timeStats(used: UsedGame[]): TimeStats {
     secondsPerMove: seconds(timed.map((m) => m.timeSpentMs)),
     secondsPerMoveEarly: seconds(timed.filter((m) => m.ply <= EARLY_PLIES).map((m) => m.timeSpentMs)),
     under5s: share(timed.filter((m) => m.timeSpentMs! < QUICK_MS).length, timed.length),
-    byMoveNumber: [...byNumber.entries()].sort(([a], [b]) => a - b).map(([move, ms]) => ({ move, seconds: seconds(ms) })),
+    byMoveNumber: [...byNumber.entries()].sort(([a], [b]) => a - b).map(([move, ms]) => ({ move, seconds: seconds(ms.map((m) => m.timeSpentMs)) })),
     gamesInTrouble: share(clocked.filter((u) => myMoves(u).some((m) => m.inTimeTrouble)).length, clocked.length),
     troubleBlunders,
     normalBlunders,
