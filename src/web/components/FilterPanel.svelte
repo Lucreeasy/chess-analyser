@@ -203,35 +203,6 @@
     max-width: 448px;
     margin-top: 12px;
   }
-  .segmented {
-    display: flex;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .segment {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 44px;
-    font-size: 15px;
-    cursor: pointer;
-    border-right: 1px solid var(--line);
-  }
-  .segment:last-child {
-    border-right: none;
-  }
-  .segment.selected {
-    background: color-mix(in srgb, var(--brand) 16%, var(--surface));
-    font-weight: 600;
-    box-shadow: inset 0 -3px 0 var(--brand);
-  }
-  .segment input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
   .clear {
     min-height: 44px;
     border: 1px solid var(--line);
