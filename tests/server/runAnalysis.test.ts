@@ -23,7 +23,7 @@ test("runAnalysis replays a PGN, asks the engine for each position, and caches t
   }
 });
 
-// docs/02-ANALYSIS-SPEC.md section 14: the clock comments of the stored PGN reach the per-move clock data.
+// The clock comments of the stored PGN reach the per-move clock data.
 test("runAnalysis reads each move's [%clk] comment into clock, time spent and time trouble", async () => {
   const db = openDb(":memory:");
   const engine = new UciEngine("node", [FAKE_ENGINE]);
@@ -41,7 +41,7 @@ test("runAnalysis reads each move's [%clk] comment into clock, time spent and ti
   }
 });
 
-// docs/03-IMPORT-SPEC.md section 5.6: progress/plyEval events, one per position, ply 0 = start position.
+// Progress/plyEval events, one per position, ply 0 = start position.
 test("onPosition is called once per position, ply 0 through plyCount", async () => {
   const db = openDb(":memory:");
   const engine = new UciEngine("node", [FAKE_ENGINE]);
@@ -63,7 +63,7 @@ test("onPosition is called once per position, ply 0 through plyCount", async () 
   }
 });
 
-// docs/03-IMPORT-SPEC.md section 5.8: pause aborts the running game; no partial result is saved.
+// Pause aborts the running game; no partial result is saved.
 test("an already-aborted signal stops analysis before the first engine call", async () => {
   const db = openDb(":memory:");
   const engine = new UciEngine("node", [FAKE_ENGINE]);

@@ -7,7 +7,7 @@ function see(fen: string, square: string): number {
   return staticExchangeLoss(parseSimplifiedBoard(fen), square);
 }
 
-// docs/02-ANALYSIS-SPEC.md 9.3 "Checked examples".
+// "Checked examples".
 test("rook takes an undefended queen: 9", () => {
   // White rook on a1 can take the black queen on a8; nothing recaptures.
   assert.equal(see("q7/8/8/8/8/8/8/R6K b - - 0 1", "a8"), 9);

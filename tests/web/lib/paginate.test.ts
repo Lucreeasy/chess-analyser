@@ -6,7 +6,7 @@ test("PAGE_SIZE is 50", () => {
   assert.equal(PAGE_SIZE, 50);
 });
 
-// docs/06-GAMES-SPEC.md section A4: pages = max(1, ceil(total / 50)).
+// Pages = max(1, ceil(total / 50)).
 test("pageCount: at least 1, even for an empty list", () => {
   assert.equal(pageCount(0), 1);
   assert.equal(pageCount(1), 1);

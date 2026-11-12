@@ -24,7 +24,7 @@ test("nearestPly: rounds and clamps to 0..plyCount", () => {
   assert.equal(nearestPly(1000, 100, 40), 40);
 });
 
-test("sliderValueText: the spec's two exact formats", () => {
+test("sliderValueText: its two exact formats", () => {
   assert.equal(sliderValueText(0, 40, 50), "Start position");
   assert.equal(sliderValueText(12, 40, 54.4), "Move 12, ply 12 of 40, White 54%");
   assert.equal(sliderValueText(12, 40, undefined), "Move 12, ply 12 of 40");

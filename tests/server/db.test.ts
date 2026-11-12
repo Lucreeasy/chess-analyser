@@ -55,7 +55,7 @@ test("updateGames overwrites an already-stored game by id", () => {
   assert.equal(updated.myResult, "win");
 });
 
-// docs/03-IMPORT-SPEC.md section 3.6: a stored ETag is per (username, month).
+// A stored ETag is per (username, month).
 test("stored ETags: get, put (replace) and delete, keyed by username and month", () => {
   const db = openDb(":memory:");
   assert.equal(getStoredEtag(db, "bc_tester", "2026-09"), undefined);

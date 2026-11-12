@@ -102,7 +102,7 @@ test("errorMessage: only present when analysisStatus is error", () => {
   assert.equal(row.errorMessage, "the engine crashed");
 });
 
-test("analysis: a re-analysed game keeps its old analysis while queued/running (docs/06-GAMES-SPEC.md B8)", () => {
+test("analysis: a re-analysed game keeps its old analysis while queued/running", () => {
   const db = openDb(":memory:");
   const g = game({ id: "a", myColour: "w" });
   insertGames(db, [g]);

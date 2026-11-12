@@ -10,7 +10,6 @@ const THIN_BACK_RANK = "rnbqkbnr/pppppppp/8/8/R7/2NBBN2/PPPPPPPP/3QK2R w KQkq - 
 // A bare-bones ending: 2 pieces (rook + knight) left besides the kings.
 const FEW_PIECES = "4k3/8/8/8/8/8/3N4/4KR2 w - - 0 1";
 
-// docs/02-ANALYSIS-SPEC.md section 11.
 test("opening: 14 pieces, full back ranks, within the first 10 plies and in book", () => {
   assert.equal(rawPhase(START, 1, true), "opening");
 });

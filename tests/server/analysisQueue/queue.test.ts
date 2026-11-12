@@ -118,7 +118,7 @@ test("enqueueGames: an error game can be queued again", () => {
   assert.equal(getQueueEntry(db, "a")?.depth, "standard");
 });
 
-// docs/03-IMPORT-SPEC.md section 5.6: a request that adds at least one game to an empty queue starts a new batch.
+// A request that adds at least one game to an empty queue starts a new batch.
 test("enqueueGames: adding to an empty queue resets the done counter", () => {
   const db = openDb(":memory:");
   insertGames(db, [game({ id: "a" }), game({ id: "b" }), game({ id: "c" })]);
@@ -143,7 +143,7 @@ test("enqueueGames: nothing actually queued does not reset the done counter", ()
   assert.equal(getQueueState(db).done, 1);
 });
 
-// docs/03-IMPORT-SPEC.md section 5.2: every import that stores new games queues exactly those, bulk, at the default preset.
+// Every import that stores new games queues exactly those, bulk, at the default preset.
 test("autoQueueNewGames: queues at the saved default depth, not urgent, not forced", () => {
   const db = openDb(":memory:");
   insertGames(db, [game({ id: "a" })]);

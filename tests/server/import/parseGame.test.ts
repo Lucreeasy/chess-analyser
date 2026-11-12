@@ -13,7 +13,7 @@ function parseFile(name: string) {
   return splitIntoGames(text).map((g) => parseGame(g, "file", ["bc_tester"], NOW));
 }
 
-// docs/03-IMPORT-SPEC.md section 8, acceptance scenario 1: every sample file, concatenated.
+// Every sample file, concatenated.
 test("every reference/pgn-samples file together: total 52, new 49, duplicates 2, failed 1", () => {
   const files = readdirSync(SAMPLES_DIR).filter((f) => f.endsWith(".pgn")).sort();
   let total = 0;

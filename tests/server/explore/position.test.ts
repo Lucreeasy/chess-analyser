@@ -63,7 +63,7 @@ test("applyMove: an illegal move or an illegal starting position returns ok: fal
   assert.equal(applyMove("not a fen", "e2e4").ok, false);
 });
 
-test("explorePositionError: undefined for a legal position, a message in the spec's style otherwise", () => {
+test("explorePositionError: undefined for a legal position, an invalid-FEN-style message otherwise", () => {
   assert.equal(explorePositionError(START), undefined);
   assert.match(explorePositionError("not a fen")!, /^invalid FEN:/);
   assert.match(explorePositionError("4q3/8/8/8/8/8/8/4K2k b - - 0 1")!, /^invalid FEN:.*in check/);

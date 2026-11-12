@@ -24,7 +24,7 @@ function fakeFetch(byUrlFragment: Record<string, FakeResponse>) {
   };
 }
 
-// docs/03-IMPORT-SPEC.md section 5.2: every import that stores new games queues exactly those, by default.
+// Every import that stores new games queues exactly those, by default.
 test("auto-queueing on import", async (t) => {
   try {
     await withServer(server, async (base) => {

@@ -6,7 +6,7 @@ function close(got: number, expected: number, tolerance = 1e-3): void {
   assert.ok(Math.abs(got - expected) < tolerance, `got ${got}, expected ${expected}`);
 }
 
-// docs/02-ANALYSIS-SPEC.md 18.5, end-to-end: Scholar's mate, my colour White.
+// End-to-end: Scholar's mate, my colour White.
 // prettier-ignore
 const FENS = [
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -41,7 +41,7 @@ const input: AnalyseGameInput = {
   myColour: "w",
 };
 
-test("per-move classes, tags and Win%/accuracy match the spec's table", () => {
+test("per-move classes, tags and Win%/accuracy match the reference table", () => {
   const { moves } = analyseGame(input);
   assert.equal(moves.length, 7);
 
@@ -50,7 +50,7 @@ test("per-move classes, tags and Win%/accuracy match the spec's table", () => {
     ["book", "", 52.7588, 53.6754, 0.0092, 96.963],
     ["book", "", 53.6754, 52.2997, 0.0138, 95.001],
     // Not "book": docs/OPEN-QUESTIONS.md #5 - this position is not a key in reference/data/openings.json,
-    // even though the spec's prose says it is. Same accuracy either way (the label doesn't affect EP loss).
+    // even though the worked example's prose says it is. Same accuracy either way (the label doesn't affect EP loss).
     ["best", "", 52.2997, 52.4834, 0.0018, 100.0],
     ["excellent", "", 52.4834, 50.9204, 0.0156, 94.2123],
     ["blunder", "allowed_mate", 50.9204, 97.5447, 0.4662, 11.3796],
@@ -70,7 +70,7 @@ test("per-move classes, tags and Win%/accuracy match the spec's table", () => {
   }
 });
 
-test("engineLineText: bestLine's first plies as move text, from fenBefore (docs/06-GAMES-SPEC.md B7)", () => {
+test("engineLineText: bestLine's first plies as move text, from fenBefore", () => {
   const { moves } = analyseGame(input);
   assert.equal(moves[0]!.engineLineText, "1. e4 e5"); // from the start position, White to move
   assert.equal(moves[6]!.engineLineText, "4. Qxf7#"); // mating line, one ply only
@@ -99,7 +99,7 @@ test("per-game summary: accuracy, counts, phase accuracy, max/min EP", () => {
   close(summary.minEp.b, 0);
 });
 
-test("key moments: plies 3, 5 and 6 with the spec's exact sentences", () => {
+test("key moments: plies 3, 5 and 6 with their exact sentences", () => {
   const { summary } = analyseGame(input);
   assert.deepEqual(summary.keyMoments.map((k) => k.ply), [3, 5, 6]);
   assert.equal(summary.keyMoments[0].sentence, "You played Bc4 which cost 1 points of winning chances; best was Nf3");

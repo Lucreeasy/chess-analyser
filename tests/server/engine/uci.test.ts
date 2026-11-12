@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseInfoLine, parseBestmoveLine, reduceInfoLines, type ParsedInfo } from "../../../src/server/engine/uci.ts";
 
-// docs/02-ANALYSIS-SPEC.md section 2.4.
 test("parseInfoLine: a normal cp line", () => {
   const info = parseInfoLine("info depth 10 seldepth 12 multipv 1 score cp 30 nodes 1000 nps 50000 pv e2e4 e7e5");
   assert.deepEqual(info, { depth: 10, multipv: 1, cp: 30, mate: undefined, pv: ["e2e4", "e7e5"] });

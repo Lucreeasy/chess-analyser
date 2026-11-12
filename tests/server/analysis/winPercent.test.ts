@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { winPercentFromCp, winPercentOfLine, isForcedMateFor, cpFromWinPercent } from "../../../src/server/analysis/winPercent.ts";
 
-// docs/02-ANALYSIS-SPEC.md 18.1, White POV.
-test("Win% reference table (section 18.1)", () => {
+// White POV.
+test("Win% reference table", () => {
   const cases: Array<[number, number]> = [
     [-1000, 2.455256],
     [-500, 13.692834],
@@ -47,7 +47,7 @@ test("a line with neither cp nor mate counts as 0 cp (Win% 50)", () => {
   assert.equal(winPercentOfLine({}), 50);
 });
 
-// docs/06-GAMES-SPEC.md section B4: the eval bar's score text for the last ply recovers cp by inverting the curve.
+// The eval bar's score text for the last ply recovers cp by inverting the curve.
 test("cpFromWinPercent: inverts winPercentFromCp", () => {
   for (const cp of [-900, -500, -100, 0, 50, 300, 900]) {
     assert.ok(Math.abs(cpFromWinPercent(winPercentFromCp(cp)) - cp) < 0.5);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * A scripted fake UCI engine for tests (NFR-5): no real chess, just the
+ * A scripted fake UCI engine for tests: no real chess, just the
  * handshake and canned output for whatever position it is asked about.
  */
 import { createInterface } from "node:readline";

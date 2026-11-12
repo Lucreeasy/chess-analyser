@@ -95,7 +95,7 @@
 
   const filtersActive = $derived(query !== "");
 
-  // Section 3.1: the filter panel edits the address, which drives the request.
+  // The filter panel edits the address, which drives the request.
   const filters = $derived(filtersFromQuery(query));
   const filterCount = $derived(activeFilterCount(filters));
   let showFilters = $state(false);
@@ -106,7 +106,7 @@
     navigate(`/insights${params.size ? `?${params}` : ""}`);
   }
 
-  // Section 4.1: the count line and, while the default range is in use, the line explaining it.
+  // The count line and, while the default range is in use, the line explaining it.
   const countLine = $derived.by(() => {
     if (!data) return "";
     const base = `${plural(data.analysed, "analysed game")}${data.analysed !== data.gamesTotal ? ` of ${thousands(data.gamesTotal)} matching` : ""}`;
@@ -121,7 +121,7 @@
     return "Showing all your analysed games (fewer than 30 so far).";
   });
 
-  // Section 2.1: the not-ready card.
+  // The not-ready card.
   const progress = $derived(data ? Math.min(100, (data.analysed / 20) * 100) : 0);
   const queueLine = $derived.by(() => {
     const status = queue.status;
@@ -204,10 +204,10 @@
   {:else}
     {@const o = data.overview}
     {@const time = data.time}
-    <!-- Section 6: the error bars of the three phases share one scale. -->
+    <!-- The error bars of the three phases share one scale. -->
     {@const errorScale = Math.max(10, ...ALL_PHASES.map((p) => o.errorsByPhase[p].all.value ?? 0))}
     {@const link = (key: string, label: string, exact = false) => drillLink(data.lists[key], label, data.filters, exact)}
-    <!-- Section 16: jump buttons that scroll a section's heading to the top and focus it. -->
+    <!-- Jump buttons that scroll a section's heading to the top and focus it. -->
     <nav class="jumps" aria-label="Insights sections">
       {#each JUMPS as [id, text] (id)}
         {#if id !== "trend" || data.trend.length > 0}
@@ -316,7 +316,6 @@
       <section id="time" class="card">
         <h2 tabindex="-1">Time management</h2>
         <p class="muted">Where your clock goes, and what happens to your moves when you run short.</p>
-        <!-- Section 8.2. -->
         {#if time.clocked === 0}
           <p class="inset cols">
             None of the games in this selection have clock times (daily games and PGNs without clock comments), so the time statistics are hidden.
@@ -399,7 +398,7 @@
       <section id="conversion" class="card">
         <h2 tabindex="-1">Conversion & resilience</h2>
         <p class="muted">Do you finish off winning positions, and do you save the ones that went wrong?</p>
-        <!-- Section 9.2: two gauges with the same layout. -->
+        <!-- Two gauges with the same layout. -->
         <div class="cols">
           {#each GAUGES as g (g.key)}
             {@const s = data[g.key]}
@@ -439,7 +438,7 @@
             </div>
           {/each}
         </div>
-        <!-- Section 9.3: tilt, only when both sides have a value. -->
+        <!-- Tilt, only when both sides have a value. -->
         {#if data.tilt.afterLoss.value !== undefined && data.tilt.afterWin.value !== undefined}
           {@const t = data.tilt}
           {@const delta = t.afterLoss.value - t.afterWin.value}
@@ -463,7 +462,7 @@
         {#if o.tactics.positional.n === 0}
           <p class="inset rows">No errors in this selection.</p>
         {:else}
-          <!-- Section 14: by count, ties in tag order (the sort is stable); bars scaled to the largest share. -->
+          <!-- By count, ties in tag order (the sort is stable); bars scaled to the largest share. -->
           {@const tags = [...ALL_TAGS].sort((a, b) => (o.tactics[b].count ?? 0) - (o.tactics[a].count ?? 0))}
           {@const largest = Math.max(0.01, ...tags.map((t) => o.tactics[t].value ?? 0))}
           <ul class="rows">

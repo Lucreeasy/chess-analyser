@@ -23,7 +23,7 @@ function replay(gameText: string, fullReplay: boolean) {
   return replayGame(start.fen, moves, fullReplay);
 }
 
-// docs/03-IMPORT-SPEC.md reference/pgn-samples/README.md.
+// The sample files' README.
 test("malformed.pgn: game 2 fails at import with the exact message, its neighbours are fine", () => {
   const games = gamesOf("malformed.pgn");
   assert.equal(games.length, 3);
@@ -56,7 +56,7 @@ test("late-illegal.pgn: game 1 is fine at import and under full replay", () => {
 test("non-standard-start.pgn: move numbers follow the FEN's own counter, Black to move first", () => {
   const games = gamesOf("non-standard-start.pgn");
   assert.equal(games.length, 2);
-  // Game 2 starts at move 9, Black to move (section 2.6/2.18); confirm via resolveStartPosition.
+  // Game 2 starts at move 9, Black to move; confirm via resolveStartPosition.
   const tags = extractTags(games[1]);
   const start = resolveStartPosition(tags);
   assert.equal(start.failure, undefined);

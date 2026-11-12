@@ -45,7 +45,6 @@ function fakeAnalysis(): GameAnalysis {
   return { moves: [], summary: {} as GameAnalysis["summary"] };
 }
 
-// docs/03-IMPORT-SPEC.md section 5.10.
 test("deleteGames removes the game, its analysis, queue entry and error; returns how many were stored", () => {
   const db = openDb(":memory:");
   insertGames(db, [game({ id: "a" }), game({ id: "b" }), game({ id: "c" })]);

@@ -24,7 +24,7 @@ test("normalizeText: strips a leading BOM and normalises CRLF/CR/LF", () => {
   assert.equal(normalizeText("﻿a\r\nb\rc\nd"), "a\nb\nc\nd");
 });
 
-// docs/03-IMPORT-SPEC.md section 8, acceptance scenario 1 and the sample README's per-file counts.
+// The sample README's per-file counts.
 test("loose-format.pgn: 4 games, despite sloppy layout", () => {
   const games = splitIntoGames(sample("loose-format.pgn"));
   assert.equal(games.length, 4);

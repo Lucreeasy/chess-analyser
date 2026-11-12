@@ -23,7 +23,7 @@ test("sanLineOf: numbers only White's plies, caps at maxPlies", () => {
   assert.equal(sanLineOf(start, ["e2e4", "e7e5", "g1f3"], 6), "1. e4 e5 2. Nf3");
   assert.equal(sanLineOf(start, ["e2e4", "e7e5", "g1f3"], 1), "1. e4");
 
-  // A line starting on Black's move (docs/06-GAMES-SPEC.md B7: "9... Nb8 10. d4").
+  // A line starting on Black's move ("9... Nb8 10. d4").
   const afterE4Black = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
   assert.equal(sanLineOf(afterE4Black, ["g8f6", "b1c3"], 6), "1... Nf6 2. Nc3");
 });

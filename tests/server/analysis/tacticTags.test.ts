@@ -9,7 +9,7 @@ function mateLine(mate: number, pv: string[]): EngineLineWithPv {
   return { mate, pv };
 }
 
-// docs/02-ANALYSIS-SPEC.md 18.4 "Tag rule boundaries", White to move throughout.
+// "Tag rule boundaries", White to move throughout.
 test("T1: allowed_mate, checked before missed_mate", () => {
   const tag = tacticTag({
     mover: "w",
@@ -130,7 +130,7 @@ test("T10: positional", () => {
   assert.equal(tag, "positional");
 });
 
-// docs/02-ANALYSIS-SPEC.md 18.4 main table, example E7: none of T1-T11 actually fires hung_piece.
+// Main table, example E7: none of T1-T11 actually fires hung_piece.
 test("E7: hung_piece - the queen is left where a knight wins it", () => {
   const tag = tacticTag({
     mover: "w",

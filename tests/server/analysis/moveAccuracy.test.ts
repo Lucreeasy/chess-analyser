@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { moveAccuracy } from "../../../src/server/analysis/moveAccuracy.ts";
 
-// docs/02-ANALYSIS-SPEC.md 18.2, grid of mover Win% before/after, bonus on.
-test("move accuracy grid (section 18.2)", () => {
+// Grid of mover Win% before/after, bonus on.
+test("move accuracy grid", () => {
   const grid: Record<number, Record<number, number>> = {
     100: { 100: 100.0, 90: 64.58, 75: 32.57, 60: 15.91, 50: 9.53, 40: 5.4, 25: 1.77, 10: 0.0, 0: 0.0 },
     90: { 100: 100.0, 90: 100.0, 75: 51.52, 60: 25.77, 50: 15.91, 40: 9.53, 25: 3.92, 10: 1.0, 0: 0.0 },
@@ -25,7 +25,7 @@ test("move accuracy grid (section 18.2)", () => {
   }
 });
 
-test("accuracy by loss, full precision (section 18.2)", () => {
+test("accuracy by loss, full precision", () => {
   const cases: Array<[number, number]> = [
     [1, 96.60397651008962],
     [5, 80.81529992041436],

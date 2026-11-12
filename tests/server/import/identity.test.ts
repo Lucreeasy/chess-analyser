@@ -16,7 +16,7 @@ test("the Link tag, trimmed, is the id when present", () => {
   assert.equal(gameId(tags, []), "https://www.chess.com/game/live/130000197975");
 });
 
-// docs/03-IMPORT-SPEC.md section 2.13's worked example.
+// The worked example.
 test("worked example: tags B then A, moves e4 e5", () => {
   const tags = new Map([["B", "2"], ["A", "1"]]);
   const moves = [{ raw: "e4" }, { raw: "e5" }];

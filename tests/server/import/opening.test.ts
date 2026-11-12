@@ -9,7 +9,7 @@ function fensOf(sanMoves: string[]): string[] {
   return fens;
 }
 
-// docs/03-IMPORT-SPEC.md section 2.14 examples.
+// Examples.
 test("the Najdorf: ECO B90, matched at the deepest named position (ply 10)", () => {
   const fens = fensOf(["e4", "c5", "Nf3", "d6", "d4", "cxd4", "Nxd4", "Nf6", "Nc3", "a6"]);
   const opening = classifyOpening(fens, true, undefined);

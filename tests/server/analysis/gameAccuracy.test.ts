@@ -6,7 +6,7 @@ function close(got: number, expected: number, tolerance = 1e-6): void {
   assert.ok(Math.abs(got - expected) < tolerance, `got ${got}, expected ${expected}`);
 }
 
-// docs/02-ANALYSIS-SPEC.md 18.6 "Synthetic A": 8 plies, White starts.
+// "Synthetic A": 8 plies, White starts.
 test("Synthetic A: White 48.584310137588204, Black 86.10045751021869", () => {
   const w = [51.8402, 53.6754, 50.9204, 44.4992, 52.7588, 71.5148, 65.9883, 24.8874, 28.4852];
   const result = gameAccuracy(w, "w");

@@ -53,7 +53,7 @@ test("7.1: rows by games descending then family; games without a family are unna
   assert.deepEqual(o.black, []);
 });
 
-test("7.2: Problem needs 8 games, score under 40% and EP @20 under 0.40 (0.41 silent); Strong needs score over 60%", () => {
+test("flags: Problem needs 8 games, score under 40% and EP @20 under 0.40 (0.41 silent); Strong needs score over 60%", () => {
   const rows = (results: PersonalResult[], win20: number) =>
     openings(results.map((r, i) => game(`g${i}`, "Fam", r, 80, win20))).white[0];
   const losing: PersonalResult[] = ["win", "win", "win", "loss", "loss", "loss", "loss", "loss"]; // 37.5%

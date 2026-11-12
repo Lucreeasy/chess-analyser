@@ -50,7 +50,7 @@ test("force: must be a boolean when present", () => {
   assert.deepEqual(validateQueueRequest({ gameIds: ["a"], force: "yes" }), { ok: false, message: '"force" must be a boolean' });
 });
 
-// docs/03-IMPORT-SPEC.md section 5.5: "Re-analyse deeper" implies force on.
+// "Re-analyse deeper" implies force on.
 test("deeper: must be a boolean when present, and implies force", () => {
   const result = validateQueueRequest({ gameIds: ["a"], deeper: true });
   assert.equal(result.ok, true);
@@ -72,7 +72,7 @@ test("unknownIdsMessage: count and the first three ids joined by ', '", () => {
   assert.equal(unknownIdsMessage(["a", "b", "c", "d"]), "unknown game ids (4): a, b, c");
 });
 
-// docs/03-IMPORT-SPEC.md section 5.10: deleting games, field "ids" (not "gameIds").
+// Deleting games, field "ids" (not "gameIds").
 test("validateDeleteRequest: a valid request is de-duplicated", () => {
   assert.deepEqual(validateDeleteRequest({ ids: ["a", "a", "b"] }), { ok: true, ids: ["a", "b"] });
 });

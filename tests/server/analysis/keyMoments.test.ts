@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { selectKeyMoments } from "../../../src/server/analysis/keyMoments.ts";
 
-// docs/02-ANALYSIS-SPEC.md 18.5 Scholar's mate: only plies 3 and 5 fill up to 3 (ply 2's swing 0.92 < 1).
+// Scholar's mate: only plies 3 and 5 fill up to 3 (ply 2's swing 0.92 < 1).
 test("Scholar's mate: picks plies 3, 5, 6 in game order", () => {
   const picked = selectKeyMoments([
     { ply: 1, swing: 0 },

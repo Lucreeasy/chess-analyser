@@ -24,7 +24,7 @@ test("drives the handshake and a search against a scripted fake engine", async (
   }
 });
 
-// docs/01-REQUIREMENTS.md ANA-6: a missing engine must fail with a clear message, nothing else broken.
+// A missing engine must fail with a clear message, nothing else broken.
 test("start() rejects with a clear message when the engine program does not exist", async () => {
   const engine = new UciEngine("/no/such/engine-binary");
   await assert.rejects(engine.start({ threads: 1, hashMb: 16 }), /engine unavailable/);

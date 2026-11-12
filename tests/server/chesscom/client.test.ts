@@ -22,7 +22,7 @@ function fastPacer(): RequestPacer {
 }
 
 // No real waiting anywhere (retry backoff or the per-request abort timer), so these tests run instantly
-// while still exercising the real retry counts and the spec's exact wording.
+// while still exercising the real retry counts and the exact wording of the messages.
 function fastOptions(overrides: FetchMonthOptions = {}): FetchMonthOptions {
   return { timeoutMs: 5, wait: async () => {}, ...overrides };
 }
@@ -159,7 +159,6 @@ test("a request that never answers is reported as a timeout", async () => {
   assert.equal(result.message, "chess.com did not answer within 30 s");
 });
 
-// fetchArchiveMonths: section 3.3-3.4.
 test("fetchArchiveMonths: 200 with an archive list returns sorted, deduped months", async () => {
   const fetchImpl = async () =>
     response(200, JSON.stringify({ archives: ["https://api.chess.com/pub/player/bc_tester/games/2026/03"] }));

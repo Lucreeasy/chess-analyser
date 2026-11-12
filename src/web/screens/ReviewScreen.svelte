@@ -91,7 +91,7 @@
   const currentPly = $derived(clampPly(ply, plyCount));
 
   // The ply replaces, not adds, a history entry.
-  // Section B10: jumping to a move (graph, move list, key moment) ends exploring.
+  // Jumping to a move (graph, move list, key moment) ends exploring.
   function jumpTo(p: number): void {
     playing = false;
     stopExploring();
@@ -220,7 +220,7 @@
   });
 
   // Win% for ply p = the stored "after" Win% of ply p (ply 0 = "before" of the first move).
-  // Section B8: before the stored analysis arrives, the same array is filled from live per-ply values instead, with
+  // Before the stored analysis arrives, the same array is filled from live per-ply values instead, with
   // gaps where none has arrived yet, so the eval bar and graph fill in as the engine goes.
   const winPercents = $derived.by(() => {
     if (!game) return [];

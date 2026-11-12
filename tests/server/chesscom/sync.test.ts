@@ -180,7 +180,7 @@ function fakeEtags(initial: Record<string, string> = {}): {
   };
 }
 
-// docs/03-IMPORT-SPEC.md section 3.6: ETags, auto-sync only.
+// ETags, auto-sync only.
 test("etags: a 304 skips the month entirely, no parsing, nothing stored", async () => {
   const fetchImpl = monthFetchImpl({ "2026-09": response(304) });
   const { store, stored } = collector();

@@ -24,7 +24,6 @@ function game(overrides: Partial<GameRow>): GameRow {
   };
 }
 
-// docs/06-GAMES-SPEC.md section A4.
 test("FIRST_DIRECTION: descending for Date/Rating/Accuracy/Blunders, ascending for the rest", () => {
   assert.equal(FIRST_DIRECTION.date, "desc");
   assert.equal(FIRST_DIRECTION.rating, "desc");

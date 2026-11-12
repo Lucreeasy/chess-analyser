@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Chess } from "chess.js";
 import { epdOf, isInBook, lookupOpening, BOOK_DEPTH } from "../../../src/server/analysis/book.ts";
 
-test("BOOK_DEPTH is 36 per docs/02-ANALYSIS-SPEC.md section 7", () => {
+test("BOOK_DEPTH is 36: the deepest named opening position in the book", () => {
   assert.equal(BOOK_DEPTH, 36);
 });
 

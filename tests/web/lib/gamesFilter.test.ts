@@ -24,7 +24,6 @@ function game(overrides: Partial<GameRow>): GameRow {
   };
 }
 
-// docs/06-GAMES-SPEC.md section A5.
 test("search: matches the opponent name, opening name, ECO, case-insensitive substring", () => {
   const g = game({ opponent: "Carol", openingName: "Sicilian Defense: Najdorf", eco: "B90" });
   assert.equal(matchesFilters(g, { ...defaultFilters(), search: "carol" }), true);
@@ -46,7 +45,6 @@ test("search: does not match time class, result, rating or opening family alone"
   assert.equal(matchesFilters(g, { ...defaultFilters(), search: "1500" }), false);
 });
 
-// docs/06-GAMES-SPEC.md section A6.
 test("time class filter: none selected is no filter; otherwise any selected class matches", () => {
   const g = game({ timeClass: "bullet" });
   assert.equal(matchesFilters(g, defaultFilters()), true);
@@ -106,7 +104,7 @@ test("filterGames filters a list", () => {
   assert.deepEqual(result.map((g) => g.id), ["a"]);
 });
 
-// docs/06-GAMES-SPEC.md section A6: active-filter count.
+// Active-filter count.
 test("activeFilterCount: one per category, date range counts once regardless of one or two bounds", () => {
   assert.equal(activeFilterCount(defaultFilters()), 0);
   assert.equal(activeFilterCount({ ...defaultFilters(), timeClasses: new Set(["blitz"]) }), 1);
@@ -126,7 +124,6 @@ test("activeFilterCount: one per category, date range counts once regardless of 
   );
 });
 
-// docs/06-GAMES-SPEC.md section A7.
 test("computeFacets: time classes present, opening families sorted by count desc then name", () => {
   const games = [
     game({ id: "a", timeClass: "blitz", openingFamily: "Sicilian Defense" }),

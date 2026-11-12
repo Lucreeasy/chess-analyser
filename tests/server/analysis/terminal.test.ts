@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { terminalWhiteWinPercent } from "../../../src/server/analysis/terminal.ts";
 
-// docs/02-ANALYSIS-SPEC.md section 2.5.
 test("checkmate: 0 when White is mated, 100 when Black is mated", () => {
   // Scholar's mate final position, Black to move (White just mated Black).
   const blackMated = "r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4";

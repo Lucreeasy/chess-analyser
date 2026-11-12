@@ -47,7 +47,7 @@ test("start: a legal position starts a search; progress then done events fire", 
   assert.equal(events[0]!.type, "exploreProgress");
   assert.equal(events[1]!.type, "exploreDone");
   assert.equal((events[1] as { requestId: string }).requestId, "r1");
-  // docs/06-GAMES-SPEC.md B10: each line also carries its move text, computed from the explored position.
+  // Each line also carries its move text, computed from the explored position.
   assert.equal((events[1] as { lines: { lineText: string }[] }).lines[0]!.lineText, "1. e4");
 });
 

@@ -154,7 +154,7 @@ test("while paused, new games can still be queued and wait", async () => {
   });
 });
 
-// docs/03-IMPORT-SPEC.md section 5.10: deleting a running game aborts it, no error recorded.
+// Deleting a running game aborts it, no error recorded.
 test("abortGame: aborts the running game, not an error; deleting it then stops it for good", async () => {
   await withEngine(async (getEngine) => {
     const db = openDb(":memory:");
@@ -164,7 +164,7 @@ test("abortGame: aborts the running game, not an error; deleting it then stops i
     let abortedOnce = false;
     const worker = new AnalysisWorker(db, getEngine, {
       onEvent: (e) => {
-        // Mirrors the real flow (section 5.10): abort, then delete the game so the
+        // Mirrors the real flow: abort, then delete the game so the
         // worker's loop does not simply pick the same (now-waiting) entry straight back up.
         if (!abortedOnce && e.type === "progress" && e.ply === 0) {
           abortedOnce = true;

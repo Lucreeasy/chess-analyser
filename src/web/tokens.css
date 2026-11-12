@@ -127,7 +127,7 @@ a {
   color: var(--brand);
 }
 
-/* Form fields: selects and date inputs (section 5.2). */
+/* Form fields: selects and date inputs. */
 select,
 input[type="date"] {
   width: 100%;
@@ -198,7 +198,7 @@ label {
   background: var(--surface);
   color: var(--ink);
 }
-/* A small button (section 5.1): less padding and text, still 44 px high. */
+/* A small button: less padding and text, still 44 px high. */
 .small {
   padding: 0 12px;
   font-size: 14px;
@@ -214,7 +214,7 @@ label {
     display: none;
   }
 }
-/* Chips: toggle pills (section 5.3); pressed ones are tinted Brand. */
+/* Chips: toggle pills; pressed ones are tinted Brand. */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -243,7 +243,7 @@ label {
   color: var(--muted);
   font-size: 12px;
 }
-/* Disclosure lines (section 5.17): at least 44 px high, Brand text unless a place says otherwise. */
+/* Disclosure lines: at least 44 px high, Brand text unless a place says otherwise. */
 summary {
   display: flex;
   align-items: center;
@@ -251,7 +251,7 @@ summary {
   color: var(--brand);
   cursor: pointer;
 }
-/* Small embedded tables (section 5.11): 14 px, no wrapper, 1 px row dividers, 64 px number columns. */
+/* Small embedded tables: 14 px, no wrapper, 1 px row dividers, 64 px number columns. */
 .compact {
   width: 100%;
   border-collapse: collapse;
@@ -271,7 +271,7 @@ summary {
   width: 64px;
   text-align: right;
 }
-/* A sortable table header (section 5.11): the column name is a button; the active column is in ink. */
+/* A sortable table header: the column name is a button; the active column is in ink. */
 th[aria-sort] > button {
   display: inline-flex;
   align-items: center;
@@ -308,7 +308,7 @@ button:disabled {
   line-height: 32px;
   font-weight: 600;
 }
-/* Cards (section 5.8); an error card is a card with a Danger border (5.18). */
+/* Cards; an error card is a card with a Danger border. */
 .card,
 .error-card {
   border: 1px solid var(--line);
@@ -320,14 +320,14 @@ button:disabled {
   border-color: var(--danger);
   margin-top: 16px;
 }
-/* An inset panel inside a card (section 5.8). */
+/* An inset panel inside a card. */
 .inset {
   padding: 12px;
   border-radius: 12px;
   background: var(--surface-2);
   font-size: 14px;
 }
-/* A stat tile, and its drill-down cue when it opens the games behind its number (section 5.10). */
+/* A stat tile, and its drill-down cue when it opens the games behind its number. */
 .tile {
   display: flex;
   flex-direction: column;
@@ -349,7 +349,7 @@ button:disabled {
 .tile.drill svg {
   color: var(--brand);
 }
-/* Progress bars (section 5.15): Surface-2 track, Brand fill, 300 ms; each place sets its own height. */
+/* Progress bars: Surface-2 track, Brand fill, 300 ms; each place sets its own height. */
 .progress {
   border-radius: 999px;
   background: var(--surface-2);

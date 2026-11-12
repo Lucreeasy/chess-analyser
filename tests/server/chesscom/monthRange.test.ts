@@ -26,7 +26,7 @@ test("monthsInRange: a range with no available months is empty", () => {
   assert.deepEqual(monthsInRange([], "2026-01", "2026-04"), []);
 });
 
-// docs/03-IMPORT-SPEC.md section 4.2's own examples.
+// The documented examples.
 test("autoSyncMonths: the current month, plus the previous one on the 1st-3rd", () => {
   assert.deepEqual(autoSyncMonths(new Date(Date.UTC(2026, 9, 28))), ["2026-10"]);
   assert.deepEqual(autoSyncMonths(new Date(Date.UTC(2026, 9, 4))), ["2026-10"]);

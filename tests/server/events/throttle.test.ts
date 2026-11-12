@@ -29,7 +29,7 @@ function fakeClock() {
   };
 }
 
-// docs/03-IMPORT-SPEC.md section 5.6: leading-and-trailing smoothing.
+// Leading-and-trailing smoothing.
 test("Throttle: the first push sends immediately", () => {
   const clock = fakeClock();
   const sent: number[] = [];

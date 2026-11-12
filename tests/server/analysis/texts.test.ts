@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildMoveExplanation, buildKeyMomentSentence, annotatedSan } from "../../../src/server/analysis/texts.ts";
 
-// docs/02-ANALYSIS-SPEC.md 15.3 examples.
+// Examples.
 test("move explanation: Blunder with a tag and a differing best move", () => {
   const text = buildMoveExplanation({
     cls: "blunder",
@@ -44,7 +44,7 @@ test("annotatedSan appends the class glyph", () => {
   assert.equal(annotatedSan("e4", "best"), "e4");
 });
 
-// docs/02-ANALYSIS-SPEC.md 13.2 examples.
+// Examples.
 test("key moment: allowed_mate with a known reply", () => {
   const text = buildKeyMomentSentence({
     tag: "allowed_mate",
@@ -82,7 +82,7 @@ test("key moment: generic swing without a known best move drops the clause entir
   assert.equal(text, "You played d4?? which cost 40 points of winning chances");
 });
 
-// docs/02-ANALYSIS-SPEC.md 18.5, Scholar's mate key moments.
+// Scholar's mate key moments.
 test("Scholar's mate: ply 3 and 5 (generic, with best), ply 6 (allowed_mate)", () => {
   assert.equal(
     buildKeyMomentSentence({ mover: "w", myColour: "w", move: "Bc4", bestSan: "Nf3", swing: 1.3757619722840744 }),

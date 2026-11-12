@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { isSacrifice } from "../../../src/server/analysis/sacrifice.ts";
 
-// docs/02-ANALYSIS-SPEC.md 18.4 "Sacrifice test (8.4), mover White".
+// "Sacrifice test, mover White".
 test("queen lost for nothing: a sacrifice by (a)", () => {
   assert.equal(
     isSacrifice("4k3/8/4p3/8/8/8/8/3QK3 w - - 0 1", "d1d5", "w", ["e6d5", "e1e2"]),

@@ -51,7 +51,7 @@ test("ready: every section is present, game arrays become counts", () => {
   assert.equal("reachedGames" in r.conversion, false);
 });
 
-test("section 4: the default range applies unless dates or All time are set; explicit dates win", () => {
+test("default range: it applies unless dates or All time are set; explicit dates win", () => {
   const defaulted = computeInsights(library(25), { filters: {}, allTime: false }, NOW);
   assert.equal(defaulted.defaultRange?.kind, "days"); // 20+ games in the last 30 days
   assert.equal(defaulted.filters.from, Date.UTC(2026, 8, 30)); // start of the UTC day 30 days before NOW
@@ -62,7 +62,7 @@ test("section 4: the default range applies unless dates or All time are set; exp
   assert.equal(computeInsights(library(25), { filters: {}, allTime: true }, NOW).defaultRange, undefined);
 });
 
-test("1,000 seeded analysed games: every section in under 500 ms, all numbers finite (NFR-3)", () => {
+test("1,000 seeded analysed games: every section in under 500 ms, all numbers finite", () => {
   // 50 seeded games repeated 20 times, each round 60 days later, keep the suite fast.
   const seeded = seededGames(50);
   const games = Array.from({ length: 20 }, (_, r) =>

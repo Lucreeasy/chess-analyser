@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { classifyMove, type ClassificationInput, type MoveClass } from "../../../src/server/analysis/classification.ts";
 
-// "Unlisted inputs" per docs/02-ANALYSIS-SPEC.md 18.3: not Book, no line 2, no previous opponent error,
+// "Unlisted inputs": not Book, no line 2, no previous opponent error,
 // not a recapture or promotion, no sacrifice, not the engine move.
 function input(overrides: Partial<ClassificationInput>): ClassificationInput {
   return {
@@ -23,7 +23,7 @@ function input(overrides: Partial<ClassificationInput>): ClassificationInput {
 
 const BEST = { playedUci: "e2e4", engineUci: "e2e4" };
 
-// docs/02-ANALYSIS-SPEC.md 18.3 "Classification from inputs" - all 34 rows.
+// "Classification from inputs" - all 34 rows.
 const cases: Array<[string, Partial<ClassificationInput>, MoveClass]> = [
   ["1: Book; EP 0.60 -> 0.10", { isBook: true, epBefore: 0.6, epAfter: 0.1, epLoss: 0.5 }, "book"],
   ["2: Book; EP 0.60 -> 0.60; sacrifice", { isBook: true, isSacrifice: true }, "book"],

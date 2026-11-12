@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { scoreTextFromLine, scoreTextFromWinPercent } from "../../../src/web/lib/scoreText.ts";
 
-// docs/06-GAMES-SPEC.md section B4's own examples: +0.8, -1.2, 0.0, M3, -M3.
+// The documented examples: +0.8, -1.2, 0.0, M3, -M3.
 test("scoreTextFromLine: pawns with one decimal, sign shown except at 0.0", () => {
   assert.equal(scoreTextFromLine({ cp: 80 }), "+0.8");
   assert.equal(scoreTextFromLine({ cp: -120 }), "-1.2");

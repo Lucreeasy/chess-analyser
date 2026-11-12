@@ -15,7 +15,7 @@ test("queueVisible: hidden when nothing is pending or running, even while paused
   assert.equal(queueVisible(status({ running: { gameId: "g1", ply: 0, totalPlies: 10 } })), true);
 });
 
-// docs/07-UI-SPEC.md section 2.4: current = min(total, done + 1 if a game is running).
+// Current = min(total, done + 1 if a game is running).
 test("currentCount", () => {
   assert.equal(currentCount(status({ total: 5, done: 2 })), 2);
   assert.equal(currentCount(status({ total: 5, done: 2, running: { gameId: "g1", ply: 0, totalPlies: 10 } })), 3);

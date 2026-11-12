@@ -18,7 +18,7 @@ function fakeClock() {
   };
 }
 
-// docs/03-IMPORT-SPEC.md section 3.3: "at least 1 second between requests... measured from the end
+// "at least 1 second between requests... measured from the end
 // of the previous attempt to the start of the next".
 test("the gap is measured from the end of the previous call to the start of the next", async () => {
   const clock = fakeClock();

@@ -13,7 +13,6 @@ import { normalizeTermination } from "../../../src/server/import/termination.ts"
 
 const IMPORT_MOMENT = 1_700_000_000_000;
 
-// docs/03-IMPORT-SPEC.md section 2.8.
 test("playedAt: UTCDate+UTCTime wins over Date+Time", () => {
   const tags = new Map([
     ["UTCDate", "2026.10.12"],
@@ -43,7 +42,6 @@ test("playedAt: no usable date at all falls back to the import moment", () => {
   assert.equal(resolvePlayedAt(new Map(), IMPORT_MOMENT), IMPORT_MOMENT);
 });
 
-// docs/03-IMPORT-SPEC.md section 2.9.
 test("playerName: trimmed, or '?' when missing/empty", () => {
   assert.equal(playerName("  alice  "), "alice");
   assert.equal(playerName(""), "?");
@@ -83,7 +81,7 @@ test("resolveRating: digits only", () => {
   assert.equal(resolveRating(undefined), undefined);
 });
 
-// docs/03-IMPORT-SPEC.md section 2.10 examples.
+// Examples.
 test("classifyTimeControl: the exact example table", () => {
   const cases: Array<[string, string]> = [
     ["60", "bullet"], ["60+1", "bullet"], ["120+1", "bullet"],
@@ -102,7 +100,7 @@ test("timeControlText: trimmed, or '-' when missing/empty", () => {
   assert.equal(timeControlText(undefined), "-");
 });
 
-// docs/03-IMPORT-SPEC.md section 2.12 examples.
+// Examples.
 test("normalizeTermination: the exact examples", () => {
   const cases: Array<[string, string]> = [
     ["luca won by resignation", "resignation"],

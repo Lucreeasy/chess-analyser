@@ -12,7 +12,7 @@ function textsOf(fileName: string): string[] {
   return splitIntoGames(readFileSync(SAMPLES_DIR + fileName, "utf8"));
 }
 
-// docs/03-IMPORT-SPEC.md section 8, acceptance scenarios 2 and 3.
+// Re-importing the same games: duplicates, not new games.
 test("duplicates.pgn: 3 new, 2 duplicates into an empty library", () => {
   const { summary } = importGames(textsOf("duplicates.pgn"), "file", ["bc_tester"], NOW, new Set());
   assert.equal(summary.total, 5);
@@ -61,7 +61,7 @@ test("a doubled multi-timecontrols.pgn: 8 new, 8 duplicates; a third paste adds 
   assert.equal(third.summary.duplicates, 8);
 });
 
-// docs/03-IMPORT-SPEC.md section 3.7: filtered-out games are neither counted nor reported.
+// Filtered-out games are neither counted nor reported.
 test("timeClasses filter: only games of the wanted classes are counted and added", () => {
   const texts = textsOf("multi-timecontrols.pgn"); // blitz, bullet, blitz, rapid, rapid, bullet, blitz, rapid
   const { summary } = importGames(texts, "chesscom_api", ["bc_tester"], NOW, new Set(), new Set(["blitz"]));

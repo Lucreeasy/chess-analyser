@@ -7,7 +7,7 @@ const MAX_LINKED_IDS = 300;
 
 export interface DrillLink {
   href: string;
-  /** The screen-reader sentence (and tooltip) of section 15.2. */
+  /** The screen-reader sentence (and tooltip) of a drill-down link. */
   hint: string;
 }
 
@@ -31,7 +31,7 @@ export function insightsParams(filters: InsightFilters): URLSearchParams {
 }
 
 /**
- * Section 15.2: the link behind a number, or undefined when no games are behind it. `exact` says the filters
+ * The link behind a number, or undefined when no games are behind it. `exact` says the filters
  * describe the list exactly (e.g. "all"); otherwise a filter-only link is marked approximate.
  */
 export function drillLink(list: GameList | undefined, label: string, filters: InsightFilters, exact = false): DrillLink | undefined {

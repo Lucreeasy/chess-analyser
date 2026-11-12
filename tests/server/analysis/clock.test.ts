@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseClockMs, parseTimeControl, deriveClocks } from "../../../src/server/analysis/clock.ts";
 
-// docs/02-ANALYSIS-SPEC.md 14.1 examples.
+// Examples.
 test("parseClockMs reads every supported format, and rejects the rest", () => {
   assert.equal(parseClockMs("[%clk 0:03:00.9]"), 180900);
   assert.equal(parseClockMs("[%clk 0:00:09.95]"), 9950);

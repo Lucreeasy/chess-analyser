@@ -25,7 +25,7 @@ test("isValidMonth: YYYY-MM with month 01-12", () => {
   assert.equal(isValidMonth("not-a-month"), false);
 });
 
-// docs/03-IMPORT-SPEC.md section 8, acceptance scenario 10: a plain number and an HTTP date.
+// A Retry-After as a plain number of seconds and as an HTTP date.
 test("parseRetryAfter: a plain number of seconds", () => {
   assert.equal(parseRetryAfter("7"), 7);
   assert.equal(parseRetryAfter("3600"), 3600);

@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { openDb, getCachedEval, putCachedEval } from "../../src/server/db.ts";
 
-// docs/02-ANALYSIS-SPEC.md section 16.
 test("miss, then a hit, keyed by (EPD, depth, multipv)", () => {
   const db = openDb(":memory:");
   const epd = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -";

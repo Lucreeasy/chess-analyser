@@ -12,7 +12,7 @@ function scripted<T extends AttemptOutcome>(outcomes: T[]): () => Promise<T> {
   return async () => outcomes[Math.min(i++, outcomes.length - 1)];
 }
 
-// docs/03-IMPORT-SPEC.md section 8, acceptance scenario 10.
+// chess.com rate limiting: Retry-After is honoured.
 test("429 with Retry-After: 7 waits 7s, then retries and succeeds", async () => {
   const { wait, waits } = recordingWait();
   const attempt = scripted<AttemptOutcome>([{ kind: "rate_limited", retryAfterSeconds: 7 }, { kind: "ok" }]);
@@ -42,7 +42,6 @@ test("Retry-After: 3600 (over 120s) fails immediately, no wait, one attempt", as
   assert.deepEqual(waits, []);
 });
 
-// docs/03-IMPORT-SPEC.md section 8, acceptance scenario 9.
 test("404/410 is not retried", async () => {
   const { wait, waits } = recordingWait();
   const attempt = scripted<AttemptOutcome>([{ kind: "not_found" }, { kind: "ok" }]);

@@ -6,7 +6,7 @@ process.env.NODE_ENV = "test";
 process.env.ENGINE_PATH = "/no/such/engine-binary";
 const { server } = await import("../../src/server/index.ts");
 
-// docs/01-REQUIREMENTS.md ANA-6/ANA-7: without the engine, games stay un-analysed with a clear
+// Without the engine, games stay un-analysed with a clear
 // message and nothing else breaks.
 test("a missing engine answers with a clear message, and the rest of the app still works", async () => {
   await withServer(server, async (base) => {

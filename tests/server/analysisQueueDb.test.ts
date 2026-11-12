@@ -85,7 +85,7 @@ test("clearRunningFlags puts every running entry back to waiting", () => {
   assert.equal(getQueueEntry(db, "b")?.running, false);
 });
 
-// docs/03-IMPORT-SPEC.md section 5.4: urgent first, then newest game first, then request order, then id.
+// Urgent first, then newest game first, then request order, then id.
 test("listQueueOrdered: urgent before bulk, then newest playedAt, then request order, then game id", () => {
   const db = openDb(":memory:");
   insertGames(db, [

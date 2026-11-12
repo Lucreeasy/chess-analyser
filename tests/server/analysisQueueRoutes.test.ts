@@ -47,7 +47,7 @@ test("the analysis queue HTTP routes", async (t) => {
         });
       });
 
-      // docs/03-IMPORT-SPEC.md section 5.5: "Re-analyse deeper" re-queues a done game (force is implied).
+      // "Re-analyse deeper" re-queues a done game (force is implied).
       await t.test("POST /api/analyse/queue with deeper: true re-queues an already-done game", async () => {
         const deeperRes = await fetch(`${base}/api/analyse/queue`, { method: "POST", body: JSON.stringify({ gameIds, deeper: true }) });
         assert.equal(deeperRes.status, 200);

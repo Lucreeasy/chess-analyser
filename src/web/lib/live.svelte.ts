@@ -3,7 +3,7 @@
  * single connection for the whole app, opened once this module is
  * imported (same module-singleton pattern as router.svelte.ts). SSE
  * never replays history to a new connection, so on the greeting this
- * fetches the current queue status itself, as the spec requires.
+ * fetches the current queue status itself.
  */
 
 import { SvelteMap } from "svelte/reactivity";

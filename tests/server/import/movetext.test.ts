@@ -13,7 +13,6 @@ function raws(text: string): string[] {
   return tokenizeMovetext(text).moves.map((m) => m.raw);
 }
 
-// docs/03-IMPORT-SPEC.md section 2.5.
 test("comments: brace, line (;), and escape lines (%)", () => {
   assert.deepEqual(raws("1. e4 {a comment} e5 ; rest of line\n2. Nf3"), ["e4", "e5", "Nf3"]);
   assert.deepEqual(raws("% this whole line is ignored\n1. e4 e5"), ["e4", "e5"]);
@@ -67,7 +66,7 @@ test("en passant marker e.p. is a separate, dropped token", () => {
   assert.deepEqual(raws("1. e4 d5 2. e5 f5 3. exf6 e.p."), ["e4", "d5", "e5", "f5", "exf6"]);
 });
 
-// Reference files named by section 2.5, checked against reference/pgn-samples/README.md's ply counts.
+// The sample files, checked against their README's ply counts.
 test("annotations.pgn: 41 and 40 plies, despite heavy annotation", () => {
   const games = splitIntoGames(sample("annotations.pgn"));
   assert.equal(games.length, 2);

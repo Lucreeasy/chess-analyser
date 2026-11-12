@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { summaryLine, queuedLine, monthLabel, monthMessage, failedHeading } from "../../../src/web/lib/importReport.ts";
 
-// docs/06-GAMES-SPEC.md section A12.4: only "duplicate" is pluralised.
+// Only "duplicate" is pluralised.
 test("summaryLine: pluralises only duplicate(s)", () => {
   assert.equal(summaryLine(12, 3, 1), "12 new, 3 duplicates, 1 failed");
   assert.equal(summaryLine(5, 0, 0), "5 new, 0 duplicates, 0 failed");

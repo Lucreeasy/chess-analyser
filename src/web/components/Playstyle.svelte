@@ -19,7 +19,7 @@
   const summary = $derived(`Radar chart, 0 to 100: ${axes.map((a) => `${a.short} ${rounded(a)}`).join(", ")}`);
   const label = (key: string) => axes.find((a) => a.key === key)!;
 
-  /** Section 12.7's raw formats in the axis breakdown. */
+  /** The raw value formats in the axis breakdown. */
   function raw(input: Axis["inputs"][number]): string {
     if (input.raw === undefined) return "no data";
     switch (input.unit) {
