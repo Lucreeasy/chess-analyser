@@ -3,15 +3,14 @@
   import Icon from "./Icon.svelte";
 
   const tabs = [
-    { path: "/", label: "Games", icon: "games" as const },
+    { path: "/games", label: "Games", icon: "games" as const },
     { path: "/insights", label: "Insights", icon: "insights" as const },
     { path: "/puzzles", label: "Puzzles", icon: "puzzles" as const },
     { path: "/settings", label: "Settings", icon: "settings" as const },
   ];
 
-  function isActive(path: string): boolean {
-    return path === "/" ? route.path === "/" : route.path.startsWith(path);
-  }
+  /** The Games screen is also the start page "/". */
+  const isActive = (path: string) => (route.path === "/" ? path === "/games" : route.path.startsWith(path));
 </script>
 
 <nav class="top" aria-label="Main">
