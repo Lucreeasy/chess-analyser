@@ -167,6 +167,10 @@
     padding: 0 4px;
     color: var(--muted);
     font-size: 12px;
+    line-height: 1.4;
+  }
+  .input > span:last-child {
+    flex: none; /* the value stays on one line; the label wraps */
   }
   .input strong {
     color: var(--ink);
