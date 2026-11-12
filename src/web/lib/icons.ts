@@ -21,6 +21,8 @@ export const icons: Record<string, string> = {
   filter: `<line x1="4" y1="7" x2="20" y2="7"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="17" x2="14" y2="17"/>`,
   sortAsc: `<polyline points="6,15 12,9 18,15"/>`,
   sortDesc: `<polyline points="6,9 12,15 18,9"/>`,
+  sortBoth: `<polyline points="8,9 12,5 16,9"/><polyline points="8,15 12,19 16,15"/>`,
+  search: `<circle cx="11" cy="11" r="6"/><line x1="16" y1="16" x2="20" y2="20"/>`,
   file: `<path d="M7 3h7l4 4v14H7z"/><polyline points="14,3 14,7 18,7"/>`,
   clipboard: `<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1H9z"/>`,
   user: `<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>`,

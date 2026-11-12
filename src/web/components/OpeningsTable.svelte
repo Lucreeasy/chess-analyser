@@ -67,7 +67,7 @@
             <th scope="col" class:num={c.key !== "family"} aria-sort={c.key === key ? (desc ? "descending" : "ascending") : "none"}>
               <button type="button" onclick={() => sortBy(c.key)}>
                 {c.label}
-                {#if c.key === key}<Icon name={desc ? "sortDesc" : "sortAsc"} size={14} />{/if}
+                <Icon name={c.key !== key ? "sortBoth" : desc ? "sortDesc" : "sortAsc"} size={14} />
               </button>
             </th>
           {/each}

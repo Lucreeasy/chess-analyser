@@ -284,6 +284,7 @@
   {:else if games && filteredGames}
     <div class="toolbar">
       <div class="search-box">
+        <Icon name="search" size={18} />
         <input
           type="search"
           aria-label="Search opponent or opening"
@@ -462,18 +463,21 @@
     display: flex;
     gap: 8px;
   }
+  /* The search icon sits inside the field, 12 px from the left; the text starts at 40 px. */
   .search-box {
+    position: relative;
     flex: 1;
   }
+  .search-box :global(svg) {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
   .search-box input {
-    width: 100%;
-    min-height: 44px;
-    padding: 0 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--surface);
-    color: var(--ink);
-    font-size: 16px;
+    padding-left: 40px;
   }
   .from-insights {
     display: flex;

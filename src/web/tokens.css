@@ -130,6 +130,7 @@ a {
 /* Form fields: selects, text, date and month inputs; and the error line under a field. */
 select,
 input[type="text"],
+input[type="search"],
 input[type="date"],
 input[type="month"] {
   width: 100%;

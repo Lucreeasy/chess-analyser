@@ -77,9 +77,7 @@
         <th scope="col" aria-sort={ariaSort(column.key)}>
           <button type="button" onclick={() => onSort(column.key)}>
             {column.label}
-            {#if column.key === sortKey}
-              <Icon name={sortDirection === "asc" ? "sortAsc" : "sortDesc"} size={14} />
-            {/if}
+            <Icon name={column.key !== sortKey ? "sortBoth" : sortDirection === "asc" ? "sortAsc" : "sortDesc"} size={14} />
           </button>
         </th>
       {/each}
